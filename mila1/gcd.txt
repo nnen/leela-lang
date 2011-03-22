@@ -1,0 +1,14 @@
+{vypocet nejvetsiho spolecneho delitele}
+const a = 84, b = 36;
+var x, y;
+begin
+   x := a; y := b;
+   while x <> y do
+      if x > y then 
+	 x:= x - y
+      else
+	 y:= y - x;
+   write a;
+   write b;
+   write x;
+end
