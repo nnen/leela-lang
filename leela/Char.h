@@ -22,11 +22,14 @@ public:
 	operator char() const;
 	bool operator == (char other) const;
 	
+	bool hasPosition() const;
+	
 	bool isChar() const;
 	bool isLetter() const;
 	bool isDigit() const;
 	bool isWhitespace() const;
 	bool isNewLine() const;
+	bool isDelimiter() const;
 };
 
 #endif /* end of include guard: CHAR_H_SC3455VFFEVB */

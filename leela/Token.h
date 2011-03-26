@@ -32,6 +32,9 @@ public:
 	virtual void reset();
 };
 
+class EndToken : public Token {
+};
+
 class StringToken : public Token {
 protected:
 	string _string;

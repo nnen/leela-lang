@@ -48,7 +48,8 @@ bool Identifier::advance(Char c)
 	case STATE_STARTED:
 		if (c.isLetter() || c.isDigit()) {
 			append(c);
-		} else if (c.isWhitespace()) {
+		} else if (c.isDelimiter()) {
+			_state = STATE_FINISHED;
 			return true;
 		} else {
 			_state = STATE_ERROR;

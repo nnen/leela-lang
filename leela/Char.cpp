@@ -25,12 +25,18 @@ Char::Char(int value)
 Char::Char(Char previous, int value)
 {
 	this->value = value;
-	column = previous.column + 1;
-	line = previous.line;
 	
-	if (isNewLine()) {
+	if (previous.hasPosition()) {
+		column = previous.column + 1;
+		line = previous.line;
+	
+		if (isNewLine()) {
+			column = 0;
+			line++;
+		}
+	} else {
 		column = 0;
-		line++;
+		line = 0;
 	}
 }
 
@@ -44,6 +50,11 @@ bool Char::operator == (char other) const
 {
 	if (!isChar()) return false;
 	return ((char)value == other);
+}
+
+bool Char::hasPosition() const
+{
+	return ((column >= 0) && (line >= 0));
 }
 
 bool Char::isChar() const
@@ -75,5 +86,14 @@ bool Char::isWhitespace() const
 bool Char::isNewLine() const
 {
 	return (value == '\n');
+}
+
+bool Char::isDelimiter() const
+{
+	return (
+		isWhitespace() ||
+		isNewLine()    ||
+		(!isChar())
+	);
 }
 

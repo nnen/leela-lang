@@ -17,43 +17,27 @@
 using namespace std;
 
 class ITokenFactory {
+protected:
+	Token _token;
+
 public:
-	virtual ~ITokenFactory() {}
-	virtual Token* advance(Char c) = 0;
-	virtual void   reset() = 0;
+	virtual      ~ITokenFactory() {}
+	virtual bool  advance(Char c) { return _token.advance(c); }
+	virtual void  reset() = 0;
+	Token         getToken() { return _token; }
 };
 
 template<class T>
 class TokenFactory : public ITokenFactory {
-private:
-	Token * _token;
-
 public:
 	TokenFactory()
 	{
-		_token = (Token*) new T();
+		_token = T();
 	}
 	
-	virtual ~TokenFactory()
-	{
-		delete _token;
-		_token = NULL;
-	}
+	virtual ~TokenFactory() {}
 	
-	virtual Token* advance(Char c)
-	{
-		if (!_token->advance(c))
-			return NULL;
-		
-		Token* result = _token;
-		_token = (Token*) new T();
-		return result;
-	}
-	
-	virtual void reset()
-	{
-		_token->reset();
-	}
+	virtual void reset() { _token = T(); }
 };
 
 /**
@@ -61,18 +45,29 @@ public:
  */
 class Lexer {
 private:
-	istream               * _input;
+	istream                * _input;
+	Char                     _current;
+	vector<Char>             _buffer;
 	vector<ITokenFactory*>   _factories;
 	
-	Char             _current;
-	
-	void             init();
+	void                     init();
+	Char                     peekChar();
+	Char                     getChar();
+	Token                    getToken();
+	void                     resetToken();
 
 public:
 	Lexer(istream *input);
 	virtual ~Lexer();
 	
-	virtual Token& advance();
+	class Input {
+	private:
+		Lexer * _lexer;
+	
+	public:
+		Input(Lexer &lexer);
+		~Input();
+	};
 };
 
 #endif /* end of include guard: LEXER_H_34VDFVER34FVA */
