@@ -8,95 +8,64 @@
 
 #include "Token.h"
 
-/* ************************************************************
- * Token
- **************************************************************/
-
-bool Token::advance(Char c)
+Token::Token()
+	: type(Token::UNKNOWN)
 {
-	switch (_state) {
-	case STATE_FINISHED:
-		return true;
-	case STATE_ERROR:
+}
+
+Token::Token(Token::Type type)
+	: type(type)
+{
+}
+
+Token::Token(Token::Type type, string str)
+{
+	this->type = type;
+	switch (type) {
+	case NUMBER_LITERAL:
+		this->value = Number::parse(str);
+		break;
+	case IDENTIFIER:
+	case STRING_LITERAL:
+		this->value = new String(str);
+		break;
 	default:
-		return false;
+		break;
 	}
 }
 
-void Token::reset()
+Token::Type Token::getDelimiter(Char c)
 {
-	_state = STATE_INIT;
-}
-
-void StringToken::append(Char c)
-{
-	if (!c.isChar()) return;
-	_string += (char)c;
-}
-
-bool Identifier::advance(Char c)
-{
-	switch (_state) {
-	case STATE_INIT:
-		if (c.isLetter()) {
-			append(c);
-			_state = STATE_STARTED;
-		} else if (!c.isWhitespace()) {
-			_state = STATE_ERROR;
-		}
-		break;
-	case STATE_STARTED:
-		if (c.isLetter() || c.isDigit()) {
-			append(c);
-		} else if (c.isDelimiter()) {
-			_state = STATE_FINISHED;
-			return true;
-		} else {
-			_state = STATE_ERROR;
-		}
-		break;
-	default:
-		return Token::advance(c);
+	switch ((char) c) {
+	#define TD(name, ch) case ch: return name;
+	#include "token_types.h"
 	}
-	return false;
+	return UNKNOWN;
 }
 
-const char StringLiteral::QUOTE = '"';
-const char StringLiteral::ESCAPE = '\\';
-
-bool StringLiteral::advance(Char c)
+Token::Type Token::getDelimiter(Char c1, Char c2)
 {
-	switch (_state) {
-	case STATE_INIT:
-		if (c == QUOTE) {
-			_state = STATE_INSIDE;
-		} else if (!c.isWhitespace()) {
-			_state = STATE_ERROR;
-		}
-		break;
-	case STATE_INSIDE:
-		if (c == ESCAPE) {
-			_state = STATE_ESCAPED;
-		} else if (c == QUOTE) {
-			return true;
-		} else {
-			append(c);
-		}
-		break;
-	case STATE_ESCAPED:
-		switch (c.value) {
-		case 'n': append(Char('\n')); break;
-		case 'r': append(Char('\r')); break;
-		case 't': append(Char('\t')); break;
-		default:  append(c);         break;
-		}
-		_state = STATE_INSIDE;
-		break;
-	default:
-		return Token::advance(c);
-	}
-	return false;
+	#define T2(name, ch1, ch2) if (((char)c1 == ch1) && ((char)c2 == ch2)) return name;
+	#include "token_types.h"
+	
+	return UNKNOWN;
 }
 
+const char * Token::getTypeName(Type type)
+{
+	switch (type) {
+	#define T(name)            case name:      return #name;
+	#define TK(name, str)      case KW_##name: return "KW_" #name;
+	#define TD(name, ch)       case name:      return #name;
+	#define T2(name, ch1, ch2) case name:      return #name;
+	#include "token_types.h"
+	default: return "[UNKNOWN TOKEN TYPE]";
+	}
+}
 
+ostream& operator << (ostream& output, const Token& token)
+{
+	output << "Token(" << Token::getTypeName(token.type) << ")";
+	return output;
+}
 

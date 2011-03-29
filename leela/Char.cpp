@@ -64,12 +64,22 @@ bool Char::isChar() const
 
 bool Char::isLetter() const
 {
-	return false;
+	return (
+		(
+			(value >= 'a') &&
+			(value <= 'z')
+		) ||
+		(
+			(value >= 'A') &&
+			(value <= 'Z')
+		)
+	);
 }
 
 bool Char::isDigit() const
 {
-	return false;
+	return ((value >= '0') &&
+	        (value <= '9'));
 }
 
 bool Char::isWhitespace() const
@@ -88,12 +98,42 @@ bool Char::isNewLine() const
 	return (value == '\n');
 }
 
+bool Char::isSingleDelimiter() const
+{
+	return (
+		#define TD(name, ch) (value == (ch)) ||
+		#include "token_types.h"
+		false
+	);
+}
+
+bool Char::isDoubleDelimiter() const
+{
+	return (
+		#define T2(name, ch1, ch2) (value == (ch1)) ||
+		#include "token_types.h"
+		false
+	);
+}
+
 bool Char::isDelimiter() const
 {
+	if (isSingleDelimiter() || isDoubleDelimiter())
+		return true;
+	
 	return (
 		isWhitespace() ||
 		isNewLine()    ||
 		(!isChar())
 	);
+}
+
+std::ostream& operator << (std::ostream& output, const Char& c)
+{
+	if (c.isChar())
+		output << (char)c;
+	else
+		output << "<EOF>";
+	return output;
 }
 

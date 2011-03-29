@@ -10,64 +10,45 @@
 #define TOKEN_H_434634DFBDV
 
 #include <string>
+#include <ostream>
 
 #include "Char.h"
+#include "Value.h"
 
 #define FIRST_STATE (__LINE__ * 100)
 
 using namespace std;
 
-typedef int TokenState;
-
-class Token {
-protected:
-	enum { STATE_INIT = FIRST_STATE, STATE_FINISHED, STATE_ERROR };
-	
-	TokenState _state;
-
+struct Token {
 public:
-	virtual ~Token() { }
+	enum Type {
+		#define T(name) name,
+		#define TK(name, str) KW_##name,
+		#define TD(name, ch) name,
+		#define T2(name, ch1, ch2) name,
+		
+		#include "token_types.h"
+		
+		TYPE_COUNT
+	};
 	
-	virtual bool advance(Char c);
-	virtual void reset();
-};
-
-class EndToken : public Token {
-};
-
-class StringToken : public Token {
-protected:
-	string _string;
-	void append(Char c);
-
-public:
-	virtual ~StringToken() { }
-};
-
-class Identifier : public StringToken {
-protected:
-	enum { STATE_STARTED = FIRST_STATE };
-
-public:
-	virtual ~Identifier() { }
+	Type       type;
+	Ref<Value> value;
 	
-	virtual bool advance(Char c);
-	virtual void reset();
-};
-
-class StringLiteral : public StringToken {
-private:
-	enum { STATE_INSIDE = FIRST_STATE, STATE_ESCAPED };
-
-public:
-	static const char QUOTE;
-	static const char ESCAPE;
+	Token();
+	Token(Type type);
+	Token(Type type, string str);
+	~Token() { }
 	
-	virtual ~StringLiteral() { }
-
-	virtual bool advance(Char c);
-	virtual void reset();
+	static Ref<Value> parseNumber(string str);
+	
+	static Type getDelimiter(Char c);
+	static Type getDelimiter(Char c1, Char c2);
+	
+	static const char * getTypeName(Type type);
 };
+
+ostream& operator << (ostream& output, const Token& token);
 
 #endif /* end of include guard: TOKEN_H_434634DFBDV */
 

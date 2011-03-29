@@ -9,6 +9,8 @@
 #ifndef CHAR_H_SC3455VFFEVB
 #define CHAR_H_SC3455VFFEVB
 
+#include <ostream>
+
 struct Char {
 public:
 	int value;
@@ -29,8 +31,12 @@ public:
 	bool isDigit() const;
 	bool isWhitespace() const;
 	bool isNewLine() const;
+	bool isSingleDelimiter() const;
+	bool isDoubleDelimiter() const;
 	bool isDelimiter() const;
 };
+
+std::ostream& operator << (std::ostream& output, const Char& c);
 
 #endif /* end of include guard: CHAR_H_SC3455VFFEVB */
 

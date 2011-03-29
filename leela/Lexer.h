@@ -14,60 +14,59 @@
 
 #include "Token.h"
 
+#define LEXER_STATES \
+	S( INIT )       \
+	S( IDENT )      \
+	S( NUMBER )     \
+	S( STRING )     \
+	S( ESCAPED )    \
+	S( UNKNOWN )
+
 using namespace std;
-
-class ITokenFactory {
-protected:
-	Token _token;
-
-public:
-	virtual      ~ITokenFactory() {}
-	virtual bool  advance(Char c) { return _token.advance(c); }
-	virtual void  reset() = 0;
-	Token         getToken() { return _token; }
-};
-
-template<class T>
-class TokenFactory : public ITokenFactory {
-public:
-	TokenFactory()
-	{
-		_token = T();
-	}
-	
-	virtual ~TokenFactory() {}
-	
-	virtual void reset() { _token = T(); }
-};
 
 /**
  * Represents the lexical analyzer.
  */
 class Lexer {
 private:
-	istream                * _input;
-	Char                     _current;
-	vector<Char>             _buffer;
-	vector<ITokenFactory*>   _factories;
+	enum LexerState {
+		#define S(name) STATE_##name,
+		LEXER_STATES
+		#undef S
+		
+		STATE_COUNT
+	};
 	
-	void                     init();
-	Char                     peekChar();
-	Char                     getChar();
-	Token                    getToken();
-	void                     resetToken();
+	istream                * _input;
+	LexerState               _state;
+	Char                     _current;
+	Char                     _next;
+	string                   _tokenString;
+	
+	Char                     current();
+	Char                     next();
+	Char                     advance();
+	
+	void                     append(char c) { _tokenString += c; }
+	void                     append() { _tokenString += (char) _current; advance(); }
+	Token                    endToken(Token::Type type)
+	{
+		_state = STATE_INIT;
+		
+		Token token(type, _tokenString);
+		_tokenString = "";
+		return token;
+	}
+	
+	static const char *      getStateName(LexerState state);
 
 public:
 	Lexer(istream *input);
-	virtual ~Lexer();
+	virtual ~Lexer() { }
 	
-	class Input {
-	private:
-		Lexer * _lexer;
+	Token                    getToken();
 	
-	public:
-		Input(Lexer &lexer);
-		~Input();
-	};
+	void                     dumpState(ostream& output);
 };
 
 #endif /* end of include guard: LEXER_H_34VDFVER34FVA */
