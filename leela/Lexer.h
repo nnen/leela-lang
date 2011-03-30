@@ -22,12 +22,14 @@
 	S( ESCAPED )    \
 	S( UNKNOWN )
 
+#include "Object.h"
+
 using namespace std;
 
 /**
  * Represents the lexical analyzer.
  */
-class Lexer {
+class Lexer : public Object {
 private:
 	enum LexerState {
 		#define S(name) STATE_##name,
