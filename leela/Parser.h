@@ -48,6 +48,7 @@ public:
 	
 	ostream&              getOutput() { return *_output; }
 	
+	Token                 current() { return _current; }
 	void                  push(Ref<Symbol> symbol);
 	void                  append(Ref<InputSymbol> symbol);
 	void                  accept();
@@ -73,6 +74,7 @@ public:
 class Symbol : public Object {
 public:
 	Symbol() : Object() {}
+	virtual ~Symbol() {}
 
 	virtual void onPop(Parser& parser) {}
 	virtual void onPush(Parser& parser) {}
@@ -85,6 +87,7 @@ ostream& operator << (ostream& output, const Symbol& symbol);
 class InputSymbol : public Symbol {
 public:
 	InputSymbol() : Symbol() {}
+	virtual ~InputSymbol() {}
 	
 	// virtual vector<Ref<Symbol> > getMatched() { return vector<Ref<Symbol> >(); }
 };
@@ -130,11 +133,15 @@ public:
 class Rule : public InputSymbol {
 public:
 	Rule() : InputSymbol() {}
-
-	virtual vector<Token::Type> getFirsts() { return vector<Token::Type>(); }
-	virtual bool maybeEmpty() { return false; }
+	virtual ~Rule() {}
 	
-	virtual void dump(ostream& output) = 0;
+	virtual void                onPop(Parser& parser) { std::cerr << "ERROR" << std::endl; }
+	
+	virtual vector<Token::Type> getFirsts() { return vector<Token::Type>(); }
+	virtual void                getFollow(vector<Rule> following) {}
+	virtual bool                maybeEmpty() { return false; }
+	
+	virtual void                dump(ostream& output) = 0;
 };
 
 Ref<Rule> operator + (Ref<Rule> a, Ref<Rule> b);
@@ -143,13 +150,13 @@ Ref<Rule> operator | (Ref<Rule> a, Ref<Rule> b);
 class EpsilonRule : public Rule {
 public:
 	EpsilonRule() : Rule() {}
+	virtual ~EpsilonRule() {}
+	
+	virtual void onPop(Parser& parser) {}
 
 	virtual bool maybeEmpty() { return true; }
 
-	virtual void dump(ostream& output)
-	{
-		output << "e";
-	}
+	virtual void dump(ostream& output) { output << "e"; }
 };
 
 class TerminalRule : public Rule {
@@ -158,6 +165,17 @@ private:
 
 public:
 	TerminalRule(Token::Type type) : Rule(), _type(type) {}
+	virtual ~TerminalRule() {}
+	
+	virtual void onPop(Parser& parser)
+	{
+		if (parser.current().type != _type) {
+			std::cerr << "ERROR." << std::endl;
+			// TODO: Finish error handling here.
+		}
+		
+		parser.accept();
+	}
 
 	virtual vector<Token::Type> getFirsts()
 	{
@@ -180,12 +198,13 @@ public:
 	static Ref<Rule> rule;
 
 	NonterminalRule() : Rule() {}
+	virtual ~NonterminalRule() {}
 
 	virtual void onPop(Parser& parser)
 	{
 		parser.startNonterminal(new TNonterminal());
-		parser.push(rule);
 		parser.push(new EndOfNonterminal());
+		parser.push(rule);
 	}
 
 	virtual vector<Token::Type> getFirsts()
@@ -203,11 +222,13 @@ public:
 
 	static void dumpRule(ostream& output)
 	{
+		Ref<Rule> r = rule;
+		
 		output << TNonterminal::getName() << " -> ";
-		rule->dump(output);
+		r->dump(output);
 
 		output << " {FIRST: ";
-		vector<Token::Type> v = rule->getFirsts();
+		vector<Token::Type> v = r->getFirsts();
 		foreach(it, v)
 			output << Token::getTypeName(*it) << ", ";
 		output << "}";
@@ -229,7 +250,6 @@ private:
 public:
 	SemanticAction(Delegate action, string name)
 		: Rule(), _action(action), _name(name) {}
-	
 	virtual ~SemanticAction() {}
 	
 	virtual void onPop(Parser& parser)
@@ -280,11 +300,19 @@ protected:
 
 public:
 	BinaryRule(Ref<Rule> a, Ref<Rule> b) : Rule(), _a(a), _b(b) {}
+	virtual ~BinaryRule() {}
 };
 
 class ChainRule : public BinaryRule {
 public:
 	ChainRule(Ref<Rule> a, Ref<Rule> b) : BinaryRule(a, b) {}
+	virtual ~ChainRule() {}
+
+	virtual void onPop(Parser& parser)
+	{
+		parser.push(_b);
+		parser.push(_a);
+	}
 
 	virtual vector<Token::Type> getFirsts()
 	{
@@ -309,16 +337,37 @@ public:
 };
 
 class ChoiceRule : public BinaryRule {
+private:
+	map<Token::Type, Ref<Rule> > _table;
+
 public:
 	ChoiceRule(Ref<Rule> a, Ref<Rule> b) : BinaryRule(a, b) {}
+	virtual ~ChoiceRule() {}
 
+	virtual void onPop(Parser& parser)
+	{
+		if (_table.count(parser.current().type) < 1)
+			return; // TODO: Handle error.
+		
+		parser.push(_table[parser.current().type]);
+	}
+	
 	virtual vector<Token::Type> getFirsts()
 	{
-		vector<Token::Type> v = _a->getFirsts();
+		vector<Token::Type> v1 = _a->getFirsts();
 		vector<Token::Type> v2 = _b->getFirsts();
 		
+		_table.clear();
+		
+		foreach(it, v1)
+			_table[*it] = _a;
+			
 		foreach(it, v2)
-			v.push_back(*it);
+			_table[*it] = _b;
+		
+		vector<Token::Type> v;
+		v.insert(v.end(), v1.begin(), v1.end());
+		v.insert(v.end(), v2.begin(), v2.end());
 
 		return v;
 	}

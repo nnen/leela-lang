@@ -73,6 +73,7 @@ public:
 	virtual ~Object();
 
 	void claim();
+	void checkHealth() const;
 	static Object* release(Object* obj);
 	
 	static void deleteAll();
@@ -99,28 +100,19 @@ public:
 	Ref()
 	{
 		_ptr = NULL;
+		setPtr(NULL);
 	}
-	
-	/*
-	Ref(T& obj)
-	{
-		_ptr = NULL;
-		setPtr(&obj);
-	}
-	*/
 	
 	Ref(T* ptr)
 	{
 		_ptr = NULL;
 		setPtr(ptr);
-		// *this = ptr;
 	}
 	
 	Ref(const Ref<T>& ref)
 	{
 		_ptr = NULL;
 		setPtr(ref.getPtr());
-		// *this = ref;
 	}
 	
 	~Ref()
@@ -142,7 +134,7 @@ public:
 	operator Ref<U> () const
 	{
 		// Ref<U> r(dynamic_cast<U*>(getPtr()));
-		Ref<U> r((U*)getPtr());
+		Ref<U> r((U*) getPtr());
 		return r;
 	}
 	
@@ -152,26 +144,34 @@ public:
 		return *this;
 	}
 	
-	/*
 	Ref<T>& operator=(const Ref<T>& other)
 	{
-		setPtr(other._ptr);
+		if (this == &other) return *this;
+		
+		setPtr(other.getPtr());
+		return *this;
+	}
+	
+	/*
+	template<class U>
+	Ref<T>& operator=(const Ref<U>& other)
+	{
+		if (this == &other) return *this;
+		
+		// setPtr(dynamic_cast<T*>(other.getPtr()));
+		setPtr((T*) other.getPtr());
 		return *this;
 	}
 	*/
 	
-	template<class U>
-	Ref<T>& operator=(const Ref<U>& other)
-	{
-		// setPtr(dynamic_cast<T*>(other.getPtr()));
-		setPtr((T*)other.getPtr());
-		return *this;
-	}
-	
 	bool isNull() const { return _ptr == NULL; }
 	bool isNotNull() const { return !isNull(); }
 	
-	T* getPtr() const { return _ptr; }
+	T* getPtr() const
+	{
+		if (_ptr != NULL) _ptr->checkHealth();
+		return _ptr;
+	}
 };
 
 #endif /* end of include guard: OBJECT_H_408JFDVEW32 */

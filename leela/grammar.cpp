@@ -21,7 +21,13 @@ void initGrammar()
 	#define STR(str) Ref<Rule>(new StringOutput(str))
 	#define epsilon Ref<Rule>(new EpsilonRule())
 	
-	DEF(Program)         = N(Preamble) + N(CompoundCommand) + STR("STOP");
+	#define DUMP(t) { NonterminalRule<t>::dumpRule(std::cout); std::cout << endl; }
+
+	Ref<Rule> rule       = N(Preamble) + N(CompoundCommand) + STR("STOP");
+	NonterminalRule<Program>::rule = rule;
+
+	// DEF(Program)         = N(Preamble) + N(CompoundCommand) + STR("STOP");
+	// DUMP(Program)
 	
 	DEF(Preamble)        = (N(VarDecl) + N(Preamble)) | epsilon;
 
@@ -38,6 +44,8 @@ void initGrammar()
 	DEF(Assignment)      = T(IDENTIFIER) + T(ASSIGN) + N(Expression);
 
 	DEF(Expression)      = T(NUMBER_LITERAL) | T(STRING_LITERAL);
+
+	#undef DUMP
 	
 	#undef DEF
 	#undef N

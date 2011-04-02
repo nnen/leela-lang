@@ -47,7 +47,7 @@ void Parser::parse(istream& input, ostream& output)
 	
 	_stack.push(NonterminalRule<Program>::rule);
 	
-	while (_stack.size() > 0) {
+	while (!_stack.empty()) {
 		dumpState(output);
 
 		Ref<Symbol> top = _stack.top();
@@ -59,6 +59,8 @@ void Parser::parse(istream& input, ostream& output)
 
 void Parser::push(Ref<Symbol> symbol)
 {
+	std::cout << "PUSHING: " << *symbol << std::endl;
+	
 	_stack.push(symbol);
 	symbol->onPush(*this);
 }
@@ -101,8 +103,14 @@ void Parser::dumpState(ostream& output)
 {
 	output << "PARSER STATE:" << endl;
 	output << "\tTOKEN: " << _current << endl;
-	output << "\tSTACK SIZE:" << _stack.size() << endl;
-	output << "\tTOP OF STACK:" << *(_stack.top()) << endl;
-	output << "\tNONTERMINAL:" << *(_nonterminals.top()) << endl;
+	output << "\tSTACK SIZE: " << _stack.size() << endl;
+	if (_stack.empty())
+		output << "\tTOP OF STACK: - " << endl;
+	else
+		output << "\tTOP OF STACK:" << *(_stack.top()) << endl;
+	if (_nonterminals.empty())
+		output << "\tNONTERMINAL: - " << endl;
+	else
+		output << "\tNONTERMINAL: " << *(_nonterminals.top()) << endl;
 }
 

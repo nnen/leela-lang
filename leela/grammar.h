@@ -20,6 +20,7 @@ using namespace std;
 #define NONTERM(name) class name : public Nonterminal { \
 	public: \
 		name() : Nonterminal() {} \
+		virtual ~name() {} \
 		static const char * getName() { return #name; }
 
 NONTERM(Program) };

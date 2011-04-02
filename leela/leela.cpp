@@ -27,10 +27,12 @@ int main()
 	initGrammar();
 	dumpGrammar(std::cout);
 
+	/*
 	std::cout << std::endl << std::endl << "OUTPUT:" << std::endl;
 
 	Parser parser;
 	parser.parse();
+	*/
 	
 	return 0;
 }

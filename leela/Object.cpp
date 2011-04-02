@@ -16,8 +16,8 @@
 #ifdef assert
 	#undef assert
 #endif
-// #define assert(cond) if (cond) { std::cerr << __FILE__ << ":" << __LINE__ << ": assertion failed (" #cond ")."; throw std::exception(); }
-#define assert(cond)
+#define assert(cond) if (!(cond)) { std::cerr << __FILE__ << ":" << __LINE__ << ": assertion failed (" #cond ")."; throw std::exception(); }
+// #define assert(cond)
 
 Object::RingItem* Object::_ring = NULL;
 
@@ -30,7 +30,7 @@ Object::Object()
 
 Object::~Object()
 {
-	assert(_sentinel == SENTINEL);
+	checkHealth();
 	
 	_refCount = 0;
 	_alive = false;
@@ -39,17 +39,21 @@ Object::~Object()
 
 void Object::claim()
 {
-	assert(_sentinel == SENTINEL);
-	assert(_sentinel != SENTINEL);
-	
+	checkHealth();
 	_refCount++;
+}
+
+void Object::checkHealth() const
+{
+	assert(_refCount >= 0);
+	assert(_alive == true);
+	assert(_sentinel == SENTINEL);
 }
 
 Object* Object::release(Object* obj)
 {
-	assert((obj == NULL) || (obj->_sentinel == SENTINEL));
-	assert((obj == NULL) || (obj->_sentinel != SENTINEL));
-
+	if (obj != NULL) obj->checkHealth();
+	
 	if (--(obj->_refCount) <= 0) {
 		delete obj;
 		return NULL;
