@@ -84,7 +84,8 @@ private:
 		if (_ptr != NULL)
 			Object::release(_ptr);
 		_ptr = value;
-		_ptr->claim();
+		if (_ptr != NULL)
+			_ptr->claim();
 	}
 
 public:
