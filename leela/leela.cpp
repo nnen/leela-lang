@@ -10,9 +10,11 @@
 
 #include "leela.h"
 #include "Lexer.h"
+#include "grammar.h"
 
 int main()
 {
+	/*
 	Lexer lexer(&std::cin);
 	Token token;
 	
@@ -20,6 +22,15 @@ int main()
 		std::cout << token << std::endl;
 	}
 	std::cout << token << std::endl;
+	*/
+
+	initGrammar();
+	dumpGrammar(std::cout);
+
+	std::cout << std::endl << std::endl << "OUTPUT:" << std::endl;
+
+	Parser parser;
+	parser.parse();
 	
 	return 0;
 }

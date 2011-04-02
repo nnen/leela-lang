@@ -1,6 +1,6 @@
 
 CXX      = g++
-CXXFLAGS = -Wall -pedantic -D __DEBUG__
+CXXFLAGS = -Wall -g -pedantic -D __DEBUG__
 
 build:
 	make leela
@@ -13,7 +13,7 @@ rebuild:
 	make clean
 	make build
 
-leela: leela.o Char.o Token.o Lexer.o Object.o Value.o
+leela: leela.o Char.o Token.o Parser.o Lexer.o Object.o Value.o grammar.o
 	$(CXX) $(CXXFLAGS) -o leela $^
 
 #Char.o: Char.h Char.cpp

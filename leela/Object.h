@@ -12,6 +12,7 @@
 #include <cstddef>
 
 #define REF(var, expr) Ref<typeof(expr)> var = (expr)
+#define SENTINEL 1337
 
 class Object {
 private:
@@ -62,7 +63,10 @@ private:
 	};
 	
 	static RingItem* _ring;
+
 	int _refCount;
+	bool _alive;
+	int _sentinel;
 
 public:
 	Object();
@@ -81,6 +85,9 @@ private:
 
 	void setPtr(T* value)
 	{
+		if (_ptr == value)
+			return;
+		
 		if (_ptr != NULL)
 			Object::release(_ptr);
 		_ptr = value;
@@ -94,28 +101,31 @@ public:
 		_ptr = NULL;
 	}
 	
+	/*
 	Ref(T& obj)
 	{
 		_ptr = NULL;
 		setPtr(&obj);
 	}
+	*/
 	
 	Ref(T* ptr)
 	{
 		_ptr = NULL;
-		*this = ptr;
+		setPtr(ptr);
+		// *this = ptr;
 	}
 	
 	Ref(const Ref<T>& ref)
 	{
 		_ptr = NULL;
-		*this = ref;
+		setPtr(ref.getPtr());
+		// *this = ref;
 	}
 	
 	~Ref()
 	{
-		Object::release((Object*) _ptr);
-		_ptr = NULL;
+		setPtr(NULL);
 	}
 	
 	T& operator*()
@@ -131,7 +141,8 @@ public:
 	template<class U>
 	operator Ref<U> () const
 	{
-		Ref<U> r = *this;
+		// Ref<U> r(dynamic_cast<U*>(getPtr()));
+		Ref<U> r((U*)getPtr());
 		return r;
 	}
 	
@@ -141,16 +152,19 @@ public:
 		return *this;
 	}
 	
+	/*
 	Ref<T>& operator=(const Ref<T>& other)
 	{
 		setPtr(other._ptr);
 		return *this;
 	}
+	*/
 	
 	template<class U>
 	Ref<T>& operator=(const Ref<U>& other)
 	{
-		setPtr((T*) other.getPtr());
+		// setPtr(dynamic_cast<T*>(other.getPtr()));
+		setPtr((T*)other.getPtr());
 		return *this;
 	}
 	

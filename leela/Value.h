@@ -38,7 +38,7 @@ public:
 	virtual Ref<Value> multiply(Ref<Value> other);
 	virtual Ref<Value> divide(Ref<Value> other);
 	
-	virtual void call(Interpreter& interpreter);
+	// virtual void call(Interpreter& interpreter);
 };
 
 class Boolean : public Value {
