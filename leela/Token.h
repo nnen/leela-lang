@@ -19,6 +19,23 @@
 
 using namespace std;
 
+struct CharLocation {
+public:
+	int line;
+	int column;
+
+	CharLocation() : line(-1), column(-1) {}
+	CharLocation(int line, int column) : line(line), column(column) {}
+	CharLocation(const CharLocation& other) : line(other.line), column(other.column) {}
+
+	CharLocation& operator ++ (int dummy) { column++; return *this; }
+	CharLocation& operator += (int width) { column += width; return *this; }
+	
+	CharLocation& newLine() { line++; column = 0; return *this; }
+
+	bool isKnown() const { return ((line >= 0) && (column >= 0)); }
+};
+
 struct Token {
 public:
 	enum Type {
@@ -32,13 +49,17 @@ public:
 		TYPE_COUNT
 	};
 	
-	Type       type;
-	Ref<Value> value;
+	Type         type;
+	CharLocation location;
+	Ref<Value>   value;
 	
 	Token();
 	Token(Type type);
 	Token(Type type, string str);
+	Token(Type type, string str, CharLocation location);
 	~Token() { }
+
+	void setString(Type type, string str);
 	
 	static Ref<Value> parseNumber(string str);
 	

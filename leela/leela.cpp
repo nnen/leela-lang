@@ -8,6 +8,7 @@
 
 #include <iostream>
 #include <fstream>
+#include <unistd.h>
 
 #include "leela.h"
 #include "Lexer.h"
@@ -25,18 +26,62 @@ int main(int argc, const char * argv[])
 	std::cout << token << std::endl;
 	*/
 
+	bool dumpGrammarFlag = false;
+	bool tokenizeFlag = false;
+
 	initGrammar();
-	dumpGrammar(std::cout);
+	// dumpGrammar(std::cout);
 
-	std::cout << std::endl << std::endl << "OUTPUT:" << std::endl;
+	int c;
 
-	Parser parser;
+	while ((c = getopt(argc, const_cast<char * const *>(argv), "gt")) != -1) {
+		switch (c) {
+		case 'g':
+			dumpGrammarFlag = true;
+			break;
+		case 't':
+			tokenizeFlag = true;
+			break;
+		default:
+			abort();
+		}
+	}
 
-	if (argc > 1) {
-		std::ifstream f(argv[1], std::ifstream::in);
+	if (dumpGrammarFlag) {
+		dumpGrammar(std::cout);
+		return 0;
+	}
+
+	if (optind >= argc) {
+		std::cerr << "No input file given.";
+		return 1;
+	}
+	
+	if (tokenizeFlag) {
+		std::ifstream f(argv[optind], std::ifstream::in);
+		Lexer lexer(&f);
+		lexer.dumpTokens(std::cout);
+		f.close();
+	} else {
+		std::ifstream f(argv[optind], std::ifstream::in);
+		Parser parser;
 		parser.parse(f);
 		f.close();
-	} /* else
+	}
+	
+	/*
+	std::cout << std::endl << std::endl << "OUTPUT:" << std::endl;
+
+
+	if (argc > 1) {
+		if (strcmp(argv[1], "--tokens") == 0) {
+		} else {
+			Parser parser;
+			std::ifstream f(argv[1], std::ifstream::in);
+			parser.parse(f);
+			f.close();
+		}
+	}*/ /* else
 		parser.parse(); */
 	
 	return 0;

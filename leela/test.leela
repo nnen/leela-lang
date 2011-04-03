@@ -1,2 +1,7 @@
 var x, a, b, someVariable;
-begin x := 123; end
+begin
+	x := 123;
+	a := 0;
+	b := "\"Hello World!\"";
+	x := lambda a, b: 0;
+end

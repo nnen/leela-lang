@@ -147,7 +147,14 @@ public:
 			throw NullReferenceException();
 		return *getPtr();
 	}
-	
+
+	const T& operator*() const
+	{
+		if (isNull())
+			throw NullReferenceException();
+		return *getPtr();
+	}
+
 	T* operator->() const
 	{
 		if (isNull())

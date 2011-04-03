@@ -31,6 +31,12 @@ Ref<Rule> operator | (Ref<Rule> a, Ref<Rule> b)
 	return new ChoiceRule(a, b);
 }
 
+RepeatRule::RepeatRule(Ref<Rule> rule)
+{
+	_rule = rule;
+	_transformed = new ChoiceRule(new ChainRule(rule, this), new EpsilonRule());
+}
+
 /* PARSER *********************************************************************/
 
 Parser::Parser()
@@ -118,7 +124,12 @@ void Parser::dumpState(ostream& output)
 		output << "\tTOP OF STACK: " << *(_stack.top()) << endl;
 	if (_nonterminals.empty())
 		output << "\tNONTERMINAL: - " << endl;
-	else
+	else {
 		output << "\tNONTERMINAL: " << *(_nonterminals.top()) << endl;
+		output << "\t\tMATCHED: ";
+		foreach (i, _nonterminals.top()->matched)
+			output << **i << ", ";
+		output << endl;
+	}
 }
 

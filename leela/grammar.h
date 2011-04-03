@@ -14,21 +14,27 @@
 
 #include "Parser.h"
 
-#define NONTERMINALS   \
-	NT(Program)         \
-	NT(Preamble)        \
-	/*                  \
-	NT(VarDecl)         \
-	NT(VarDeclRest)     \
-	*/                  \
-	NT(CompoundCommand) \
-	NT(Command)         \
-	NT(MoreCommands)    \
-	NT(Assignment)      \
-	NT(Expression)      \
+#define NONTERMINALS     \
+	NT(Program)           \
+	NT(Preamble)          \
+	NT(VarDecl)           \
+	NT(CompoundStatement) \
+	NT(Statement)         \
+	NT(MoreStatements)    \
+	/*                    \
+	NT(IfStatement)       \
+	NT(WhileStatement)    \
+	*/                    \
+	NT(Assignment)        \
+	\
+	NT(Expression)        \
+	/*                    \
+	NT(Term)              \
+	NT(Factor)            \
+	*/                    \
    \
-	NT(Lambda)          \
-	NT(IdentList)       \
+	NT(Lambda)            \
+	NT(IdentList)         \
 	NT(IdentListRest)
 
 using namespace std;
@@ -51,12 +57,17 @@ NONTERM(VarDecl)
 		Nonterminal::onFinished(parser);
 	}
 };
-// NONTERM(VarDeclRest) };
-NONTERM(CompoundCommand) };
-NONTERM(Command) };
-NONTERM(MoreCommands) };
+
+NONTERM(CompoundStatement) };
+NONTERM(Statement) };
+NONTERM(IfStatement) };
+NONTERM(WhileStatement) };
+NONTERM(MoreStatements) };
 NONTERM(Assignment) };
+
 NONTERM(Expression) };
+NONTERM(Term) };
+NONTERM(Factor) };
 
 NONTERM(Lambda) };
 

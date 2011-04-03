@@ -97,7 +97,7 @@ Ref<Number> Number::parse(string str)
 	
 	for (int i = 0; i < (int)str.length(); i++) {
 		val *= 10;
-		val += (int) ('9' - str[i]);
+		val += (int) (str[i] - '0');
 	}
 	
 	return Ref<Number>(new Number(val));

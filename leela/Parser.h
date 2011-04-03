@@ -141,6 +141,11 @@ public:
 	{
 		parser.endNonterminal();
 	}
+
+	virtual void print(ostream& output) const
+	{
+		output << "(EON)";
+	}
 };
 
 /* RULES **********************************************************************/
@@ -158,6 +163,7 @@ public:
 	virtual bool                maybeEmpty() { return false; }
 	
 	virtual void                dump(ostream& output) const = 0;
+	virtual void                print(ostream& output) const { dump(output); }
 };
 
 Ref<Rule> operator + (Ref<Rule> a, Ref<Rule> b);
@@ -188,7 +194,9 @@ public:
 	virtual void onPop(Parser& parser)
 	{
 		if (parser.current().type != _type) {
-			std::cerr << "ERROR." << std::endl;
+			parser.dumpState(std::cerr);
+			std::cerr << "ERROR: Expected token " << Token::getTypeName(_type)
+				<< ", found " << Token::getTypeName(parser.current().type) << "." << std::endl;
 			// TODO: Finish error handling here.
 		}
 		
@@ -298,6 +306,40 @@ Ref<Rule> NonterminalRule<TNonterminal>::rule;
 template<class TNonterminal>
 set<Token::Type> NonterminalRule<TNonterminal>::_follow;
 
+class RepeatRule : public Rule {
+private:
+	Ref<Rule> _rule;
+	Ref<Rule> _transformed;
+
+public:
+	RepeatRule(Ref<Rule> rule);
+	virtual ~RepeatRule() {}
+
+	virtual void onPop(Parser& parser)
+	{
+		parser.push(_transformed);
+	}
+	
+	virtual void clearFollow() { _rule->clearFollow(); }
+	virtual void addFollow(vector<Ref<Rule> > following)
+	{ 
+		vector<Token::Type> first = _rule->getFirsts();
+		foreach (it, first)
+			following.push_back(new TerminalRule(*it));
+		_rule->addFollow(following);
+	}
+	virtual vector<Token::Type> getFirsts() { return _rule->getFirsts(); }
+	
+	virtual bool maybeEmpty() { return true; }
+
+	virtual void dump(ostream& output) const
+	{
+		output << "{ ";
+		_rule->dump(output);
+		output << " }";
+	}
+};
+
 template<class TNonterminal>
 class SemanticAction : public Rule {
 public:
@@ -347,6 +389,8 @@ public:
 	}
 	
 	virtual bool maybeEmpty() { return true; }
+
+	virtual void print(ostream& output) const { dump(output); }
 
 	virtual void dump(ostream& output) const
 	{

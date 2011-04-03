@@ -30,6 +30,11 @@ Char Lexer::advance()
 	Char result = _current;
 	
 	do {
+		if (_current.isChar()) {
+			_location++;
+			if (_current.isNewLine()) _location.newLine();
+		}
+
 		_current = _next;
 		_next = Char(_next, _input->get());
 	} while ((!_current.isChar()) && _next.isChar());
@@ -52,6 +57,8 @@ Token Lexer::getToken()
 	while (current().isChar()) {
 		switch (_state) {
 		case STATE_INIT:
+			_tokenLocation = _location;
+			
 			if (current().isWhitespace()) {
 				advance();
 			} else if (current().isDoubleDelimiter()) {
@@ -98,8 +105,9 @@ Token Lexer::getToken()
 			break;
 		case STATE_STRING:
 			if (current() == '"') {
+				advance();
 				return endToken(Token::STRING_LITERAL);
-			} else if (current() = '\\') {
+			} else if (current() == '\\') {
 				advance();
 				_state = STATE_ESCAPED;
 			} else {
@@ -112,6 +120,7 @@ Token Lexer::getToken()
 			case 't': advance(); append('\t'); break;
 			default: append(); break;
 			}
+			_state = STATE_STRING;
 			break;
 		
 		case STATE_UNKNOWN:
@@ -136,6 +145,26 @@ Lexer::Lexer(istream *input)
 	
 	_input = input;
 	_state = STATE_INIT;
+	_location = CharLocation(0, 0);
+}
+
+void Lexer::dumpTokens(ostream& output)
+{
+	Token token;
+	int lastLine = -1;
+	
+	while ((token = getToken()).type != Token::END) {
+		if (token.location.line != lastLine)
+			output << std::endl << "Line " << token.location.line << ":" << std::endl;
+		output << "   " << setiosflags(ios_base::left) << setw(16) << Token::getTypeName(token.type)
+		       << "   " << token.location.line << ":" << setw(4) << token.location.column;
+		if (!token.value.isNull())
+				 output << " " << *(token.value);
+		output << std::endl;
+		// output << "\t" << token << std::endl;
+
+		lastLine = token.location.line;
+	}
 }
 
 void Lexer::dumpState(ostream& output)

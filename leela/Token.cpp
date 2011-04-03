@@ -9,16 +9,28 @@
 #include "Token.h"
 
 Token::Token()
-	: type(Token::UNKNOWN)
+	: type(Token::UNKNOWN), location(), value()
 {
 }
 
 Token::Token(Token::Type type)
-	: type(type)
+	: type(type), location(), value()
 {
 }
 
 Token::Token(Token::Type type, string str)
+	: type(type), location(), value()
+{
+	setString(type, str);
+}
+
+Token::Token(Token::Type type, string str, CharLocation location)
+	: type(type), location(location), value()
+{
+	setString(type, str);
+}
+
+void Token::setString(Token::Type type, string str)
 {
 	this->type = type;
 	switch (type) {
@@ -65,7 +77,23 @@ const char * Token::getTypeName(Type type)
 
 ostream& operator << (ostream& output, const Token& token)
 {
-	output << "Token(" << Token::getTypeName(token.type) << ")";
+	output << "Token(" << Token::getTypeName(token.type);
+
+	switch (token.type) {
+	case Token::IDENTIFIER:
+	case Token::NUMBER_LITERAL:
+	case Token::STRING_LITERAL:
+		if (token.value.isNull())
+			output << ", NULL";
+		else
+			output << ", " << *(token.value);
+		break;
+	default: break;
+	}
+
+	if (token.location.isKnown())
+		output << ", " << token.location.line << ":" << token.location.column;
+	output << ")";
 	return output;
 }
 

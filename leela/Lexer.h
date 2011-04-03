@@ -10,6 +10,7 @@
 #define LEXER_H_34VDFVER34FVA
 
 #include <iostream>
+#include <iomanip>
 #include <vector>
 
 #include "Token.h"
@@ -43,7 +44,9 @@ private:
 	LexerState               _state;
 	Char                     _current;
 	Char                     _next;
+	CharLocation             _tokenLocation;
 	string                   _tokenString;
+	CharLocation             _location;
 	
 	Char                     current();
 	Char                     next();
@@ -55,7 +58,7 @@ private:
 	{
 		_state = STATE_INIT;
 		
-		Token token(type, _tokenString);
+		Token token(type, _tokenString, _tokenLocation);
 		_tokenString = "";
 		return token;
 	}
@@ -68,6 +71,8 @@ public:
 	
 	Token                    getToken();
 	
+	void                     dumpTokens(ostream& output);
+	void                     dumpTokens() { dumpTokens(std::cout); }
 	void                     dumpState(ostream& output);
 };
 

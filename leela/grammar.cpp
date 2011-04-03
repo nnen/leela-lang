@@ -49,34 +49,32 @@ void initGrammar()
 	#define T(t) Ref<Rule>(new TerminalRule(Token::t))
 	#define A(type, action) Ref<Rule>(new SemanticAction<type>(&type::action, #action))
 	#define STR(str) Ref<Rule>(new StringOutput(str))
+	#define REPEAT(rule) Ref<Rule>(new RepeatRule((rule)))
 	#define epsilon Ref<Rule>(new EpsilonRule())
 	
-	DEF(Program)         = N(Preamble) + N(CompoundCommand) + STR("STOP");
+	DEF(Program)           = N(Preamble) + N(CompoundStatement) + STR("STOP");
 	
-	DEF(Preamble)        = (N(VarDecl) + N(Preamble)) | epsilon;
+	DEF(Preamble)          = (N(VarDecl) + N(Preamble)) | epsilon;
 
-	// DEF(VarDecl)         = T(KW_VAR) + T(IDENTIFIER) + A(VarDecl, doSomething) + N(VarDeclRest) + T(SEMICOLON);
+	DEF(VarDecl)           = T(KW_VAR) + N(IdentList) + T(SEMICOLON);
+	
+	// DEF(CompoundStatement) = T(KW_BEGIN) + N(Statement) + N(MoreStatements) + T(KW_END);
+	DEF(CompoundStatement) = T(KW_BEGIN) + N(Statement) + REPEAT(T(SEMICOLON) + N(Statement)) + T(KW_END);
+	
+	DEF(MoreStatements)    = (T(SEMICOLON) + N(Statement) + N(MoreStatements)) | epsilon;
 
-	// DEF(VarDeclRest)     = (T(COMMA) + T(IDENTIFIER) + N(VarDeclRest)) | epsilon;
-	
-	DEF(VarDecl)         = T(KW_VAR) + N(IdentList) + T(SEMICOLON);
-	
-	DEF(CompoundCommand) = T(KW_BEGIN) + N(Command) + N(MoreCommands) + T(KW_END);
-	
-	DEF(MoreCommands)    = (T(SEMICOLON) + N(Command) + N(MoreCommands)) | epsilon;
+	DEF(Statement)         = N(Assignment) | epsilon;
 
-	DEF(Command)         = N(Assignment) | epsilon;
+	DEF(Assignment)        = T(IDENTIFIER) + T(ASSIGN) + N(Expression);
 
-	DEF(Assignment)      = T(IDENTIFIER) + T(ASSIGN) + N(Expression);
-
-	DEF(Expression)      = T(NUMBER_LITERAL) | T(STRING_LITERAL) | ( T(LEFT_PAR) + N(Expression) + T(RIGHT_PAR) );
+	DEF(Expression)        = T(NUMBER_LITERAL) | T(STRING_LITERAL) | N(Lambda);
 	
 	
-	DEF(Lambda)          = T(LAMBDA) + N(IdentList) + T(COLON) + N(Expression);
+	DEF(Lambda)            = T(KW_LAMBDA) + N(IdentList) + T(COLON) + N(Expression);
 	
-	DEF(IdentList)       = T(IDENTIFIER) + N(IdentListRest) | epsilon;
+	DEF(IdentList)         = T(IDENTIFIER) + N(IdentListRest) | epsilon;
 	
-	DEF(IdentListRest)   = T(COMMA) + T(IDENTIFIER) + N(IdentListRest) | epsilon;
+	DEF(IdentListRest)     = T(COMMA) + T(IDENTIFIER) + N(IdentListRest) | epsilon;
 	
 	#undef DEF
 	#undef N
@@ -86,6 +84,8 @@ void initGrammar()
 	#undef epsilon
 
 	#define NT(name) NonterminalRule<name>::rule->getFirsts();
+	NONTERMINALS
+	NONTERMINALS
 	NONTERMINALS
 	#undef NT
 
@@ -98,21 +98,7 @@ void initGrammar()
 void dumpGrammar(ostream& output)
 {
 	#define NT(name) { NonterminalRule<name>::dumpRule(output); output << endl << endl; }
-
 	NONTERMINALS
-	
-	/*
-	DUMP(Program);
-	DUMP(Preamble);
-	DUMP(VarDecl);
-	DUMP(VarDeclRest);
-	DUMP(CompoundCommand);
-	DUMP(MoreCommands);
-	DUMP(Command);
-	DUMP(Assignment);
-	DUMP(Expression);
-	*/
-
 	#undef NT
 }
 
