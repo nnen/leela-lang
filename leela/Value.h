@@ -24,7 +24,7 @@ class String;
 
 class Value : public Object {
 public:
-	Value();
+	Value() : Object() {}
 	virtual ~Value() {}
 	
 	virtual void print(ostream& output) const;
@@ -41,6 +41,51 @@ public:
 	// virtual void call(Interpreter& interpreter);
 };
 
+template<class T>
+class ScalarValue : public Value {
+protected:
+	T _value;
+
+public:
+	ScalarValue() : _value() {}
+	ScalarValue(T value) : _value(value) {}
+	virtual ~ScalarValue() {}
+
+	virtual void print(ostream& output) const = 0;
+	
+	virtual T getValue() const { return _value; }
+};
+
+class Boolean : public ScalarValue<bool> {
+public:
+	Boolean() : ScalarValue<bool>(false) {}
+	Boolean(bool value) : ScalarValue<bool>(value) {}
+	virtual ~Boolean() {}
+
+	virtual void print(ostream& output) const;
+};
+
+class Number : public ScalarValue<int> {
+public:
+	Number() : ScalarValue<int>(0) {}
+	Number(int value) : ScalarValue<int>(value) {}
+	virtual ~Number() {}
+
+	static Ref<Number> parse(string str);
+
+	virtual void print(ostream& output) const;
+};
+
+class String : public ScalarValue<string> {
+public:
+	String() : ScalarValue<string>() {}
+	String(string value) : ScalarValue<string>(value) {}
+	virtual ~String() {}
+
+	virtual void print(ostream& output) const;
+};
+
+/*
 class Boolean : public Value {
 private:
 	bool _value;
@@ -75,6 +120,7 @@ public:
 	
 	virtual void print(ostream& output) const;
 };
+*/
 
 class Variable : public Value {
 private:

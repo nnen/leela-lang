@@ -69,3 +69,15 @@ ostream& operator << (ostream& output, const Token& token)
 	return output;
 }
 
+bool operator < (Token::Type a, Token::Type b)
+{
+	return (int)a < (int)b;
+}
+
+bool operator > (Token::Type a, Token::Type b)
+{
+	if (a < b) return false;
+	if (a == b) return false;
+	return true;
+}
+

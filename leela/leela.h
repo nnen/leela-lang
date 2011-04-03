@@ -11,7 +11,7 @@
 
 #define var(name, expr) typeof(expr) name = (expr)
 
-#define foreach(iterator, collection) for (var(iterator, (collection).begin()); (iterator) < (collection).end(); (iterator)++)
+#define foreach(iterator, collection) for (var(iterator, (collection).begin()); (iterator) != (collection).end(); (iterator)++)
 
 #endif /* end of include guard: LEELA_H_SD5756UJU65423 */
 

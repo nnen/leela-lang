@@ -6,6 +6,8 @@
  * \brief  Implementation of the Parser class.
  */
 
+#include <exception>
+
 #include "Parser.h"
 #include "grammar.h"
 
@@ -45,10 +47,11 @@ void Parser::parse(istream& input, ostream& output)
 	
 	_current = _lexer->getToken();
 	
-	_stack.push(NonterminalRule<Program>::rule);
+	// _stack.push(NonterminalRule<Program>::rule);
+	_stack.push(new NonterminalRule<Program>());
 	
 	while (!_stack.empty()) {
-		dumpState(output);
+		// dumpState(output);
 
 		Ref<Symbol> top = _stack.top();
 		_stack.pop();
@@ -59,15 +62,14 @@ void Parser::parse(istream& input, ostream& output)
 
 void Parser::push(Ref<Symbol> symbol)
 {
-	std::cout << "PUSHING: " << *symbol << std::endl;
-	
 	_stack.push(symbol);
 	symbol->onPush(*this);
 }
 
 void Parser::append(Ref<InputSymbol> symbol)
 {
-	getNonterminal()->append(symbol);
+	if (!_nonterminals.empty())
+		getNonterminal()->append(symbol);
 }
 
 void Parser::accept()
@@ -82,7 +84,10 @@ void Parser::startNonterminal(Ref<Nonterminal> nonterminal)
 	// _auxiliary.push(vector<Ref<Symbol> >());
 }
 
-Ref<Nonterminal> Parser::getNonterminal() { return _nonterminals.top(); }
+Ref<Nonterminal> Parser::getNonterminal()
+{
+	return _nonterminals.top();
+}
 
 /*
 vector<Ref<Symbol> >& Parser::getMatched()
@@ -93,6 +98,9 @@ vector<Ref<Symbol> >& Parser::getMatched()
 
 void Parser::endNonterminal()
 {
+	if (_nonterminals.empty())
+		throw std::exception();
+	
 	Ref<Nonterminal> nonterminal = getNonterminal();
 	_nonterminals.pop();
 	nonterminal->onFinished(*this);
@@ -107,7 +115,7 @@ void Parser::dumpState(ostream& output)
 	if (_stack.empty())
 		output << "\tTOP OF STACK: - " << endl;
 	else
-		output << "\tTOP OF STACK:" << *(_stack.top()) << endl;
+		output << "\tTOP OF STACK: " << *(_stack.top()) << endl;
 	if (_nonterminals.empty())
 		output << "\tNONTERMINAL: - " << endl;
 	else

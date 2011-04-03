@@ -8,11 +8,6 @@
 
 #include "Value.h"
 
-Value::Value()
-	: Object()
-{
-}
-
 void Value::print(ostream& output) const
 {
 	Ref<String> str = this->toString();
@@ -83,15 +78,12 @@ Ref<Value> Value::divide(Ref<Value> other)
 	return new Number(a->getValue() / b->getValue());
 }
 
-Number::Number()
-	: Value()
+void Boolean::print(ostream& output) const
 {
-	_value = 0;
-}
-
-Number::Number(int value)
-{
-	_value = value;
+	if (getValue())
+		output << "true";
+	else
+		output << "false";
 }
 
 void Number::print(ostream& output) const
@@ -109,16 +101,6 @@ Ref<Number> Number::parse(string str)
 	}
 	
 	return Ref<Number>(new Number(val));
-}
-
-String::String()
-	: Value()
-{
-}
-
-String::String(string value)
-{
-	_value = value;
 }
 
 void String::print(ostream& output) const

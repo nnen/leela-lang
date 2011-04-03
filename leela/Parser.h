@@ -12,6 +12,7 @@
 #include <vector>
 #include <stack>
 #include <map>
+#include <set>
 
 #include "leela.h"
 #include "Object.h"
@@ -99,6 +100,14 @@ private:
 public:
 	Terminal(Token token) : InputSymbol(), _token(token) {}
 	virtual ~Terminal() {}
+
+	virtual void print(ostream& output) const { output << _token; }
+
+	Token& getToken() { return _token; }
+	Ref<Value> getValue() { return _token.value; }
+
+	template<class T>
+	Ref<T> getValue() { return _token.value.as<T>(); }
 };
 
 class Nonterminal : public InputSymbol {
@@ -108,8 +117,14 @@ public:
 	Nonterminal() : InputSymbol() {}
 	
 	virtual void onFinished(Parser& parser) { matched.clear(); }
-
+	
 	void append(Ref<InputSymbol> symbol) { matched.push_back(symbol); }
+
+	template<class T>
+	Ref<T> getMatched(int index)
+	{
+		return matched[index].as<T>();
+	}
 };
 
 class OutputSymbol : public Symbol {
@@ -138,10 +153,11 @@ public:
 	virtual void                onPop(Parser& parser) { std::cerr << "ERROR" << std::endl; }
 	
 	virtual vector<Token::Type> getFirsts() { return vector<Token::Type>(); }
-	virtual void                getFollow(vector<Rule> following) {}
+	virtual void                clearFollow() {}
+	virtual void                addFollow(vector<Ref<Rule> > following) {}
 	virtual bool                maybeEmpty() { return false; }
 	
-	virtual void                dump(ostream& output) = 0;
+	virtual void                dump(ostream& output) const = 0;
 };
 
 Ref<Rule> operator + (Ref<Rule> a, Ref<Rule> b);
@@ -156,7 +172,9 @@ public:
 
 	virtual bool maybeEmpty() { return true; }
 
-	virtual void dump(ostream& output) { output << "e"; }
+	virtual void print(ostream& output) const { dump(output); }
+		
+	virtual void dump(ostream& output) const { output << "e"; }
 };
 
 class TerminalRule : public Rule {
@@ -184,7 +202,9 @@ public:
 		return v;
 	}
 
-	virtual void dump(ostream& output)
+	virtual void print(ostream& output) const { dump(output); }
+
+	virtual void dump(ostream& output) const
 	{
 		const char * c = Token::getTypeName(_type);
 		while (*c != '\0')
@@ -194,7 +214,15 @@ public:
 
 template<class TNonterminal>
 class NonterminalRule : public Rule {
+private:
+	static set<Token::Type> _follow;
+
 public:
+	// This is static so that it can be referenced BEFORE it
+	// is assigned any value. Also, since this static variable
+	// exists in a template, there's one instance for each
+	// template parameter (for each class derived from the
+	// Nonterminal class).
 	static Ref<Rule> rule;
 
 	NonterminalRule() : Rule() {}
@@ -212,12 +240,37 @@ public:
 		return rule->getFirsts();
 	}
 
-	virtual bool maybeEmpty() { return rule->maybeEmpty(); }
+	virtual void clearFollow() { _follow.clear(); }
+	
+	virtual void addFollow(vector<Ref<Rule> > following)
+	{
+		foreach(r, following) {
+			vector<Token::Type> firsts = (*r)->getFirsts();
+			foreach(first, firsts)
+				_follow.insert(*first);
+		}
+	}
+	
+	static void  calculateFollow()
+	{
+		vector<Ref<Rule> > v;
 
-	virtual void dump(ostream& output)
+		foreach(it, _follow)
+			v.push_back(new TerminalRule(*it));
+
+		rule->addFollow(v);
+	}
+
+	virtual bool maybeEmpty() { return rule->maybeEmpty(); }
+	
+	virtual void print(ostream& output) const
 	{
 		output << TNonterminal::getName();
-		// rule->dump(output);
+	}
+
+	virtual void dump(ostream& output) const
+	{
+		output << TNonterminal::getName();
 	}
 
 	static void dumpRule(ostream& output)
@@ -226,17 +279,24 @@ public:
 		
 		output << TNonterminal::getName() << " -> ";
 		r->dump(output);
-
-		output << " {FIRST: ";
+		
+		output << endl << "\tMAYBE EMPTY: " << (r->maybeEmpty() ? "TRUE" : "FALSE");
+		output << endl << "\tFIRST: ";
 		vector<Token::Type> v = r->getFirsts();
 		foreach(it, v)
 			output << Token::getTypeName(*it) << ", ";
-		output << "}";
+
+		output << endl << "\tFOLLOW: ";
+		foreach(it, _follow)
+			output << Token::getTypeName(*it) << ", ";
 	}
 };
 
 template<class TNonterminal>
 Ref<Rule> NonterminalRule<TNonterminal>::rule;
+
+template<class TNonterminal>
+set<Token::Type> NonterminalRule<TNonterminal>::_follow;
 
 template<class TNonterminal>
 class SemanticAction : public Rule {
@@ -264,7 +324,7 @@ public:
 
 	virtual bool maybeEmpty() { return true; }
 
-	virtual void dump(ostream& output)
+	virtual void dump(ostream& output) const
 	{
 		if (_name.length() > 0)
 			output << "(" << _name << ")";
@@ -288,7 +348,7 @@ public:
 	
 	virtual bool maybeEmpty() { return true; }
 
-	virtual void dump(ostream& output)
+	virtual void dump(ostream& output) const
 	{
 		output << "(\"" << _str << "\")";
 	}
@@ -301,6 +361,12 @@ protected:
 public:
 	BinaryRule(Ref<Rule> a, Ref<Rule> b) : Rule(), _a(a), _b(b) {}
 	virtual ~BinaryRule() {}
+
+	virtual void clearFollow()
+	{
+		_a->clearFollow();
+		_b->clearFollow();
+	}
 };
 
 class ChainRule : public BinaryRule {
@@ -326,9 +392,26 @@ public:
 		return v1;
 	}
 
+	virtual void addFollow(vector<Ref<Rule> > following)
+	{
+		vector<Ref<Rule> > v;
+		v.push_back(_b);
+
+		if (_b->maybeEmpty()) {
+			v.insert(v.end(), following.begin(), following.end());
+			_a->addFollow(v);
+		} else {
+			_a->addFollow(v);
+		}
+		
+		_b->addFollow(following);
+	}
+
 	virtual bool maybeEmpty() { return _a->maybeEmpty() && _b->maybeEmpty(); }
 	
-	virtual void dump(ostream& output)
+	virtual void print(ostream& output) const { dump(output); }
+		
+	virtual void dump(ostream& output) const
 	{
 		_a->dump(output);
 		output << " ";
@@ -346,10 +429,21 @@ public:
 
 	virtual void onPop(Parser& parser)
 	{
-		if (_table.count(parser.current().type) < 1)
-			return; // TODO: Handle error.
-		
-		parser.push(_table[parser.current().type]);
+		// NOTE: This logic assumes there are not
+		//       FIRST/FOLLOW conflicts.
+		// 1. Try selecting rule by first terminal
+		// 2. If it can be empty, try using first symbol
+		// 3. If it can be empty, try using second symbol
+		// 4. Throw syntax error
+		if (_table.count(parser.current().type) > 0) {
+			parser.push(_table[parser.current().type]);
+		} else if (_a->maybeEmpty()) {
+			parser.push(_a);
+		} else if (_b->maybeEmpty()) {
+			parser.push(_b);
+		} else {
+			// TODO: Handle error.
+		}
 	}
 	
 	virtual vector<Token::Type> getFirsts()
@@ -371,10 +465,17 @@ public:
 
 		return v;
 	}
+	
+	virtual void addFollow(vector<Ref<Rule> > following)
+	{
+		_a->addFollow(following);
+		_b->addFollow(following);
+	}
 
 	virtual bool maybeEmpty() { return _a->maybeEmpty() || _b->maybeEmpty(); }
 
-	virtual void dump(ostream& output)
+	virtual void print(ostream& output) const { dump(output); }
+	virtual void dump(ostream& output) const
 	{
 		// output << "( ";
 		_a->dump(output);

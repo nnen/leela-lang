@@ -10,6 +10,36 @@
 
 /* NONTERMINALS ***************************************************************/
 
+void IdentList::onFinished(Parser& parser)
+{
+	if (matched.size() > 0) {
+		Ref<Terminal>      identifier = getMatched<Terminal>(0);
+		Ref<IdentListRest> rest       = getMatched<IdentListRest>(1);
+
+		identifiers.push_front(identifier->getValue<String>()->getValue());
+		identifiers.insert(identifiers.end(), rest->identifiers.begin(), rest->identifiers.end());
+
+		parser.getOutput() << "IDENTLIST: ";
+		foreach(i, identifiers)
+			parser.getOutput() << *i << ", ";
+		parser.getOutput() << std::endl;
+
+	}
+	Nonterminal::onFinished(parser);
+}
+
+void IdentListRest::onFinished(Parser& parser)
+{
+	if (matched.size() > 0) {
+		Ref<Terminal>      terminal = getMatched<Terminal>(1);
+		Ref<IdentListRest> rest     = getMatched<IdentListRest>(2);
+		
+		identifiers.push_front(terminal->getValue<String>()->getValue());
+		identifiers.insert(identifiers.end(), rest->identifiers.begin(), rest->identifiers.end());
+	}
+	Nonterminal::onFinished(parser);
+}
+
 /* GRAMMAR ********************************************************************/
 
 void initGrammar()
@@ -21,19 +51,15 @@ void initGrammar()
 	#define STR(str) Ref<Rule>(new StringOutput(str))
 	#define epsilon Ref<Rule>(new EpsilonRule())
 	
-	#define DUMP(t) { NonterminalRule<t>::dumpRule(std::cout); std::cout << endl; }
-
-	Ref<Rule> rule       = N(Preamble) + N(CompoundCommand) + STR("STOP");
-	NonterminalRule<Program>::rule = rule;
-
-	// DEF(Program)         = N(Preamble) + N(CompoundCommand) + STR("STOP");
-	// DUMP(Program)
+	DEF(Program)         = N(Preamble) + N(CompoundCommand) + STR("STOP");
 	
 	DEF(Preamble)        = (N(VarDecl) + N(Preamble)) | epsilon;
 
-	DEF(VarDecl)         = T(KW_VAR) + T(IDENTIFIER) + A(VarDecl, doSomething) + N(VarDeclRest) + T(SEMICOLON);
+	// DEF(VarDecl)         = T(KW_VAR) + T(IDENTIFIER) + A(VarDecl, doSomething) + N(VarDeclRest) + T(SEMICOLON);
 
-	DEF(VarDeclRest)     = (T(COMMA) + T(IDENTIFIER) + N(VarDeclRest)) | epsilon;
+	// DEF(VarDeclRest)     = (T(COMMA) + T(IDENTIFIER) + N(VarDeclRest)) | epsilon;
+	
+	DEF(VarDecl)         = T(KW_VAR) + N(IdentList) + T(SEMICOLON);
 	
 	DEF(CompoundCommand) = T(KW_BEGIN) + N(Command) + N(MoreCommands) + T(KW_END);
 	
@@ -43,9 +69,14 @@ void initGrammar()
 
 	DEF(Assignment)      = T(IDENTIFIER) + T(ASSIGN) + N(Expression);
 
-	DEF(Expression)      = T(NUMBER_LITERAL) | T(STRING_LITERAL);
-
-	#undef DUMP
+	DEF(Expression)      = T(NUMBER_LITERAL) | T(STRING_LITERAL) | ( T(LEFT_PAR) + N(Expression) + T(RIGHT_PAR) );
+	
+	
+	DEF(Lambda)          = T(LAMBDA) + N(IdentList) + T(COLON) + N(Expression);
+	
+	DEF(IdentList)       = T(IDENTIFIER) + N(IdentListRest) | epsilon;
+	
+	DEF(IdentListRest)   = T(COMMA) + T(IDENTIFIER) + N(IdentListRest) | epsilon;
 	
 	#undef DEF
 	#undef N
@@ -53,12 +84,24 @@ void initGrammar()
 	#undef A
 	#undef STR
 	#undef epsilon
+
+	#define NT(name) NonterminalRule<name>::rule->getFirsts();
+	NONTERMINALS
+	#undef NT
+
+	#define NT(name) NonterminalRule<name>::calculateFollow();
+	NONTERMINALS
+	NONTERMINALS
+	#undef NT
 }
 
 void dumpGrammar(ostream& output)
 {
-	#define DUMP(t) { NonterminalRule<t>::dumpRule(output); output << endl; }
+	#define NT(name) { NonterminalRule<name>::dumpRule(output); output << endl << endl; }
 
+	NONTERMINALS
+	
+	/*
 	DUMP(Program);
 	DUMP(Preamble);
 	DUMP(VarDecl);
@@ -68,7 +111,8 @@ void dumpGrammar(ostream& output)
 	DUMP(Command);
 	DUMP(Assignment);
 	DUMP(Expression);
+	*/
 
-	#undef DUMP
+	#undef NT
 }
 

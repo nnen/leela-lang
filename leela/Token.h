@@ -50,5 +50,8 @@ public:
 
 ostream& operator << (ostream& output, const Token& token);
 
+bool operator < (Token::Type a, Token::Type b);
+bool operator > (Token::Type a, Token::Type b);
+
 #endif /* end of include guard: TOKEN_H_434634DFBDV */
 

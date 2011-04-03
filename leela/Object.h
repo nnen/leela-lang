@@ -10,6 +10,7 @@
 #define OBJECT_H_408JFDVEW32
 
 #include <cstddef>
+#include <exception>
 
 #define REF(var, expr) Ref<typeof(expr)> var = (expr)
 #define SENTINEL 1337
@@ -79,6 +80,26 @@ public:
 	static void deleteAll();
 };
 
+class NullReferenceException : public std::exception {
+public:
+	NullReferenceException() throw() : std::exception() {}
+	NullReferenceException(const NullReferenceException& e) throw() : std::exception() {}
+	NullReferenceException& operator= (const NullReferenceException& e) throw() { return *this; }
+	virtual ~NullReferenceException() throw() {}
+
+	virtual const char* what() const throw() { return "Attempted to access null reference."; }
+};
+
+class InvalidCastException : public std::exception {
+public:
+	InvalidCastException() throw() : std::exception() {}
+	InvalidCastException(const InvalidCastException& e) throw() : std::exception() {}
+	InvalidCastException& operator= (const InvalidCastException& e) throw() { return *this; }
+	virtual ~InvalidCastException() throw() {}
+	
+	virtual const char* what() const throw() { return "Invalid dynamic cast."; }
+};
+
 template<class T>
 class Ref {
 private:
@@ -122,20 +143,26 @@ public:
 	
 	T& operator*()
 	{
-		return *_ptr;
+		if (isNull())
+			throw NullReferenceException();
+		return *getPtr();
 	}
 	
 	T* operator->() const
 	{
-		return _ptr;
+		if (isNull())
+			throw NullReferenceException();
+		return getPtr();
 	}
 	
 	template<class U>
 	operator Ref<U> () const
 	{
 		// Ref<U> r(dynamic_cast<U*>(getPtr()));
-		Ref<U> r((U*) getPtr());
-		return r;
+		Ref<U> ref = this->as<U>();
+		if (ref.isNull())
+			throw InvalidCastException();
+		return ref;
 	}
 	
 	Ref<T>& operator=(T* ptr)
@@ -171,6 +198,12 @@ public:
 	{
 		if (_ptr != NULL) _ptr->checkHealth();
 		return _ptr;
+	}
+
+	template<class U>
+	Ref<U> as() const
+	{
+		return Ref<U>(dynamic_cast<U*>(getPtr()));
 	}
 };
 
