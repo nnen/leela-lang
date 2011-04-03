@@ -4,4 +4,5 @@ begin
 	a := 0;
 	b := "\"Hello World!\"";
 	x := lambda a, b: 0;
+	x := lambda a: lambda b: "suprise!";
 end

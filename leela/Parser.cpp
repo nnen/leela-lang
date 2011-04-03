@@ -34,7 +34,6 @@ Ref<Rule> operator | (Ref<Rule> a, Ref<Rule> b)
 RepeatRule::RepeatRule(Ref<Rule> rule)
 {
 	_rule = rule;
-	_transformed = new ChoiceRule(new ChainRule(rule, this), new EpsilonRule());
 }
 
 /* PARSER *********************************************************************/

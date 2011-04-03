@@ -157,6 +157,7 @@ public:
 	
 	virtual void                onPop(Parser& parser) { std::cerr << "ERROR" << std::endl; }
 	
+	virtual void                init() {}
 	virtual vector<Token::Type> getFirsts() { return vector<Token::Type>(); }
 	virtual void                clearFollow() {}
 	virtual void                addFollow(vector<Ref<Rule> > following) {}
@@ -175,9 +176,9 @@ public:
 	virtual ~EpsilonRule() {}
 	
 	virtual void onPop(Parser& parser) {}
-
+	
 	virtual bool maybeEmpty() { return true; }
-
+	
 	virtual void print(ostream& output) const { dump(output); }
 		
 	virtual void dump(ostream& output) const { output << "e"; }
@@ -242,7 +243,7 @@ public:
 		parser.push(new EndOfNonterminal());
 		parser.push(rule);
 	}
-
+	
 	virtual vector<Token::Type> getFirsts()
 	{
 		return rule->getFirsts();
@@ -308,8 +309,8 @@ set<Token::Type> NonterminalRule<TNonterminal>::_follow;
 
 class RepeatRule : public Rule {
 private:
-	Ref<Rule> _rule;
-	Ref<Rule> _transformed;
+	Ref<Rule>        _rule;
+	set<Token::Type> _first;
 
 public:
 	RepeatRule(Ref<Rule> rule);
@@ -317,9 +318,24 @@ public:
 
 	virtual void onPop(Parser& parser)
 	{
-		parser.push(_transformed);
+		if (_first.count(parser.current().type) < 1) {
+			cerr << "REPEAT FIRST: ";
+			foreach(it, _first)
+				cerr << Token::getTypeName(*it) << ", ";
+			return;
+		}
+		parser.push(this);
+		parser.push(_rule);
 	}
 	
+	virtual void init()
+	{
+		vector<Token::Type> first = getFirsts();
+		_first.clear();
+		foreach(it, first)
+			_first.insert(*it);
+		_rule->init();
+	}
 	virtual void clearFollow() { _rule->clearFollow(); }
 	virtual void addFollow(vector<Ref<Rule> > following)
 	{ 
@@ -328,7 +344,10 @@ public:
 			following.push_back(new TerminalRule(*it));
 		_rule->addFollow(following);
 	}
-	virtual vector<Token::Type> getFirsts() { return _rule->getFirsts(); }
+	virtual vector<Token::Type> getFirsts()
+	{
+		return _rule->getFirsts();
+	}
 	
 	virtual bool maybeEmpty() { return true; }
 
@@ -406,6 +425,12 @@ public:
 	BinaryRule(Ref<Rule> a, Ref<Rule> b) : Rule(), _a(a), _b(b) {}
 	virtual ~BinaryRule() {}
 
+	virtual void init()
+	{
+		_a->init();
+		_b->init();
+	}
+	
 	virtual void clearFollow()
 	{
 		_a->clearFollow();
@@ -490,8 +515,10 @@ public:
 		}
 	}
 	
-	virtual vector<Token::Type> getFirsts()
+	virtual void init()
 	{
+		BinaryRule::init();
+
 		vector<Token::Type> v1 = _a->getFirsts();
 		vector<Token::Type> v2 = _b->getFirsts();
 		
@@ -502,6 +529,12 @@ public:
 			
 		foreach(it, v2)
 			_table[*it] = _b;
+	}
+	virtual vector<Token::Type> getFirsts()
+	{
+		// TODO: Use the table to get the FIRST
+		vector<Token::Type> v1 = _a->getFirsts();
+		vector<Token::Type> v2 = _b->getFirsts();
 		
 		vector<Token::Type> v;
 		v.insert(v.end(), v1.begin(), v1.end());

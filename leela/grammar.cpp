@@ -10,6 +10,7 @@
 
 /* NONTERMINALS ***************************************************************/
 
+/*
 void IdentList::onFinished(Parser& parser)
 {
 	if (matched.size() > 0) {
@@ -24,6 +25,23 @@ void IdentList::onFinished(Parser& parser)
 			parser.getOutput() << *i << ", ";
 		parser.getOutput() << std::endl;
 
+	}
+	Nonterminal::onFinished(parser);
+}
+*/
+
+void IdentList::onFinished(Parser& parser)
+{
+	if (matched.size() > 0) {
+		for (int i = 0; i < matched.size(); i += 2) {
+			Ref<Terminal> identifier = getMatched<Terminal>(i);
+			identifiers.push_back(identifier->getValue<String>()->getValue());
+		}
+
+		parser.getOutput() << "IDENTLIST: ";
+		foreach(i, identifiers)
+			parser.getOutput() << *i << ", ";
+		parser.getOutput() << std::endl;
 	}
 	Nonterminal::onFinished(parser);
 }
@@ -72,7 +90,8 @@ void initGrammar()
 	
 	DEF(Lambda)            = T(KW_LAMBDA) + N(IdentList) + T(COLON) + N(Expression);
 	
-	DEF(IdentList)         = T(IDENTIFIER) + N(IdentListRest) | epsilon;
+	//DEF(IdentList)         = T(IDENTIFIER) + N(IdentListRest) | epsilon;
+	DEF(IdentList)         = T(IDENTIFIER) + REPEAT(T(COMMA) + T(IDENTIFIER)) | epsilon;
 	
 	DEF(IdentListRest)     = T(COMMA) + T(IDENTIFIER) + N(IdentListRest) | epsilon;
 	
@@ -82,6 +101,10 @@ void initGrammar()
 	#undef A
 	#undef STR
 	#undef epsilon
+
+	#define NT(name) NonterminalRule<name>::rule->init();
+	NONTERMINALS
+	#undef NT
 
 	#define NT(name) NonterminalRule<name>::rule->getFirsts();
 	NONTERMINALS
