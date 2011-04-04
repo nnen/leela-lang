@@ -1,8 +1,10 @@
 var x, a, b, someVariable;
 begin
-	x := 123;
+	x := 2 + 123 * 321 + 2;
 	a := 0;
 	b := "\"Hello World!\"";
 	x := lambda a, b: 0;
 	x := lambda a: lambda b: "suprise!";
+	return 0;
 end
+

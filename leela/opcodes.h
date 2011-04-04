@@ -4,16 +4,19 @@
  * \date   2011-03-28
  *
  * \brief  Contains op code definitions as an X-macro.
+ *
+ * \note   Do NOT put include guards in this file.
  */
 
-#ifndef OC(name)
+#ifndef OC
 	#define OC(name)
 #endif
 
-#ifndef OC1(name)
+#ifndef OC1
 	#define OC1(name)
 #endif
 
+OC(  NOOP ) // a -> memory[a]
 OC(  DR   ) // a -> memory[a]
 OC(  UNM  ) // a -> -a
 OC(  ST   ) // a b ->        (memory[a] = b)
@@ -25,4 +28,7 @@ OC1( TA,  address   ) // -> a          (pushes address on top of stack, same as 
 OC1( BOP, operation ) // a b -> c      (binary operation)
 OC1( JU,  address   ) // ->            (unconditional jump)
 OC1( IFJ, address   ) // a ->          (conditional jump, if a is 0)
+
+#undef OC
+#undef OC1
 

@@ -34,9 +34,8 @@ private:
 	Token                        _current;
 	
 	stack<Ref<Symbol> >          _stack;
-	// stack<vector<Ref<Symbol> > > _auxiliary;
 	stack<Ref<Nonterminal> >     _nonterminals;
-
+	
 	ostream                    * _output;
 
 public:
@@ -313,17 +312,13 @@ private:
 	set<Token::Type> _first;
 
 public:
-	RepeatRule(Ref<Rule> rule);
+	RepeatRule(Ref<Rule> rule) : _rule(rule) {}
 	virtual ~RepeatRule() {}
 
 	virtual void onPop(Parser& parser)
 	{
-		if (_first.count(parser.current().type) < 1) {
-			cerr << "REPEAT FIRST: ";
-			foreach(it, _first)
-				cerr << Token::getTypeName(*it) << ", ";
+		if (_first.count(parser.current().type) < 1)
 			return;
-		}
 		parser.push(this);
 		parser.push(_rule);
 	}

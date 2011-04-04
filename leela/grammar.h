@@ -20,22 +20,24 @@
 	NT(VarDecl)           \
 	NT(CompoundStatement) \
 	NT(Statement)         \
-	NT(MoreStatements)    \
 	/*                    \
+	NT(MoreStatements)    \
+	*/                    \
 	NT(IfStatement)       \
+	NT(ElseStatement)     \
+	/*                    \
 	NT(WhileStatement)    \
 	*/                    \
+	NT(ReturnStatement)   \
 	NT(Assignment)        \
 	\
 	NT(Expression)        \
-	/*                    \
 	NT(Term)              \
 	NT(Factor)            \
-	*/                    \
    \
 	NT(Lambda)            \
 	NT(IdentList)         \
-	NT(IdentListRest)
+	// NT(IdentListRest)
 
 using namespace std;
 
@@ -48,8 +50,8 @@ using namespace std;
 		static const char * getName() { return #name; } \
 		virtual void print(ostream& output) const { output << getName(); }
 
-NONTERM(Program) };
-NONTERM(Preamble) };
+NONTERM(Program)           };
+NONTERM(Preamble)          };
 NONTERM(VarDecl) 
 	virtual void onFinished(Parser& parser)
 	{
@@ -59,17 +61,19 @@ NONTERM(VarDecl)
 };
 
 NONTERM(CompoundStatement) };
-NONTERM(Statement) };
-NONTERM(IfStatement) };
-NONTERM(WhileStatement) };
-NONTERM(MoreStatements) };
-NONTERM(Assignment) };
+NONTERM(Statement)         };
+NONTERM(IfStatement)       };
+NONTERM(ElseStatement)     };
+NONTERM(WhileStatement)    };
+//NONTERM(MoreStatements)    };
+NONTERM(ReturnStatement)   };
+NONTERM(Assignment)        };
 
-NONTERM(Expression) };
-NONTERM(Term) };
-NONTERM(Factor) };
+NONTERM(Expression)        };
+NONTERM(Term)              };
+NONTERM(Factor)            };
 
-NONTERM(Lambda) };
+NONTERM(Lambda)            };
 
 NONTERM(IdentList)
 	list<string> identifiers;
@@ -77,11 +81,13 @@ NONTERM(IdentList)
 	virtual void onFinished(Parser& parser);
 };
 
+/*
 NONTERM(IdentListRest)
 	list<string> identifiers;
 
 	virtual void onFinished(Parser& parser);
 };
+*/
 
 /* NONTERMINALS ***************************************************************/
 

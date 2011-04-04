@@ -33,7 +33,7 @@ void IdentList::onFinished(Parser& parser)
 void IdentList::onFinished(Parser& parser)
 {
 	if (matched.size() > 0) {
-		for (int i = 0; i < matched.size(); i += 2) {
+		for (unsigned int i = 0; i < matched.size(); i += 2) {
 			Ref<Terminal> identifier = getMatched<Terminal>(i);
 			identifiers.push_back(identifier->getValue<String>()->getValue());
 		}
@@ -46,6 +46,7 @@ void IdentList::onFinished(Parser& parser)
 	Nonterminal::onFinished(parser);
 }
 
+/*
 void IdentListRest::onFinished(Parser& parser)
 {
 	if (matched.size() > 0) {
@@ -57,6 +58,7 @@ void IdentListRest::onFinished(Parser& parser)
 	}
 	Nonterminal::onFinished(parser);
 }
+*/
 
 /* GRAMMAR ********************************************************************/
 
@@ -70,30 +72,45 @@ void initGrammar()
 	#define REPEAT(rule) Ref<Rule>(new RepeatRule((rule)))
 	#define epsilon Ref<Rule>(new EpsilonRule())
 	
-	DEF(Program)           = N(Preamble) + N(CompoundStatement) + STR("STOP");
+	DEF(Program)           = N(Preamble) + N(CompoundStatement) + STR("\tSTOP\n");
 	
 	DEF(Preamble)          = (N(VarDecl) + N(Preamble)) | epsilon;
 
 	DEF(VarDecl)           = T(KW_VAR) + N(IdentList) + T(SEMICOLON);
 	
-	// DEF(CompoundStatement) = T(KW_BEGIN) + N(Statement) + N(MoreStatements) + T(KW_END);
 	DEF(CompoundStatement) = T(KW_BEGIN) + N(Statement) + REPEAT(T(SEMICOLON) + N(Statement)) + T(KW_END);
 	
-	DEF(MoreStatements)    = (T(SEMICOLON) + N(Statement) + N(MoreStatements)) | epsilon;
-
-	DEF(Statement)         = N(Assignment) | epsilon;
-
-	DEF(Assignment)        = T(IDENTIFIER) + T(ASSIGN) + N(Expression);
-
-	DEF(Expression)        = T(NUMBER_LITERAL) | T(STRING_LITERAL) | N(Lambda);
+	DEF(Statement)         = N(Assignment) | N(IfStatement) | N(ReturnStatement) | N(CompoundStatement) | epsilon;
 	
+	DEF(Assignment)        = T(IDENTIFIER) + T(ASSIGN) + N(Expression) + STR("\tSTR\n");
 	
+	DEF(IfStatement)       = T(KW_IF) + N(Expression) + T(KW_THEN) + N(Statement) + N(ElseStatement);
+	
+	DEF(ElseStatement)     = (T(KW_ELSE) + N(Statement)) | epsilon;
+	
+	// ReturnStatement    -> 'return' Expression (RETURN)
+	DEF(ReturnStatement)   = T(KW_RETURN) + N(Expression) + STR("\tRETURN\n");
+	
+	// Expression         -> ['-'] Term { '+' Term (ADD) | '-' Term (SUB) }
+	DEF(Expression)        = (T(MINUS) | epsilon) + N(Term) + REPEAT(
+	                             (T(PLUS)  + N(Term) + STR("\tADD\n")) |
+	                             (T(MINUS) + N(Term) + STR("\tSUB\n"))
+                            );
+	
+	// Term               -> Factor { '*' Factor (MULT) | '/' Factor (DIV) }
+	DEF(Term)              = N(Factor) + REPEAT(
+	                             (T(ASTERIX) + N(Factor) + STR("\tMULT\n")) |
+	                             (T(SLASH)   + N(Factor) + STR("\tDIV\n"))
+	                         );
+	
+	// Factor             -> identifier | number_literal | string_literal | Lambda | '(' Expression ')'
+	DEF(Factor)            = T(IDENTIFIER) | T(NUMBER_LITERAL) | T(STRING_LITERAL) | N(Lambda) | ( T(LEFT_PAR) + N(Expression) + T(RIGHT_PAR) );
+	
+	// Lambda             -> 'lambda' IdentList ':' Expression
 	DEF(Lambda)            = T(KW_LAMBDA) + N(IdentList) + T(COLON) + N(Expression);
 	
-	//DEF(IdentList)         = T(IDENTIFIER) + N(IdentListRest) | epsilon;
+	// IdentList          -> identifier { ',' identifier } | e
 	DEF(IdentList)         = T(IDENTIFIER) + REPEAT(T(COMMA) + T(IDENTIFIER)) | epsilon;
-	
-	DEF(IdentListRest)     = T(COMMA) + T(IDENTIFIER) + N(IdentListRest) | epsilon;
 	
 	#undef DEF
 	#undef N

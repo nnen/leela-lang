@@ -31,11 +31,6 @@ Ref<Rule> operator | (Ref<Rule> a, Ref<Rule> b)
 	return new ChoiceRule(a, b);
 }
 
-RepeatRule::RepeatRule(Ref<Rule> rule)
-{
-	_rule = rule;
-}
-
 /* PARSER *********************************************************************/
 
 Parser::Parser()

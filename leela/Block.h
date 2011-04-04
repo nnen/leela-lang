@@ -10,64 +10,93 @@
 #define BLOCK_H_86BSDC136DFV
 
 #include <string>
+#include <map>
 #include <vector>
 
+#include "Object.h"
 #include "Instruction.h"
 
 using namespace std;
 
-struct Symbol {
-public:
-	enum Type {
-		PARAM,
-		LOCAL,
-		FREE_VAR
-	};
-	
-	Type   type;
-	string name;
-	int    address;
-	
-	Symbol(Type type, string name)
-	{
-		this->type = type;
-		this->name = name;
-		this->address = NULL;
-	}
-};
-
 class SymbolTable {
+public:
+	class Item : public Object {
+	public:
+		enum Type {
+			GLOBAL,
+			PARAM,
+			LOCAL,
+			FREE_VAR
+		};
+		
+		Type   type;
+		string name;
+		int    address;
+		int    closureAddress;
+		
+		Item(Type type, string name);
+		Item(Type type, string name, int address);
+		
+		virtual ~Item() {}
+	};
+
 private:
-	set<string> _all;
-	vector<string>   _vars;
-	vector<string>   _freeVars;
-	map<string, int> _map;
-	// Maps symbols to their addresses in the outer context.
-	map<string, int> _freeVariables;
+	map<string, Ref<Item> > _all;
+	vector<Ref<Item> >      _params;
+	vector<Ref<Item> >      _locals;
+	vector<Ref<Item> >      _freeVars;
 
 public:
-	void addParam(string name);
-	void addLocal(string name);
+	bool      addParam(string name);
+	bool      addLocal(string name);
+	void      addParams(vector<string> names);
+	void      addLocals(vector<string> names);
 	
-	void compile();
+	Ref<Item> getSymbol(string name, Block& block);
 	
-	int getAddress(string symbol) const;
-	string getSymbol(int address) const;
-	
-	int getSize() const;
+	int       getSize() const { return _all.size(); }
+
+	void      dump(ostream& output) const;
 };
 
 class Block : public Object {
 protected:
-	Ref<Block>             _contex;
-	
-	int                    _address;
-	vector<Intruction>     _instructions;
-	SymbolTable            _symbols;
+	Ref<Block>          _parent;
+	int                 _index;
+	int                 _address;
+	vector<Instruction> _instructions;
+	SymbolTable         _symbols;
 
 public:
-	Block();
-	virtual ~Block();
+	Block(int index);
+	Block(int index, Ref<Block> parent);
+	virtual ~Block() {}
+	
+	Ref<Block>   getParent() const { return _parent; }
+	int          getIndex() const { return _index; }
+	int          getAddress() const { return _address; }
+	void         setAddress(int value) { _address = value; }
+	SymbolTable& getSymbols() { return _symbols; }
+	int          getLength() const { return _instructions.size(); }
+};
+
+class BlockTable : public Object {
+private:
+	int                 _current;
+	vector<Ref<Block> > _blocks;
+
+public:
+	BlockTable();
+	
+	void       rewind() { _current = 0; }
+	
+	int        getSize() const { return _blocks.size(); }
+
+	Ref<Block> getNewBlock();
+	Ref<Block> getBlock(int index);
+	Ref<Block> getNextBlock() { return getBlock(_current++); }
+
+	void       compile();
 };
 
 #endif /* end of include guard: BLOCK_H_86BSDC136DFV */
