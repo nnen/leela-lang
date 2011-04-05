@@ -25,9 +25,7 @@
 	*/                    \
 	NT(IfStatement)       \
 	NT(ElseStatement)     \
-	/*                    \
 	NT(WhileStatement)    \
-	*/                    \
 	NT(ReturnStatement)   \
 	NT(Assignment)        \
 	\

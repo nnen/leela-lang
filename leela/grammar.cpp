@@ -88,6 +88,8 @@ void initGrammar()
 	
 	DEF(ElseStatement)     = (T(KW_ELSE) + N(Statement)) | epsilon;
 	
+	DEF(WhileStatement)    = (T(KW_WHILE) + N(Expression) + N(Statement)) | epsilon;
+	
 	// ReturnStatement    -> 'return' Expression (RETURN)
 	DEF(ReturnStatement)   = T(KW_RETURN) + N(Expression) + STR("\tRETURN\n");
 	
@@ -95,7 +97,7 @@ void initGrammar()
 	DEF(Expression)        = (T(MINUS) | epsilon) + N(Term) + REPEAT(
 	                             (T(PLUS)  + N(Term) + STR("\tADD\n")) |
 	                             (T(MINUS) + N(Term) + STR("\tSUB\n"))
-                            );
+                              );
 	
 	// Term               -> Factor { '*' Factor (MULT) | '/' Factor (DIV) }
 	DEF(Term)              = N(Factor) + REPEAT(
