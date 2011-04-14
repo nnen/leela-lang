@@ -72,6 +72,9 @@ public:
  *                      of the parser and write to the output.
  */
 class Symbol : public Object {
+protected:
+	Ref<Object> _attribute;
+
 public:
 	Symbol() : Object() {}
 	virtual ~Symbol() {}
@@ -80,6 +83,8 @@ public:
 	virtual void onPush(Parser& parser) {}
 
 	virtual void print(ostream& output) const { output << "Symbol[]"; }
+
+	Ref<Object> getAttribute() const { return _attribute; }
 };
 
 ostream& operator << (ostream& output, const Symbol& symbol);
@@ -115,7 +120,7 @@ public:
 
 	Nonterminal() : InputSymbol() {}
 	
-	virtual void onFinished(Parser& parser) { matched.clear(); }
+	virtual void onFinished(Parser& parser) { }
 	
 	void append(Ref<InputSymbol> symbol) { matched.push_back(symbol); }
 

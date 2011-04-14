@@ -13,18 +13,11 @@
 
 #include "Object.h"
 
-#ifdef assert
-	#undef assert
-#endif
-#define assert(cond) if (!(cond)) { std::cerr << __FILE__ << ":" << __LINE__ << ": assertion failed (" #cond ")."; throw std::exception(); }
-// #define assert(cond)
-
 Object::RingItem* Object::_ring = NULL;
 
 Object::Object()
 {
 	_refCount = 0;
-	_alive = true;
 	_sentinel = SENTINEL;
 }
 
@@ -33,8 +26,7 @@ Object::~Object()
 	checkHealth();
 	
 	_refCount = 0;
-	_alive = false;
-	_sentinel = 0;
+	_sentinel = DEAD_SENTINEL;
 }
 
 void Object::claim()
@@ -46,7 +38,6 @@ void Object::claim()
 void Object::checkHealth() const
 {
 	assert(_refCount >= 0);
-	assert(_alive == true);
 	assert(_sentinel == SENTINEL);
 }
 

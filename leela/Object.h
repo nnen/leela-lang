@@ -14,6 +14,7 @@
 
 #define REF(var, expr) Ref<typeof(expr)> var = (expr)
 #define SENTINEL 1337
+#define DEAD_SENTINEL 31415
 
 class Object {
 private:
@@ -66,7 +67,6 @@ private:
 	static RingItem* _ring;
 
 	int _refCount;
-	bool _alive;
 	int _sentinel;
 
 public:
@@ -78,6 +78,23 @@ public:
 	static Object* release(Object* obj);
 	
 	static void deleteAll();
+};
+
+template<class T>
+class Box : public Object {
+private:
+	T _value;
+
+public:
+	Box() : _value() {}
+	Box(T value) : _value(value) {}
+	virtual ~Box() {}
+
+	const T* operator -> () const { return &_value; }
+	T* operator -> ()             { return &_value; }
+
+	const T& operator * () const { return _value; }
+	T& operator * () { return _value; }
 };
 
 class NullReferenceException : public std::exception {
@@ -99,6 +116,9 @@ public:
 	
 	virtual const char* what() const throw() { return "Invalid dynamic cast."; }
 };
+
+template<class T>
+class BRef;
 
 template<class T>
 class Ref {
@@ -212,6 +232,30 @@ public:
 	{
 		return Ref<U>(dynamic_cast<U*>(getPtr()));
 	}
+};
+
+template<class T>
+class BRef {
+private:
+	Ref<Box<T> > _box;
+
+public:
+	BRef() : _box() {}
+	BRef(T value) : _box(new Box<T>(value)) {}
+	BRef(const BRef<T>& other) : _box(other._box) {}
+	BRef(const Ref<Box<T> >& other) : _box(other) {}
+	~BRef() {}
+	
+	T* operator -> () { return &(**_box); }
+	const T* operator -> () const { return &(**_box); }
+	
+	T& operator * () { return (**_box); }
+	const T& operator * () const { return (**_box); }
+	
+	operator Ref<Box<T> > () const { return _box; }
+	operator Ref<Object> () const { return _box; }
+
+	Ref<Box<T> > box() { return _box; }
 };
 
 #endif /* end of include guard: OBJECT_H_408JFDVEW32 */

@@ -50,20 +50,13 @@ using namespace std;
 
 NONTERM(Program)           };
 NONTERM(Preamble)          };
-NONTERM(VarDecl) 
-	virtual void onFinished(Parser& parser)
-	{
-		std::cerr << "VarDecl finished, name = " << *(matched[1]) << std::endl;
-		Nonterminal::onFinished(parser);
-	}
-};
+NONTERM(VarDecl)           };
 
 NONTERM(CompoundStatement) };
 NONTERM(Statement)         };
 NONTERM(IfStatement)       };
 NONTERM(ElseStatement)     };
 NONTERM(WhileStatement)    };
-//NONTERM(MoreStatements)    };
 NONTERM(ReturnStatement)   };
 NONTERM(Assignment)        };
 
@@ -74,18 +67,8 @@ NONTERM(Factor)            };
 NONTERM(Lambda)            };
 
 NONTERM(IdentList)
-	list<string> identifiers;
-	
 	virtual void onFinished(Parser& parser);
 };
-
-/*
-NONTERM(IdentListRest)
-	list<string> identifiers;
-
-	virtual void onFinished(Parser& parser);
-};
-*/
 
 /* NONTERMINALS ***************************************************************/
 

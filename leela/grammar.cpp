@@ -10,55 +10,27 @@
 
 /* NONTERMINALS ***************************************************************/
 
-/*
 void IdentList::onFinished(Parser& parser)
 {
-	if (matched.size() > 0) {
-		Ref<Terminal>      identifier = getMatched<Terminal>(0);
-		Ref<IdentListRest> rest       = getMatched<IdentListRest>(1);
+	BRef<list<string> > attribute = list<string>();
 
-		identifiers.push_front(identifier->getValue<String>()->getValue());
-		identifiers.insert(identifiers.end(), rest->identifiers.begin(), rest->identifiers.end());
-
-		parser.getOutput() << "IDENTLIST: ";
-		foreach(i, identifiers)
-			parser.getOutput() << *i << ", ";
-		parser.getOutput() << std::endl;
-
-	}
-	Nonterminal::onFinished(parser);
-}
-*/
-
-void IdentList::onFinished(Parser& parser)
-{
 	if (matched.size() > 0) {
 		for (unsigned int i = 0; i < matched.size(); i += 2) {
-			Ref<Terminal> identifier = getMatched<Terminal>(i);
-			identifiers.push_back(identifier->getValue<String>()->getValue());
+			attribute->push_back(getMatched<Terminal>(i)->getValue<String>()->getValue());
 		}
-
-		parser.getOutput() << "IDENTLIST: ";
-		foreach(i, identifiers)
-			parser.getOutput() << *i << ", ";
-		parser.getOutput() << std::endl;
 	}
+	
+	/*
+	parser.getOutput() << "IDENTLIST: ";
+	foreach(i, *attribute)
+		parser.getOutput() << *i << ", ";
+	parser.getOutput() << std::endl;
+	*/
+	
+	_attribute = attribute.box();
+	
 	Nonterminal::onFinished(parser);
 }
-
-/*
-void IdentListRest::onFinished(Parser& parser)
-{
-	if (matched.size() > 0) {
-		Ref<Terminal>      terminal = getMatched<Terminal>(1);
-		Ref<IdentListRest> rest     = getMatched<IdentListRest>(2);
-		
-		identifiers.push_front(terminal->getValue<String>()->getValue());
-		identifiers.insert(identifiers.end(), rest->identifiers.begin(), rest->identifiers.end());
-	}
-	Nonterminal::onFinished(parser);
-}
-*/
 
 /* GRAMMAR ********************************************************************/
 

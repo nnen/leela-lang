@@ -72,30 +72,31 @@ public:
 	Block(int index, Ref<Block> parent);
 	virtual ~Block() {}
 	
-	Ref<Block>   getParent() const { return _parent; }
-	int          getIndex() const { return _index; }
-	int          getAddress() const { return _address; }
+	Ref<Block>   getParent() const     { return _parent; }
+	int          getIndex() const      { return _index; }
+	int          getAddress() const    { return _address; }
 	void         setAddress(int value) { _address = value; }
-	SymbolTable& getSymbols() { return _symbols; }
-	int          getLength() const { return _instructions.size(); }
+	SymbolTable& getSymbols()          { return _symbols; }
+	int          getLength() const     { return _instructions.size(); }
 };
 
 class BlockTable : public Object {
 private:
 	int                 _current;
 	vector<Ref<Block> > _blocks;
+	stack<Ref<Block> >  _stack;
 
 public:
 	BlockTable();
 	
-	void       rewind() { _current = 0; }
+	void       rewind() { _current = 0; _stack.clear(); }
 	
 	int        getSize() const { return _blocks.size(); }
-
-	Ref<Block> getNewBlock();
-	Ref<Block> getBlock(int index);
-	Ref<Block> getNextBlock() { return getBlock(_current++); }
-
+	Ref<Block> getCurent();
+	
+	Ref<Block> startBlock();
+	void       endBlock();
+	
 	void       compile();
 };
 

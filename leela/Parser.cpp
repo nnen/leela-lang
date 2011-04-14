@@ -104,6 +104,7 @@ void Parser::endNonterminal()
 	Ref<Nonterminal> nonterminal = getNonterminal();
 	_nonterminals.pop();
 	nonterminal->onFinished(*this);
+	nonterminal->matched.clear();
 	append(nonterminal);
 }
 

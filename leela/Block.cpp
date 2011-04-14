@@ -112,22 +112,36 @@ BlockTable::BlockTable()
 	rewind();
 }
 
-Ref<Block> BlockTable::getNewBlock()
+Ref<Block> BlockTable::getCurrent()
 {
-	int        index = getSize();
-	Ref<Block> block = new Block(index);
+	if (_stack.empty()) return Ref<Block>();
+	return _stack.top();
+}
 
-	_blocks.push_back(block);
+Ref<Block> BlockTable::startBlock()
+{
+	Ref<Block> block;
+	
+	if (_current < _blocks.size()) {
+		block = _blocks[_current];
+	} else {
+		if (_stack.empty())
+			block = new Block(_current);
+		else
+			block = new Block(_current, _stack.top());
+		_blocks.push_back(block);
+	}
 
+	_current++;
+	_stack.push(block);
+	
 	return block;
 }
 
-Ref<Block> BlockTable::getBlock(int index)
+void BlockTable::endBlock()
 {
-	while (getSize() >= index)
-		getNewBlock();
-	
-	return _blocks[index];
+	if (_stack.empty()) return;
+	_stack.pop();
 }
 
 void BlockTable::compile()
