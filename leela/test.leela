@@ -3,8 +3,11 @@ begin
 	x := 2 + 123 * 321 + 2;
 	a := 0;
 	b := "\"Hello World!\"";
-	x := lambda a, b: 0;
-	x := lambda a: lambda b: "suprise!";
+	if a then begin
+		x := lambda a, b: 0;
+	end else begin
+		x := lambda a: lambda b: "suprise!";
+	end;
 	return 0;
 end
 
