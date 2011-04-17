@@ -12,6 +12,7 @@
 #include <string>
 #include <ostream>
 
+#include "leela.h"
 #include "Object.h"
 
 using namespace std;
@@ -65,10 +66,10 @@ public:
 	virtual void print(ostream& output) const;
 };
 
-class Number : public ScalarValue<int> {
+class Number : public ScalarValue<Integer> {
 public:
-	Number() : ScalarValue<int>(0) {}
-	Number(int value) : ScalarValue<int>(value) {}
+	Number() : ScalarValue<Integer>(0) {}
+	Number(Integer value) : ScalarValue<Integer>(value) {}
 	virtual ~Number() {}
 
 	static Ref<Number> parse(string str);
@@ -127,8 +128,9 @@ private:
 	Ref<Value> _value;
 
 public:
-	Variable();
-	Variable(Ref<Value> value);
+	Variable() : Value(), _value() {}
+	Variable(Ref<Value> value) : Value(), _value(value) {}
+	virtual ~Variable() {}
 };
 
 std::ostream& operator<< (std::ostream& output, const Value& value);

@@ -6,6 +6,8 @@
  * \brief  Implementation of the Lexer class.
  */
 
+#include <cassert>
+
 #include "leela.h"
 #include "Lexer.h"
 

@@ -11,43 +11,52 @@
 
 #define INSTRUCTION_WIDTH 4
 
-// #include <cstdint>
 #include <stdint.h>
+#include <ostream>
+
+#include "leela.h"
+
+using namespace std;
 
 struct Instruction {
 public:
 	enum OpCode {
 		#define OC(name) name,
-		#define OC1(name, argname) name,
+		#define OC1(name, argname, argtype) name,
 		#include "opcodes.h"
 		
 		OPCODE_COUNT
 	};
 	
+	union Payload {
+		Integer integer;
+		UInteger uinteger;
+		Address address;
+	};
+	
+	OpCode  opcode;
+	Payload payload;
+	
+	/*
 	union {
-		uint8_t  bytes[INSTRUCTION_WIDTH];
-		
-		struct {
-			uint8_t  opcode;
-			uint8_t  argHigh;
-			uint16_t argLow;
-		} parts;
-	} payload;
+		Integer  integer;
+		UInteger uinteger;
+		Address  address;
+	} payload
+	*/
 	
 	Instruction();
 	Instruction(OpCode opcode);
-	Instruction(OpCode opcode, unsigned int argument);
+	Instruction(OpCode opcode, Integer  argument);
+	Instruction(OpCode opcode, UInteger argument);
 	~Instruction();
 	
-	Instruction& setOpcode(OpCode value);
-	Instruction& setUInt(unsigned int value);
-	
-	OpCode       getOpcode() const;
-	unsigned int getUInt() const;
-
 	bool         hasArgument() const;
+	
+	void         print(ostream &output) const;
 
 	static bool  hasOpCodeArgument(OpCode opcode);
+	static const char * getOpName(OpCode opcode);
 };
 
 #endif /* end of include guard: INTRUCTION_H_23GDFVFG7JBQA */

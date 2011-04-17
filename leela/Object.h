@@ -97,6 +97,23 @@ public:
 	T& operator * () { return _value; }
 };
 
+template<class T>
+class HeapBox : public Object {
+private:
+	T * _value;
+
+public:
+	HeapBox() : _value(NULL) {}
+	HeapBox(T * value) : _value(value) {}
+	virtual ~HeapBox() { delete _value; _value = NULL; }
+	
+	const T* operator -> () const { return _value; }
+	T* operator -> ()             { return _value; }
+	
+	const T& operator * () const  { return *_value; }
+	T& operator * ()              { return *_value; }
+};
+
 class NullReferenceException : public std::exception {
 public:
 	NullReferenceException() throw() : std::exception() {}
@@ -254,7 +271,8 @@ public:
 	
 	operator Ref<Box<T> > () const { return _box; }
 	operator Ref<Object> () const { return _box; }
-
+	
+	void         makeNew() { _box = new Box<T>(); }
 	Ref<Box<T> > box() { return _box; }
 };
 
