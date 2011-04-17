@@ -27,13 +27,16 @@ endfunction
 
 call CloseOthers()
 
+edit leela.h
 call OpenCpp("Object")
-call OpenTwo("Object.h", "Object.cpp")
-call OpenTwo("Parser.h", "Parser.cpp")
-call OpenTwo("grammar.h", "grammar.cpp")
+call OpenCpp("Parser")
+call OpenCpp("grammar")
+call OpenCpp("Instruction")
+call OpenCpp("Assembler")
+call OpenCpp("AsmScanner")
+call OpenTwo("mnemonics.h", "opcodes.h")
 
-tabnew Session.vim
+tabnew Makefile
 
 normal gt
-quit
 

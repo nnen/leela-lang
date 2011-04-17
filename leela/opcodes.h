@@ -13,9 +13,10 @@
 #endif
 
 #ifndef OC1
-	#define OC1(name)
+	#define OC1(name, argument, type)
 #endif
 
+/*
 OC(  NOOP ) // a -> memory[a]
 OC(  DR   ) // a -> memory[a]
 OC(  UNM  ) // a -> -a
@@ -28,6 +29,36 @@ OC1( TA,  address   ) // -> a          (pushes address on top of stack, same as 
 OC1( BOP, operation ) // a b -> c      (binary operation)
 OC1( JU,  address   ) // ->            (unconditional jump)
 OC1( IFJ, address   ) // a ->          (conditional jump, if a is 0)
+*/
+
+OC( STOP          )
+OC( RETURN        )
+OC( NOOP          )
+OC( POP           )
+OC( PRINT         )
+
+OC( MAKE_LIST     )
+OC( APPEND        )
+OC( EXTEND        )
+OC( INSERT        )
+OC( REMOVE        )
+OC( CLEAR_LIST    )
+
+OC( MAKE_FUNCTION )
+
+OC1( PUSH,           integer,  Integer  )
+OC1( LOAD,           uinteger, UInteger )
+OC1( LOAD_GLOBAL,    uinteger, UInteger )
+OC1( LOADP,          address,  Address  )
+OC1( LOAD_REGISTER,  uinteger, UInteger )
+OC1( STORE,          uinteger, UInteger )
+OC1( STORE_GLOBAL,   uinteger, UInteger )
+OC1( STOREP,         address,  Address  )
+OC1( STORE_REGISTER, uinteger, UInteger )
+
+OC1( LOAD_CLOSURE,   uinteger, UInteger )
+OC1( ALLOC,          uinteger, UInteger )
+OC1( CALL,           uinteger, UInteger )
 
 #undef OC
 #undef OC1

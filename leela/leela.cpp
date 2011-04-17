@@ -6,12 +6,15 @@
  * \brief  Main file. Contains the main() function.
  */
 
+#include <cstdlib>
 #include <iostream>
 #include <fstream>
 #include <unistd.h>
 
 #include "leela.h"
+#include "Input.h"
 #include "Lexer.h"
+#include "Machine.h"
 #include "grammar.h"
 
 int main(int argc, const char * argv[])
@@ -63,10 +66,19 @@ int main(int argc, const char * argv[])
 		lexer.dumpTokens(std::cout);
 		f.close();
 	} else {
-		std::ifstream f(argv[optind], std::ifstream::in);
-		Parser parser;
-		parser.parse(f);
-		f.close();
+		while (optind < argc) {
+			Ref<FileInput> file(new FileInput(argv[optind++]));
+			
+			if (file->getExtension() == "cleela") {
+				Machine machine;
+				machine.loadBytecode(file);
+				cout << "Running " << argv[optind - 1] << "..." << endl;
+				machine.run();
+			} else {
+				Parser parser;
+				parser.parse(file->stream());
+			}
+		}
 	}
 	
 	/*

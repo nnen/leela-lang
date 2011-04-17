@@ -2,68 +2,75 @@
  *
  */
 
+#include <iomanip>
+
 #include "Instruction.h"
 
 Instruction::Instruction()
+	: opcode(NOOP)
 {
-	setOpcode(NOOP);
-	setUInt(0);
+	payload.uinteger = 0;
 }
 
 Instruction::Instruction(Instruction::OpCode opcode)
+	: opcode(opcode)
 {
-	setOpcode(opcode);
-	setUInt(0);
+	payload.uinteger = 0;
 }
 
-Instruction::Instruction(Instruction::OpCode opcode, unsigned int argument)
+Instruction::Instruction(Instruction::OpCode opcode, Integer argument)
+	: opcode(opcode)
 {
-	setOpcode(opcode);
-	setUInt(argument);
+	payload.integer = argument;
+}
+
+Instruction::Instruction(Instruction::OpCode opcode, UInteger argument)
+	: opcode(opcode)
+{
+	payload.uinteger = argument;
 }
 
 Instruction::~Instruction()
 {
-	setOpcode(NOOP);
-	setUInt(0);
-}
-
-Instruction& Instruction::setOpcode(Instruction::OpCode value)
-{
-	payload.parts.opcode = (uint8_t) value;
-	return *this;
-}
-
-Instruction& Instruction::setUInt(unsigned int value)
-{
-	payload.parts.argLow  = (uint16_t) value;
-	payload.parts.argHigh = (uint8_t) (value / (UINT16_MAX + 1));
-	return *this;
-}
-
-Instruction::OpCode Instruction::getOpcode() const
-{
-	return (Instruction::OpCode) payload.parts.opcode;
-}
-
-unsigned int Instruction::getUInt() const
-{
-	return (int) payload.parts.argLow + (int) ((UINT16_MAX + 1) * payload.parts.argHigh);
+	opcode = NOOP;
+	payload.uinteger = 0;
 }
 
 bool Instruction::hasArgument() const
 {
-	return hasOpCodeArgument(getOpcode());
+	return hasOpCodeArgument(opcode);
+}
+
+void Instruction::print(ostream &output) const
+{
+	output << setw(8) << left << getOpName(opcode) << setw(8) << right;
+	
+	switch (opcode) {
+	#define OC1(name, argname, argtype) case name: output << payload.argname; break;
+	#include "opcodes.h"
+	default: break;
+	}
 }
 
 bool Instruction::hasOpCodeArgument(OpCode opcode)
 {
 	switch (opcode) {
-	#define OC1(name, argname) case name:
+	#define OC1(name, argname, argtype) case name:
 	#include "opcodes.h"
 		return true;
 	default:
 		return false;
 	}
 }
+
+const char * Instruction::getOpName(OpCode opcode)
+{
+	switch (opcode) {
+	#define OC(name) case name: return #name;
+	#define OC1(name, argname, argtype) case name: return #name;
+	#include "opcodes.h"
+	default: return "[NaO]";
+	}
+}
+
 
