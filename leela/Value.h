@@ -131,6 +131,9 @@ public:
 	Variable() : Value(), _value() {}
 	Variable(Ref<Value> value) : Value(), _value(value) {}
 	virtual ~Variable() {}
+	
+	Ref<Value> getValue() const { return _value; }
+	void       setValue(Ref<Value> value) { _value = value; }
 };
 
 std::ostream& operator<< (std::ostream& output, const Value& value);

@@ -6,11 +6,21 @@
  * \brief  
  */
 
+#include <sstream>
+#include <typeinfo>
+
 #include "Function.h"
 
 Function::Function(Address code)
 	: _code(code)
 {
+}
+
+Ref<String> Function::toString() const
+{
+	stringstream s;
+	s << "<Function @" << getCode() << ">";
+	return new String(s.str());
 }
 
 void Function::pushClosure(Ref<Variable> variable)
@@ -22,7 +32,7 @@ Ref<ActivationFrame> Function::activate()
 {
 	Ref<ActivationFrame> result = new ActivationFrame(this);
 	foreach (var, _closure)
-		result->pushVariable(*var);
+		result->pushClosure(*var);
 	return result;
 }
 
@@ -31,8 +41,20 @@ ActivationFrame::ActivationFrame(Ref<Function> function)
 {
 }
 
+Ref<String> ActivationFrame::toString() const
+{
+	stringstream s;
+	s << *_function;
+	foreach (it, _stack) {
+		s << "\t[" << typeid(**it).name() << "]: " << **it << endl;
+	}
+	return new String(s.str());
+}
+
 Ref<Variable> ActivationFrame::getVar(int index)
 {
+	if (index >= _variables.size())
+		return Ref<Variable>();
 	return _variables[index];
 }
 

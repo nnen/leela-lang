@@ -26,6 +26,8 @@ public:
 	Function(Address code);
 	virtual ~Function() {}
 	
+	virtual Ref<String> toString() const;
+	
 	Address getCode() const { return _code; }
 	
 	void pushClosure(Ref<Variable> variable);
@@ -44,6 +46,8 @@ public:
 	
 	ActivationFrame(Ref<Function> function);
 	virtual ~ActivationFrame() {}
+	
+	virtual Ref<String>  toString() const;
 	
 	Ref<Variable>        getVar(int index);
 	vector<Ref<Value> >& getStack() { return _stack; }

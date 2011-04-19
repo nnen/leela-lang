@@ -32,10 +32,13 @@ OC1( IFJ, address   ) // a ->          (conditional jump, if a is 0)
 */
 
 OC( STOP          )
-OC( RETURN        )
 OC( NOOP          )
 OC( POP           )
+OC( DUP           )
 OC( PRINT         )
+
+OC( CALL          )
+OC( RETURN        )
 
 OC( MAKE_LIST     )
 OC( APPEND        )
@@ -44,21 +47,21 @@ OC( INSERT        )
 OC( REMOVE        )
 OC( CLEAR_LIST    )
 
-OC( MAKE_FUNCTION )
+OC( DUMP          )
+OC( DUMP_STACK    )
 
 OC1( PUSH,           integer,  Integer  )
 OC1( LOAD,           uinteger, UInteger )
 OC1( LOAD_GLOBAL,    uinteger, UInteger )
-OC1( LOADP,          address,  Address  )
 OC1( LOAD_REGISTER,  uinteger, UInteger )
 OC1( STORE,          uinteger, UInteger )
 OC1( STORE_GLOBAL,   uinteger, UInteger )
-OC1( STOREP,         address,  Address  )
 OC1( STORE_REGISTER, uinteger, UInteger )
 
+OC1( MAKE_FUNCTION,  address,  Address  )
 OC1( LOAD_CLOSURE,   uinteger, UInteger )
 OC1( ALLOC,          uinteger, UInteger )
-OC1( CALL,           uinteger, UInteger )
+// OC1( CALL,           uinteger, UInteger )
 
 #undef OC
 #undef OC1

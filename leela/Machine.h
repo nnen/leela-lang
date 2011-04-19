@@ -45,25 +45,34 @@ private:
 	Ref<Bytecode>                _code;
 	CallStack                    _callStack;
 	
+	Instruction                  _instr;
 	bool                         _stop;
 	
 	Instruction loadInstr();
-	void execute(Instruction instr);
+	void        execute(Instruction instr);
 	
-	void       push(Ref<Value> value);
-	Ref<Value> pop();
+	void        push(Ref<Value> value);
+	Ref<Value>  pop();
 
 public:
 	Machine();
 	virtual ~Machine();
 	
-	CallStack& getCallStack() { return _callStack; }
+	Instruction          getInstr() const { return _instr; }
+	
+	Ref<ActivationFrame> getFrame();
+	void                 pushFrame(Ref<ActivationFrame> frame);
+	Ref<ActivationFrame> popFrame();
+	
+	CallStack&           getCallStack() { return _callStack; }
 	
 	bool step();
 	void reset();
 	void run();
 	
 	void loadBytecode(Ref<Input> input);
+
+	void dumpStack(ostream &output, int limit = 10) const;
 };
 
 #endif /* end of include guard: MACHINE_H_FVZAS0983YUA2VFDV6 */

@@ -32,13 +32,8 @@ private:
 	int  getLabelAddr(string label);
 	void setLabel();
 	
-	/*
-	void write(char c);
-	void writeInstr(Instruction::OpCode opcode);
-	void writeIntegerInstr(Instruction::OpCode opcode, Integer integer);
-	void writeAddressInstr(Instruction::OpCode opcode, Address address);
-	void writeUIntegerInstr(Instruction::OpCode opcode, UInteger integer);
-	*/
+	static Instruction::OpCode getOpCode(AsmScanner::Tokens mnemonic, AsmScanner::Tokens argument);
+	
 	void doUnexpectedToken(AsmScanner::Tokens token, string message);
 	void doUnexpectedToken(AsmScanner::Tokens token);
 	

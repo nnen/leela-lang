@@ -59,10 +59,11 @@ AsmScanner::Tokens AsmScanner::readToken()
 	
 	if (peek() < 0) return TOKEN_END;
 	
+	// Read reference or label
 	if (islower(peek())) {
 		string value;
 		value += get();
-	
+		
 		while (!isspace(peek())) {
 			if (peek() == ':') {
 				get();
@@ -77,7 +78,8 @@ AsmScanner::Tokens AsmScanner::readToken()
 		return TOKEN_REFERENCE;
 	}
 	
-	if (peek() == 'R') {
+	// Read register number
+	if (peek() == '#') {
 		get();
 		reg = 0;
 		while (isdigit(peek())) {
@@ -87,14 +89,15 @@ AsmScanner::Tokens AsmScanner::readToken()
 		return TOKEN_REGISTER;
 	}
 	
+	// Read mnemonic
 	if (isupper(peek())) {
 		string mnemonic = "";
-		while (isupper(peek()))
+		while (isupper(peek()) || peek() == '_')
 			mnemonic += get();
 		return getMnemonic(mnemonic);
-		// return TOKEN_MNEMONIC;
 	}
 	
+	// Read integer
 	if (isdigit(peek()) || (peek() == '-')) {
 		bool negative = false;
 		if (peek() == '-') {
@@ -110,6 +113,7 @@ AsmScanner::Tokens AsmScanner::readToken()
 		return TOKEN_INTEGER;
 	}
 	
+	// Read address
 	if (peek() == '@') {
 		get();
 		address = 0;

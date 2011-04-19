@@ -23,23 +23,28 @@ void Assembler::setLabel()
 	_labels[_scanner.label] = _bytecode.getAddress();
 }
 
-/*
-void Assembler::write(char c)
+Instruction::OpCode Assembler::getOpCode(AsmScanner::Tokens mnemonic, AsmScanner::Tokens argument)
 {
-	_addr++;
-	if (_outputOn)
-		_output->put(c);
+	#define M(m, nothing, int_op, ref_op, addr_op, reg_op)                       \
+		case AsmScanner::TOKEN_##m:                                             \
+			switch (argument) {                                                \
+				case AsmScanner::TOKEN_INTEGER: return Instruction::int_op;   \
+				case AsmScanner::TOKEN_REFERENCE: return Instruction::ref_op; \
+				case AsmScanner::TOKEN_ADDRESS: return Instruction::addr_op;  \
+				case AsmScanner::TOKEN_REGISTER: return Instruction::reg_op;  \
+				default: return Instruction::nothing;                         \
+			}                                                                  \
+			break;
+	
+	switch (mnemonic) {
+	#include "mnemonics.h"
+	default: return Instruction::NOOP;
+	}
 }
-
-void Assembler::writeInstr(Instruction::OpCode opcode)
-{
-	write((char) opcode);
-}
-*/
 
 void Assembler::doUnexpectedToken(AsmScanner::Tokens token, string message)
 {
-	cerr << "ERROR: Unexpected token: " << AsmScanner::getTokenName(token) << "! ";
+	cerr << "ERROR: Unexpected token: " << AsmScanner::getTokenName(token) << ". ";
 	cerr << message << endl;
 	throw std::exception();
 }
@@ -87,36 +92,41 @@ void Assembler::readLabel()
 void Assembler::readInstruction()
 {
 	AsmScanner::Tokens mnemonic = _scanner.getToken();
+	Instruction instr(getOpCode(mnemonic, _scanner.peekToken()));
 	
-	#define M(m, nothing, int_op, ref_op, addr_op, reg_op)                               \
-		case AsmScanner::TOKEN_##m:                                                       \
-			switch (_scanner.peekToken()) {                                                \
-				case AsmScanner::TOKEN_INTEGER:                                             \
-					_bytecode.writeInstr(Instruction(Instruction::int_op, _scanner.integer)); \
+	if (instr.opcode == Instruction::NOOP && mnemonic != AsmScanner::TOKEN_NOOP)
+		cerr << "Warning: Mnemonic translated as NOOP at "
+		     << _bytecode.getAddress() << "." << endl;
+	
+	#define M(m, nothing, int_op, ref_op, addr_op, reg_op)                                         \
+		case AsmScanner::TOKEN_##m:                                                               \
+			switch (_scanner.peekToken()) {                                                      \
+				case AsmScanner::TOKEN_INTEGER:                                                 \
+					instr.payload.integer = _scanner.integer;                                  \
+					_scanner.getToken();                                                       \
+					break;                                                                     \
+				case AsmScanner::TOKEN_REFERENCE:                                               \
+					instr.payload.address = getLabelAddr(_scanner.reference);                  \
+					_scanner.getToken();                                                       \
+					break;                                                                     \
+				case AsmScanner::TOKEN_ADDRESS:                                                 \
+					instr.payload.address = _scanner.address;                                \
 					_scanner.getToken();                                                     \
 					break;                                                                   \
-				case AsmScanner::TOKEN_REFERENCE:                                           \
-					_bytecode.writeInstr(Instruction(Instruction::ref_op, getLabelAddr(_scanner.label))); \
+				case AsmScanner::TOKEN_REGISTER:                                              \
+					instr.payload.uinteger = _scanner.reg;                                   \
 					_scanner.getToken();                                                     \
 					break;                                                                   \
-				case AsmScanner::TOKEN_ADDRESS:                                             \
-					_bytecode.writeInstr(Instruction(Instruction::addr_op, _scanner.address)); \
-					_scanner.getToken();                                                     \
+				default:                                                                      \
 					break;                                                                   \
-				case AsmScanner::TOKEN_REGISTER:                                            \
-					_bytecode.writeInstr(Instruction(Instruction::reg_op, _scanner.reg)); \
-					_scanner.getToken();                                                     \
-					break;                                                                   \
-				default:                                                                    \
-					_bytecode.writeInstr(Instruction::nothing);                              \
-					break;                                                                   \
-			}                                                                              \
+			}                                                                                  \
+			_bytecode.writeInstr(instr);                                                       \
 			break;
 	
 	switch (mnemonic) {
 	#include "mnemonics.h"
 	default:
-		doUnexpectedToken(mnemonic);
+		doUnexpectedToken(mnemonic, "Expected a mnemonic.");
 		break;
 	}
 }

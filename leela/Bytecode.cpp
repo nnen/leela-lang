@@ -59,7 +59,7 @@ int Bytecode::writeInteger(Integer value)
 	} tmp;
 	
 	tmp.value = value;
-	for (int i = 0; i < sizeof(Integer); i++)
+	for (int i = 0; i < (int)sizeof(Integer); i++)
 		write(tmp.bytes[i]);
 	
 	return sizeof(Integer);
@@ -88,7 +88,7 @@ int Bytecode::writeUInteger(UInteger value)
 	} tmp;
 	
 	tmp.value = value;
-	for (int i = 0; i < sizeof(UInteger); i++)
+	for (int i = 0; i < (int)sizeof(UInteger); i++)
 		write(tmp.bytes[i]);
 	
 	return sizeof(UInteger);
@@ -135,7 +135,7 @@ Integer Bytecode::readInteger()
 		Integer value;
 	} tmp;
 
-	for (int i = 0; i < sizeof(Integer); i++)
+	for (int i = 0; i < (int)sizeof(Integer); i++)
 		tmp.bytes[i] = read();
 	
 	return tmp.value;
@@ -172,7 +172,7 @@ UInteger Bytecode::readUInteger()
 		UInteger value;
 	} tmp;
 
-	for (int i = 0; i < sizeof(UInteger); i++)
+	for (int i = 0; i < (int)sizeof(UInteger); i++)
 		tmp.bytes[i] = read();
 	
 	return tmp.value;
