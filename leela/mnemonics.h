@@ -26,6 +26,7 @@ M( STORE,        NOOP,       STORE,        NOOP,          NOOP,          STORE_R
 
 M( MAKE,         MAKE_LIST,  NOOP,         MAKE_FUNCTION, MAKE_FUNCTION, NOOP           )
 M( LOAD_CLOSURE, NOOP,       LOAD_CLOSURE, NOOP,          NOOP,          NOOP           )
+M( PULL,         NOOP,       PULL,         NOOP,          NOOP,          NOOP           )
 M( ALLOC,        NOOP,       ALLOC,        NOOP,          NOOP,          NOOP           )
 
 M( DUMP_STACK,   DUMP_STACK, DUMP_STACK,   DUMP_STACK,    DUMP_STACK,    DUMP_STACK     )

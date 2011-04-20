@@ -22,6 +22,15 @@ void RuntimeError::print(ostream &output) const
 	output << "RuntimeError (@" << _address << "): " << _message;
 }
 
+void Machine::do_PULL(Instruction instr)
+{
+	if (_callStack.size() < 2)
+		throw RuntimeError(*this, "There's no activation frame to pull from.");
+	
+	for (int i = 0; i < instr.payload.uinteger; i++)
+		getFrame()->pushVariable(_callStack[_callStack.size() - 2]->pop());
+}
+
 Instruction Machine::loadInstr()
 {
 	if (_callStack.size() < 1)
@@ -86,6 +95,9 @@ void Machine::execute(Instruction instr)
 		function->pushClosure(getFrame()->getVar(instr.payload.uinteger));
 		push(function);
 		} break;
+	case Instruction::PULL:
+		do_PULL(instr);
+		break;
 	case Instruction::ALLOC: {
 		for (int i = 0; i < (int) instr.payload.uinteger; i++)
 			getFrame()->pushVariable();

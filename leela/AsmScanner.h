@@ -67,6 +67,8 @@ public:
 	Tokens getToken();
 	
 	static const char * getTokenName(Tokens token);
+	static const char * getMnemonic(Tokens mnemonic);
+	static int          getLongestMnemonic();
 };
 
 #endif /* end of include guard: ASM_SCANNER_H_23098SRFTGB567 */

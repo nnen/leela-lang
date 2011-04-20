@@ -6,6 +6,8 @@
  * \brief  
  */
 
+#include <cstring>
+
 #include "AsmScanner.h"
 
 map<string, AsmScanner::Tokens> AsmScanner::_mnemonics;
@@ -184,5 +186,24 @@ const char * AsmScanner::getTokenName(AsmScanner::Tokens token)
 	case TOKEN_UNKNOWN:   return "UNKNOWN";
 	default:              return "[NOT A TOKEN]";
 	}
+}
+
+const char * AsmScanner::getMnemonic(AsmScanner::Tokens mnemonic)
+{
+	switch (mnemonic) {
+	#define M(name, nothing, integer, reference, address, register) \
+		case TOKEN_##name: return #name;
+	#include "mnemonics.h"
+	default: return NULL;
+	}
+}
+
+int AsmScanner::getLongestMnemonic()
+{
+	int length = 0;
+	#define M(name, nothing, integer, reference, address, register) \
+		if ((int)strlen(#name) > length) length = strlen(#name);
+	#include "mnemonics.h"
+	return length;
 }
 

@@ -60,6 +60,7 @@ OC1( STORE_REGISTER, uinteger, UInteger )
 
 OC1( MAKE_FUNCTION,  address,  Address  )
 OC1( LOAD_CLOSURE,   uinteger, UInteger )
+OC1( PULL,           uinteger, UInteger )
 OC1( ALLOC,          uinteger, UInteger )
 // OC1( CALL,           uinteger, UInteger )
 

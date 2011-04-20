@@ -48,6 +48,8 @@ private:
 	Instruction                  _instr;
 	bool                         _stop;
 	
+	void        do_PULL(Instruction instr);
+	
 	Instruction loadInstr();
 	void        execute(Instruction instr);
 	
