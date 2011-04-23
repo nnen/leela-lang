@@ -39,10 +39,10 @@ public:
 struct Token {
 public:
 	enum Type {
-		#define T(name) name,
-		#define TK(name, str) KW_##name,
-		#define TD(name, ch) name,
-		#define T2(name, ch1, ch2) name,
+		#define T(name, repr) name,
+		#define TK(name, str, repr) KW_##name,
+		#define TD(name, ch, repr) name,
+		#define T2(name, ch1, ch2, repr) name,
 		
 		#include "token_types.h"
 		

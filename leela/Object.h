@@ -11,6 +11,7 @@
 
 #include <cstddef>
 #include <exception>
+#include <utility>
 
 #define REF(var, expr) Ref<typeof(expr)> var = (expr)
 #define SENTINEL 1337
@@ -221,6 +222,21 @@ public:
 		
 		setPtr(other.getPtr());
 		return *this;
+	}
+	
+	bool operator==(const Ref<T>& other) const
+	{
+		return (getPtr() == other.getPtr());
+	}
+	
+	bool operator==(const T* other) const
+	{
+		return (getPtr() == other);
+	}
+	
+	bool operator<(const Ref<T>& other) const
+	{
+		return (getPtr() < other.getPtr());
 	}
 	
 	/*

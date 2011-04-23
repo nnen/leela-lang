@@ -49,7 +49,7 @@ void Token::setString(Token::Type type, string str)
 Token::Type Token::getDelimiter(Char c)
 {
 	switch ((char) c) {
-	#define TD(name, ch) case ch: return name;
+	#define TD(name, ch, repr) case ch: return name;
 	#include "token_types.h"
 	}
 	return UNKNOWN;
@@ -57,7 +57,7 @@ Token::Type Token::getDelimiter(Char c)
 
 Token::Type Token::getDelimiter(Char c1, Char c2)
 {
-	#define T2(name, ch1, ch2) if (((char)c1 == ch1) && ((char)c2 == ch2)) return name;
+	#define T2(name, ch1, ch2, repr) if (((char)c1 == ch1) && ((char)c2 == ch2)) return name;
 	#include "token_types.h"
 	
 	return UNKNOWN;
@@ -66,10 +66,10 @@ Token::Type Token::getDelimiter(Char c1, Char c2)
 const char * Token::getTypeName(Type type)
 {
 	switch (type) {
-	#define T(name)            case name:      return #name;
-	#define TK(name, str)      case KW_##name: return "KW_" #name;
-	#define TD(name, ch)       case name:      return #name;
-	#define T2(name, ch1, ch2) case name:      return #name;
+	#define T(name, repr)            case name:      return #name;
+	#define TK(name, str, repr)      case KW_##name: return "KW_" #name;
+	#define TD(name, ch, repr)       case name:      return #name;
+	#define T2(name, ch1, ch2, repr) case name:      return #name;
 	#include "token_types.h"
 	default: return "[UNKNOWN TOKEN TYPE]";
 	}

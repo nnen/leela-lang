@@ -101,7 +101,7 @@ bool Char::isNewLine() const
 bool Char::isSingleDelimiter() const
 {
 	return (
-		#define TD(name, ch) (value == (ch)) ||
+		#define TD(name, ch, repr) (value == (ch)) ||
 		#include "token_types.h"
 		false
 	);
@@ -110,7 +110,7 @@ bool Char::isSingleDelimiter() const
 bool Char::isDoubleDelimiter() const
 {
 	return (
-		#define T2(name, ch1, ch2) (value == (ch1)) ||
+		#define T2(name, ch1, ch2, repr) (value == (ch1)) ||
 		#include "token_types.h"
 		false
 	);
