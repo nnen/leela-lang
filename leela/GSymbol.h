@@ -11,6 +11,8 @@
 
 #include <set>
 #include <stack>
+#include <vector>
+#include <ostream>
 
 #include "Object.h"
 #include "Token.h"
@@ -37,19 +39,20 @@ protected:
 	int                 _index;
 	int                 _lowlink;
 	
-	Set                 getStrongComponent(stack<Ref<GSymbol> >& stack, int& nextIndex);
-
 public:
 	GSymbol(Grammar * grammar, int line);
 	virtual ~GSymbol();
 	
+	Grammar *                getGrammar() const { return _grammar; }
 	Ref<NonterminalDef>      getNonterminal() const { return _nonterminal; }
-	void                     setNonterminal(Ref<NonterminalDef> nonterminal) { _nonterminal = nonterminal; }
+	virtual void             setNonterminal(Ref<NonterminalDef> nonterminal) { _nonterminal = nonterminal; }
 	int                      getLine() const { return _line; }
 	
-	virtual Set              getChildren() const { return Set(); }
-	Set                      getStrongComponent();
-	
+	virtual Set              getChildren() { return Set(); }
+	void                     getStrongComponents(vector<GSymbol::Set>& components,
+	                                             stack<Ref<GSymbol> >& stack,
+	                                             int&                  nextIndex);
+
 	virtual bool             maybeEmpty() { return false; }
 	virtual void             checkRecursion() {}
 	virtual bool             hasLeftRecursion(Ref<NonterminalDef> nonterminal) { return false; }
@@ -61,7 +64,15 @@ public:
 	virtual bool             isRecursive() { return false; }
 	virtual set<Token::Type> getFirst() = 0;
 	virtual set<Token::Type> getFollow() { return _follow; }
+	
+	virtual void             print(ostream& output) const;
 };
+
+Ref<GSymbol> operator+(Ref<GSymbol> a, Ref<GSymbol> b);
+Ref<GSymbol> operator|(Ref<GSymbol> a, Ref<GSymbol> b);
+
+ostream& operator<<(ostream& output, const GSymbol& symbol);
+ostream& operator<<(ostream& output, Ref<GSymbol> symbol);
 
 /* Terminal *******************************************************************/
 
@@ -77,6 +88,8 @@ public:
 	
 	virtual set<Token::Type> getFirst();
 	virtual set<Token::Type> getFollow() { return set<Token::Type>(); }
+	
+	virtual void             print(ostream& output) const;
 	
 	bool isEpsilon() { return _epsilon; }
 };
@@ -117,6 +130,8 @@ public:
 	virtual void             addFollow(set<Token::Type> terminals);
 	virtual void             calculateFollow() {}
 	
+	virtual void             print(ostream& output) const;
+	
 	string                   getName() { return _name; }
 	Ref<NonterminalDef>      getDefinition();
 };
@@ -128,37 +143,47 @@ protected:
 	Ref<GSymbol> _a, _b;
 
 public:
+	BinarySymbol(Grammar * grammar, int line, Ref<GSymbol> a, Ref<GSymbol> b)
+		: GSymbol(grammar, line), _a(a), _b(b) {}
 	virtual ~BinarySymbol() {}
 	
 	virtual void setNonterminal(Ref<NonterminalDef> nonterminal);
 	
-	virtual Set  getChildren() const;
+	virtual Set  getChildren();
 };
 
 /* Chain **********************************************************************/
 
 class Chain : public BinarySymbol {
 public:
+	Chain(Grammar * grammar, int line, Ref<GSymbol> a, Ref<GSymbol> b)
+		: BinarySymbol(grammar, line, a, b) {}
 	virtual ~Chain() {}
 	
 	virtual bool                maybeEmpty();
 	virtual bool                hasLeftRecursion(Ref<NonterminalDef> nonterminal);
-	virtual set<Token::Type>    getFirst() = 0;
-	virtual void                addFollow(Token::Type terminal) = 0;
+	virtual set<Token::Type>    getFirst() { return set<Token::Type>(); }
+	virtual void                addFollow(Token::Type terminal) {}
 	virtual void                calculateFollow();
+	
+	virtual void                print(ostream& output) const;
 };
 
 /* Alternation ****************************************************************/
 
 class Alternation : public BinarySymbol {
 public:
+	Alternation(Grammar * grammar, int line, Ref<GSymbol> a, Ref<GSymbol> b)
+		: BinarySymbol(grammar, line, a, b) {}
 	virtual ~Alternation() {}
 	
 	virtual bool                maybeEmpty();
 	virtual bool                hasLeftRecursion(Ref<NonterminalDef> nonterminal);
-	virtual set<Token::Type>    getFirst() = 0;
-	virtual void                addFollow(Token::Type terminal) = 0;
+	virtual set<Token::Type>    getFirst() { return set<Token::Type>(); }
+	virtual void                addFollow(Token::Type terminal) {}
 	virtual void                calculateFollow();
+	
+	virtual void                print(ostream& output) const;
 };
 
 /* NonterminalDef *************************************************************/

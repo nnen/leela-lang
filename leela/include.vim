@@ -21,6 +21,17 @@ function! OpenTwo(first, second)
 	execute "edit " . a:second
 endfunction
 
+function! OpenThree(first, second, third)
+	execute "tabnew " . a:first
+	normal n
+	normal L
+	execute "edit " . a:second
+	normal n
+	normal L
+	execute "edit " . a:third
+	normal =
+endfunction
+
 function! OpenCpp(name)
 	call OpenTwo(a:name . ".h", a:name . ".cpp")
 endfunction

@@ -75,6 +75,18 @@ const char * Token::getTypeName(Type type)
 	}
 }
 
+const char * Token::getRepresentation(Type type)
+{
+	switch (type) {
+	#define T(name, repr)            case name:      return repr;
+	#define TK(name, str, repr)      case KW_##name: return repr;
+	#define TD(name, ch, repr)       case name:      return repr;
+	#define T2(name, ch1, ch2, repr) case name:      return repr;
+	#include "token_types.h"
+	default: return "[UNKNOWN TOKEN TYPE]";
+	}
+}
+
 ostream& operator << (ostream& output, const Token& token)
 {
 	output << "Token(" << Token::getTypeName(token.type);

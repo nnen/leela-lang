@@ -8,6 +8,7 @@
 
 #include <queue>
 #include <sstream>
+#include <iostream>
 
 #include "Grammar.h"
 
@@ -27,7 +28,12 @@ NonterminalDef& Grammar::definition(int line, string name)
 
 Ref<GSymbol> Grammar::terminal(int line, Token::Type terminal)
 {
-	return new Terminal(this, terminal);
+	return new Terminal(this, line, terminal);
+}
+
+Ref<GSymbol> Grammar::epsilon(int line)
+{
+	return new Terminal(this, line);
 }
 
 Ref<GSymbol> Grammar::nonterminal(int line, string name)
@@ -39,10 +45,20 @@ void Grammar::init()
 {
 	#define DEF(name) definition(__LINE__, #name)
 	#define T(name)   terminal(__LINE__, Token::name)
+	#define E         epsilon(__LINE__)
 	#define N(name)   nonterminal(__LINE__, #name)
 	
-	DEF(Program) = N(Preamble);
-	DEF(Preamble) = T(KW_VAR);
+	DEF(Program)           = N(Preamble) + N(CompoundStatement);
+	DEF(Preamble)          = T(KW_VAR) + N(IdentList) + T(SEMICOLON);
+	DEF(Statement)         = N(CompoundStatement) | N(IfStatement);
+	DEF(CompoundStatement) = T(KW_BEGIN) + N(StatementList) + T(KW_END);
+	DEF(StatementList)     = (N(Statement) + N(StatementListRest)) | E;
+	DEF(StatementListRest) = (T(SEMICOLON) + N(Statement) + N(StatementListRest)) | E;
+	DEF(IfStatement)       = T(KW_IF) + N(Expression) + T(KW_THEN) + N(Statement) + T(KW_ELSE) + N(Statement);
+	DEF(IdentList)         = T(IDENTIFIER) + N(IdentListRest);
+	DEF(IdentListRest)     = (T(COMMA) + T(IDENTIFIER) + N(IdentListRest)) | E;
+	
+	DEF(Expression)        = T(NUMBER_LITERAL);
 	
 	#undef DEF
 	#undef T
@@ -61,15 +77,23 @@ void Grammar::discover()
 	while (!toAdd.empty()) {
 		Ref<GSymbol> symbol = toAdd.front();
 		toAdd.pop();
+
+		cerr << symbol << " ";
 		
 		if (_allSymbols.count(symbol) > 0)
 			continue;
 		
 		_allSymbols.insert(symbol);
 		_sortedSymbols.push_back(symbol);
-		foreach (child, symbol->getChildren())
+		GSymbol::Set children = symbol->getChildren();
+		cerr << "children(" << children.size() << ") ";
+		foreach (child, children) {
+			cerr << "child(" << *child << ") ";
 			toAdd.push(*child);
+		}
 	}
+	
+	cerr << endl;
 }
 
 void Grammar::check()
@@ -86,6 +110,18 @@ void Grammar::check()
 	
 	foreach(item, _nonterminals)
 		item->second->getSymbol()->calculateFollow();
+}
+
+vector<GSymbol::Set> Grammar::getComponents()
+{
+	vector<GSymbol::Set> components;
+	stack<Ref<GSymbol> > stack;
+	int                  nextIndex = 0;
+	
+	foreach (def, _nonterminals)
+		def->second->getSymbol()->getStrongComponents(components, stack, nextIndex);
+	
+	return components;
 }
 
 Grammar::Grammar()
@@ -156,12 +192,29 @@ void Grammar::dump(ostream& output)
 {
 	output << "***** GRAMMAR *****" << endl;
 	
-	output << "Topological order:" << endl;
+	output << "Nonterminals:" << endl;
+	foreach (def, _nonterminals) {
+		output << "   ";
+		output << def->second->getName();
+		output << " -> " << def->second->getSymbol();
+		output << endl;
+	}
+	
+	output << endl << "Topological order:" << endl;
 	foreach (symbol, _sortedSymbols) {
 		output << "   ";
 		output << (*symbol)->getNonterminal()->getName() << ":";
 		output << (*symbol)->getLine() << ": ";
+		output << (*symbol);
 		output << endl;
+	}
+
+	output << endl << "Strong components:" << endl;
+	vector<GSymbol::Set> components = getComponents();
+	foreach (component, components) {
+		output << "   =====================" << endl;
+		foreach (symbol, *component)
+			output << "   " << *symbol << endl;
 	}
 }
 

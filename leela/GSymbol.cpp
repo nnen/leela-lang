@@ -13,16 +13,19 @@
 
 /* GSymbol ********************************************************************/
 
-GSymbol::Set GSymbol::getStrongComponent(stack<Ref<GSymbol> >& stack, int& nextIndex)
+void GSymbol::getStrongComponents(vector<GSymbol::Set>& components,
+                                  stack<Ref<GSymbol> >& stack,
+                                  int&                  nextIndex)
 {
 	_index = nextIndex++;
 	_lowlink = _index;
 	
 	stack.push(this);
 	
-	foreach (child, getChildren()) {
+	Set children = getChildren();
+	foreach (child, children) {
 		if ((*child)->_index < 0) {
-			(*child)->getStrongComponent(stack, nextIndex);
+			(*child)->getStrongComponents(components, stack, nextIndex);
 			_lowlink = (_lowlink < (*child)->_lowlink ? _lowlink : (*child)->_lowlink);
 		} else {
 			_lowlink = (_lowlink < (*child)->_index ? _lowlink : (*child)->_index);
@@ -30,15 +33,15 @@ GSymbol::Set GSymbol::getStrongComponent(stack<Ref<GSymbol> >& stack, int& nextI
 	}
 	
 	if (_index == _lowlink) {
+		Ref<GSymbol> stackItem;
 		Set result;
 		do {
-			result.insert(stack.top());
+			stackItem = stack.top();
 			stack.pop();
-		} while (_index != _lowlink);
-		return result;
+			result.insert(stackItem);
+		} while (stackItem.getPtr() != this);
+		components.push_back(result);
 	}
-	
-	return Set();
 }
 
 GSymbol::GSymbol(Grammar * grammar, int line)
@@ -53,12 +56,19 @@ GSymbol::~GSymbol()
 	_grammar = NULL;
 }
 
-GSymbol::Set GSymbol::getStrongComponent()
+/*
+vector<GSymbol::Set> GSymbol::getStrongComponent()
 {
+	if (_index >= 0)
+		return vector<Set>();
+	
 	int index = 0;
+	vector<Set> components;
 	stack<Ref<GSymbol> > stack;
-	return getStrongComponent(stack, index);
+	getStrongComponent(components, stack, index);
+	return components;
 }
+*/
 
 void GSymbol::addFollow(Token::Type terminal)
 {
@@ -70,6 +80,33 @@ void GSymbol::addFollow(Token::Type terminal)
 void GSymbol::addFollow(set<Token::Type> terminals)
 {
 	_follow.insert(terminals.begin(), terminals.end());
+}
+
+void GSymbol::print(ostream& output) const
+{
+	output << "[Symbol]";
+}
+
+Ref<GSymbol> operator+(Ref<GSymbol> a, Ref<GSymbol> b)
+{
+	return new Chain(a->getGrammar(), a->getLine(), a, b);
+}
+
+Ref<GSymbol> operator|(Ref<GSymbol> a, Ref<GSymbol> b)
+{
+	return new Alternation(a->getGrammar(), a->getLine(), a, b);
+}
+
+ostream& operator<<(ostream& output, const GSymbol& symbol)
+{
+	symbol.print(output);
+	return output;
+}
+
+ostream& operator<<(ostream& output, Ref<GSymbol> symbol)
+{
+	output << *symbol;
+	return output;
 }
 
 /* Terminal *******************************************************************/
@@ -89,6 +126,14 @@ set<Token::Type> Terminal::getFirst()
 	set<Token::Type> result;
 	result.insert(_terminal);
 	return result;
+}
+
+void Terminal::print(ostream& output) const
+{
+	if (_epsilon)
+		output << "epsilon";
+	else
+		output << Token::getRepresentation(_terminal);
 }
 
 /* Nonterminal ****************************************************************/
@@ -152,6 +197,11 @@ set<Token::Type> NonterminalRef::getFirst()
 	return getDefinition()->getSymbol()->getFirst();
 }
 
+void NonterminalRef::print(ostream& output) const
+{
+	output << _name;
+}
+
 Ref<NonterminalDef> NonterminalRef::getDefinition()
 {
 	if (_definition.isNull())
@@ -168,7 +218,7 @@ void BinarySymbol::setNonterminal(Ref<NonterminalDef> nonterminal)
 	_b->setNonterminal(nonterminal);
 }
 
-GSymbol::Set BinarySymbol::getChildren() const
+GSymbol::Set BinarySymbol::getChildren()
 {
 	Ref<GSymbol> children[] = { _a, _b };
 	return Set(children, children + 2);
@@ -195,6 +245,11 @@ void Chain::calculateFollow()
 	// _b->calculateFollow();
 }
 
+void Chain::print(ostream& output) const
+{
+	output << _a << " " << _b;
+}
+
 /* Alternation ****************************************************************/
 
 bool Alternation::maybeEmpty()
@@ -211,6 +266,11 @@ void Alternation::calculateFollow()
 {
 	// _a->calculateFollow();
 	// _b->calculateFollow();
+}
+
+void Alternation::print(ostream& output) const
+{
+	output << _a << " | " << _b;
 }
 
 /* NonterminalDef *************************************************************/

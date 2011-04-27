@@ -32,11 +32,14 @@ private:
 	
 	NonterminalDef& definition(int line, string name);
 	Ref<GSymbol>    terminal(int line, Token::Type terminal);
+	Ref<GSymbol>    epsilon(int line);
 	Ref<GSymbol>    nonterminal(int line, string name);
 	
 	void            init();
 	void            discover();
 	void            check();
+	
+	vector<GSymbol::Set> getComponents();
 
 public:
 	Grammar();

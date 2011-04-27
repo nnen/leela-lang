@@ -3,7 +3,10 @@
 
 source include.vim
 
-edit leela.h
+call CloseOthers()
+
+edit leela-test.cpp
+call OpenTwo("leela.cpp", "leela.h")
 call OpenTwo("opcodes.h", "mnemonics.h")
 call OpenCpp("Object")
 call OpenCpp("Token")

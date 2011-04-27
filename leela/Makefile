@@ -17,10 +17,13 @@ rebuild:
 	make clean
 	make build
 
+test: leela-test
+	clear; ./leela-test
+
 Dependencies: *.cpp
 	g++ -MM *.cpp > Dependencies
 
-.PHONY: build clean rebuild
+.PHONY: build clean rebuild test
 
 tags: *.cpp *.h
 	ctags --c++-kinds=-vm *.cpp *.h

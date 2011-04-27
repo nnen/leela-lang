@@ -67,6 +67,7 @@ public:
 	static Type getDelimiter(Char c1, Char c2);
 	
 	static const char * getTypeName(Type type);
+	static const char * getRepresentation(Type type);
 };
 
 ostream& operator << (ostream& output, const Token& token);
