@@ -14,6 +14,7 @@
 
 #include "Char.h"
 #include "Value.h"
+#include "Set.h"
 
 #define FIRST_STATE (__LINE__ * 100)
 

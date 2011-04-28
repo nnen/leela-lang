@@ -6,17 +6,30 @@ source include.vim
 call CloseOthers()
 
 edit leela-test.cpp
-call OpenTwo("leela.cpp", "leela.h")
-call OpenTwo("opcodes.h", "mnemonics.h")
-call OpenCpp("Object")
-call OpenCpp("Token")
-call OpenCpp("Lexer")
-call OpenCpp("Parser")
-call OpenCpp("Grammar")
-call OpenCpp("GSymbol")
-call OpenCpp("grammar")
-call OpenTwo("token_types.h", "grammar.h")
-call OpenCpp("Block")
+Edit2 leela.cpp leela.h
+Edit2 opcodes.h mnemonics.h
+Editcpp Object
+Editcpp Token
+Editcpp Lexer
+Editcpp Parser
+Editcpp Grammar
+Editcpp GSymbol
+Editcpp Conflict
+Editcpp grammar
+Edit2 token_types.h grammar.h
+
+" call OpenTwo("leela.cpp", "leela.h")
+" call OpenTwo("opcodes.h", "mnemonics.h")
+" call OpenCpp("Object")
+" call OpenCpp("Token")
+" call OpenCpp("Lexer")
+" call OpenCpp("Parser")
+" call OpenCpp("Grammar")
+" call OpenCpp("GSymbol")
+" call OpenCpp("Conflict")
+" call OpenCpp("grammar")
+" call OpenTwo("token_types.h", "grammar.h")
+" call OpenCpp("Block")
 
 " asm.cpp
 " AsmScanner.cpp

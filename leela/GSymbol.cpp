@@ -121,11 +121,9 @@ Terminal::Terminal(Grammar * grammar, int line)
 {
 }
 
-set<Token::Type> Terminal::getFirst()
+Set<Token::Type> Terminal::getFirst()
 {
-	set<Token::Type> result;
-	result.insert(_terminal);
-	return result;
+	return Set<Token::Type>(_terminal);
 }
 
 void Terminal::print(ostream& output) const
@@ -243,6 +241,14 @@ void Chain::calculateFollow()
 	_a->addFollow(_b->getFirst());
 	// _a->calculateFollow();
 	// _b->calculateFollow();
+}
+
+Set<Token::Type> Chain::getFirst()
+{
+	Set<Token::Type> result = _a->getFirst();
+	if (_a->maybeEmpty())
+		result = result.merge(_b->getFirst());
+	return result;
 }
 
 void Chain::print(ostream& output) const

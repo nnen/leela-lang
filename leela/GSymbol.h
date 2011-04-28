@@ -16,6 +16,7 @@
 
 #include "Object.h"
 #include "Token.h"
+#include "Set.h"
 
 using namespace std;
 
@@ -40,8 +41,8 @@ protected:
 	int                 _lowlink;
 	
 public:
-	GSymbol(Grammar * grammar, int line);
-	virtual ~GSymbol();
+	                         GSymbol(Grammar * grammar, int line);
+	virtual                  ~GSymbol();
 	
 	Grammar *                getGrammar() const { return _grammar; }
 	Ref<NonterminalDef>      getNonterminal() const { return _nonterminal; }
@@ -62,8 +63,8 @@ public:
 	virtual void             addFollow(set<Token::Type> terminals);
 	
 	virtual bool             isRecursive() { return false; }
-	virtual set<Token::Type> getFirst() = 0;
-	virtual set<Token::Type> getFollow() { return _follow; }
+	virtual Set<Token::Type> getFirst() = 0;
+	virtual Set<Token::Type> getFollow() { return _follow; }
 	
 	virtual void             print(ostream& output) const;
 };

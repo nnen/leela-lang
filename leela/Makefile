@@ -18,7 +18,7 @@ rebuild:
 	make build
 
 test: leela-test
-	clear; ./leela-test
+	clear; ./leela-test | tee test.txt
 
 Dependencies: *.cpp
 	g++ -MM *.cpp > Dependencies

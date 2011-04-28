@@ -41,3 +41,8 @@ function! ResizeForDesktop()
 	set lines=53
 endfunction
 
+command -nargs=+ Edit2   call OpenTwo(<f-args>)
+command -nargs=+ Edit3   call OpenThree(<f-args>)
+command -nargs=1 Editcpp call OpenCpp(<f-args>)
+command Desktop          call ResizeForDesktop()
+
