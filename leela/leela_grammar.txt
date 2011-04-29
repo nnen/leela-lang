@@ -1,0 +1,56 @@
+Program            -> Preamble CompoundStmt .
+
+Preamble           -> ConstDecl Preamble
+                    | VarDecl Preamble
+                    | .
+
+ConstDecl          -> const ident equals number ConstDeclRest semicolon .
+ConstDeclRest      -> comma ident equals number ConstDeclRest
+                    | .
+VarDecl            -> var ident VarDeclRest semicolon .
+VarDeclRest        -> comma ident VarDeclRest
+                    | .
+
+Statement          -> CompoundStmt
+                    | LValue assign RValue
+                    | if Expression then Statement ElseStmt
+                    | while Expression do Statement
+                    | .
+CompoundStmt       -> begin Statement StatementRest end .
+StatementRest      -> semicolon Statement StatementRest
+                    | .
+ElseStmt           -> else Statement
+                    | .
+
+LValue             -> ident LValueRest .
+LValueRest         -> Index LValueRest | .
+RValue             -> Expression
+                    | function left_par IdentList right_par colon VarDecl Statement
+                    | lambda left_par IdentList right_par colon RValue .
+
+Expression         -> Term ExpressionRest
+                    | minus Term ExpressionRest .
+ExpressionRest     -> plus Term ExpressionRest
+                    | minus Term ExpressionRest
+                    | .
+Term               -> Factor TermRest .
+TermRest           -> asterix Factor TermRest
+                    | slash Factor TermRest
+                    | .
+Factor             -> PrimaryExpr
+                    | number
+                    | left_par Expression right_par .
+PrimaryExpr        -> ident PostfixOp .
+PostfixOp          -> Index PostfixOp
+                    | left_par ParamList right_par PostfixOp
+                    | .
+Index              -> left_bra Expression right_bra .
+
+ParamList          -> RValue ParamListRest | .
+ParamListRest      -> comma RValue ParamListRest | .
+
+IdentList          -> ident IdentListRest
+                    | .
+IdentListRest      -> comma ident IdentListRest
+                    | .
+
