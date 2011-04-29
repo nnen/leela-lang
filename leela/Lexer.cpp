@@ -38,20 +38,10 @@ Char Lexer::advance()
 		}
 
 		_current = _next;
-		_next = Char(_next, _input->get());
+		_next = Char(_next, _input->stream().get());
 	} while ((!_current.isChar()) && _next.isChar());
 	
 	return result;
-}
-
-const char * Lexer::getStateName(Lexer::LexerState state)
-{
-	switch (state) {
-	#define S(name) case STATE_##name: return #name;
-	LEXER_STATES
-	#undef S
-	default: return "[UNKNOWN LEXER STATE]";
-	}
 }
 
 Token Lexer::getToken()
@@ -140,7 +130,29 @@ Token Lexer::getToken()
 	return Token(Token::END);
 }
 
-Lexer::Lexer(istream *input)
+const char * Lexer::getStateName(Lexer::LexerState state)
+{
+	switch (state) {
+	#define S(name) case STATE_##name: return #name;
+	LEXER_STATES
+	#undef S
+	default: return "[UNKNOWN LEXER STATE]";
+	}
+}
+
+Token Lexer::peek()
+{
+	return _token;
+}
+
+Token Lexer::get()
+{
+	Token result = _token;
+	_token = getToken();
+	return result;
+}
+
+Lexer::Lexer(Ref<Input> input)
 {
 	if (input == NULL)
 		throw exception();
@@ -148,6 +160,8 @@ Lexer::Lexer(istream *input)
 	_input = input;
 	_state = STATE_INIT;
 	_location = CharLocation(0, 0);
+	
+	_token = getToken();
 }
 
 void Lexer::dumpTokens(ostream& output)

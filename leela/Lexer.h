@@ -13,7 +13,9 @@
 #include <iomanip>
 #include <vector>
 
+#include "Object.h"
 #include "Token.h"
+#include "Input.h"
 
 #define LEXER_STATES \
 	S( INIT )       \
@@ -22,8 +24,6 @@
 	S( STRING )     \
 	S( ESCAPED )    \
 	S( UNKNOWN )
-
-#include "Object.h"
 
 using namespace std;
 
@@ -40,13 +40,14 @@ private:
 		STATE_COUNT
 	};
 	
-	istream                * _input;
+	Ref<Input>               _input;
 	LexerState               _state;
 	Char                     _current;
 	Char                     _next;
 	CharLocation             _tokenLocation;
 	string                   _tokenString;
 	CharLocation             _location;
+	Token                    _token;
 	
 	Char                     current();
 	Char                     next();
@@ -62,14 +63,16 @@ private:
 		_tokenString = "";
 		return token;
 	}
+	Token                    getToken();
 	
 	static const char *      getStateName(LexerState state);
 
 public:
-	Lexer(istream *input);
+	Lexer(Ref<Input> input);
 	virtual ~Lexer() { }
 	
-	Token                    getToken();
+	Token                    peek();
+	Token                    get();
 	
 	void                     dumpTokens(ostream& output);
 	void                     dumpTokens() { dumpTokens(std::cout); }
