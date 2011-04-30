@@ -20,15 +20,18 @@ class ActivationFrame;
 class Function : public Value {
 private:
 	Address                _code;
+	int                    _paramCount;
 	vector<Ref<Variable> > _closure;
 
 public:
-	Function(Address code);
+	Function(Address code, int paramCount);
 	virtual ~Function() {}
 	
 	virtual Ref<String> toString() const;
 	
 	Address getCode() const { return _code; }
+	
+	int getParamCount() const { return _paramCount; }
 	
 	void pushClosure(Ref<Variable> variable);
 	

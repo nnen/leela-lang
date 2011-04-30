@@ -51,5 +51,18 @@ public:
 	string getExtension() const;
 };
 
+class BufferedInput : public Input {
+private:
+	stringstream _stream;
+
+public:
+	BufferedInput(Ref<Input> input);
+	virtual ~BufferedInput() {}
+
+	void rewind();
+	
+	virtual istream& stream() { return _stream; }
+}
+
 #endif /* end of include guard: INPUT_H_234098SVF11098 */
 

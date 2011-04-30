@@ -1,5 +1,5 @@
 /**
- * \file   parsing.tpl.h
+ * \file   Parser.rules.tpl.h
  * \author Jan Milik <milikjan@fit.cvut.cz>
  * \date   2011-04-28
  *
@@ -17,6 +17,6 @@ enum Nonterminals {
 private:
 
 {% for nonterminal in grammar.nonterminals.values() -%}
-Ref<Object> parse{{ nonterminal.name }}(Ref<Context> context);
+Ref<Object> parse{{ nonterminal.name }}();
 {% endfor %}
 

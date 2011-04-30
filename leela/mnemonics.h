@@ -31,5 +31,10 @@ M( ALLOC,        NOOP,       ALLOC,        NOOP,          NOOP,          NOOP   
 
 M( DUMP_STACK,   DUMP_STACK, DUMP_STACK,   DUMP_STACK,    DUMP_STACK,    DUMP_STACK     )
 
+M( ADD,          ADD,        NOOP,         NOOP,          NOOP,          NOOP           )
+M( SUB,          ADD,        NOOP,         NOOP,          NOOP,          NOOP           )
+M( MUL,          ADD,        NOOP,         NOOP,          NOOP,          NOOP           )
+M( DIV,          ADD,        NOOP,         NOOP,          NOOP,          NOOP           )
+
 #undef M
 

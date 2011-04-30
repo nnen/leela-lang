@@ -73,6 +73,10 @@ class Terminal(Symbol):
 		'ident',
 		'number',
 	])
+		
+	@property
+	def is_epsilon(self):
+		return self.name == "epsilon"
 	
 	def __str__(self):
 		if self.name in self.TERMINALS:
@@ -92,6 +96,7 @@ class Nonterminal(Symbol):
 		self.table = {}
 		self.rules = {}
 		self.annotations = {}
+		self.epsilon_rule = None
 	
 	def print_table(self):
 		result = "%s:\n" % self.name
@@ -114,13 +119,20 @@ class Nonterminal(Symbol):
 		self.rules = {}
 		for child in self.children:
 			for terminal in child.get_first():
-				self.table[terminal] = child
-				self.rules.setdefault(child, set([])).add(terminal)
+				if terminal.is_epsilon:
+					self.epsilon_rule = child
+				else:
+					self.table[terminal] = child
+					self.rules.setdefault(child, set([])).add(terminal)
 	
 	def get_first(self):
 		return set(self.table.keys())
 
 class Action(Symbol):
+	def __init__(self, name, instruction = False):
+		self.instruction = instruction
+		Symbol.__init__(self, name)
+	
 	def maybe_empty(self):
 		return True
 	
@@ -159,6 +171,7 @@ class Parser(object):
 		'TERMINAL',
 		'NONTERMINAL',
 		'ACTION',
+		'INSTR',
 		'RULE',
 		'ALTERNATION',
 		'PERIOD',
@@ -191,6 +204,11 @@ class Parser(object):
 	def t_ACTION(self, t):
 		r'\![A-Za-z][A-Za-z0-9_-]*'
 		t.value = Action(t.value[1:])
+		return t
+	
+	def t_INSTR(self, t):
+		r'\:[A-Za-z][A-Za-z0-9_-]*'
+		t.value = Action(t.value[1:], True)
 		return t
 	
 	def t_ANNOTATION(self, t):
@@ -268,8 +286,9 @@ class Parser(object):
 		'''string : string TERMINAL
 		          | string NONTERMINAL
 		          | string ACTION
+		          | string INSTR
 		          | TERMINAL
-                | NONTERMINAL
+		          | NONTERMINAL
 		          | epsilon'''
 		if len(p) > 2:
 			p[0] = p[1]
@@ -323,6 +342,7 @@ class Generator(object):
 			grammar = grammar,
 			Terminal = Terminal,
 			Nonterminal = Nonterminal,
+			Action = Action,
 		)
 		f = open(output, mode = 'w')
 		f.write(result)
@@ -340,6 +360,7 @@ class Generator(object):
 			isinstance = isinstance,
 			Terminal = Terminal,
 			Nonterminal = Nonterminal,
+			Action = Action,
 		)
 		f = open(output, mode = 'w')
 		f.write(result)

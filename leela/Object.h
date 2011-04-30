@@ -279,6 +279,12 @@ public:
 	BRef(const Ref<Box<T> >& other) : _box(other) {}
 	~BRef() {}
 	
+	BRef<T>& operator=(const Ref<Object>& reference)
+	{
+		_box = reference.as<Box<T> >();
+		return *this;
+	}
+	
 	T* operator -> () { return &(**_box); }
 	const T* operator -> () const { return &(**_box); }
 	

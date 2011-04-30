@@ -38,3 +38,16 @@ string FileInput::getExtension() const
 	return _fileName.substr(_fileName.find_last_of(".") + 1);
 }
 
+BufferedInput::BufferedInput(Input& input)
+{
+	int c;
+	while (input.stream().good())
+		_stream.put(input.stream().get());
+	rewind();
+}
+
+void BufferedInput::rewind()
+{
+	_stream.seekg(0);
+}
+

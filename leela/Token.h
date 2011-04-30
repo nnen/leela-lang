@@ -41,7 +41,7 @@ struct Token {
 public:
 	enum Type {
 		#define T(name, repr) name,
-		#define TK(name, str, repr) KW_##name,
+		#define TK(name, str, repr) name,
 		#define TD(name, ch, repr) name,
 		#define T2(name, ch1, ch2, repr) name,
 		

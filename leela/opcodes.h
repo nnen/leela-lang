@@ -50,6 +50,11 @@ OC( CLEAR_LIST    )
 OC( DUMP          )
 OC( DUMP_STACK    )
 
+OC( ADD           )
+OC( SUB           )
+OC( MUL           )
+OC( DIV           )
+
 OC1( PUSH,           integer,  Integer  )
 OC1( LOAD,           uinteger, UInteger )
 OC1( LOAD_GLOBAL,    uinteger, UInteger )

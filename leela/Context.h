@@ -84,7 +84,7 @@ public:
 	/**
 	 * Resets the context table for another parser pass.
 	 */
-	void reset();
+	void         reset();
 	
 	Ref<Context> current();
 	void         next();

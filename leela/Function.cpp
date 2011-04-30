@@ -11,8 +11,8 @@
 
 #include "Function.h"
 
-Function::Function(Address code)
-	: _code(code)
+Function::Function(Address code, int paramCount)
+	: _code(code), _paramCount(paramCount)
 {
 }
 

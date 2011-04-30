@@ -13,6 +13,15 @@ ostream& AsmWriter::currentChunk()
 	return *_openChunks.top();
 }
 
+void AsmWriter::clear()
+{
+	while (!_openChunks.empty())
+		_openChunks.pop();
+	while (!_closedChunks.empty())
+		_closedChunks.pop();
+	_labels.clear();
+}
+
 void AsmWriter::writeLabels()
 {
 	while (!_labels.empty()) {
@@ -26,13 +35,40 @@ void AsmWriter::writeLabel(string label)
 	_labels.push(label);
 }
 
+void AsmWriter::writeMnemonic(AsmScanner::Tokens mnemonic)
+{
+	currentChunk()
+		<< "    "
+		<< setw(AsmScanner::getLongestMnemonic()) << left
+		<< AsmScanner::getMnemonic(mnemonic);
+}
+
 void AsmWriter::writeInstruction(AsmScanner::Tokens mnemonic)
 {
 	writeLabels();
-	currentChunk() 
-		<< "    "
-		<< setw(AsmScanner::getLongestMnemonic() << left
-		<< AsmScanner::getMnemonic(mnemonic) << endl;
+	writeMnemonic(mnemonic);
+	currentChunk() << endl;
+}
+
+void AsmWriter::writeInstruction(AsmScanner::Tokens mnemonic, Integer integer)
+{
+	writeLabels();
+	writeMnemonic(mnemonic);
+	currentChunk() << integer << endl;
+}
+
+void AsmWriter::writeInstruction(AsmScanner::Tokens mnemonic, UInteger uinteger)
+{
+	writeLabels();
+	writeMnemonic(mnemonic);
+	currentChunk() << uinteger << endl;
+}
+
+void AsmWriter::writeInstruction(AsmScanner::Tokens mnemonic, string reference)
+{
+	writeLabels();
+	writeMnemonic(mnemonic);
+	currentChunk() << reference << endl;
 }
 
 void AsmWriter::startChunk()
@@ -55,5 +91,10 @@ void AsmWriter::output(ostream &output)
 		output << _closedChunks.top();
 		_closedChunks.pop();
 	}
+}
+
+void AsmWriter::output(Ref<Output> output)
+{
+	this->output(output->stream());
 }
 

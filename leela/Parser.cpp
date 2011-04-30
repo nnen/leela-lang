@@ -6,125 +6,75 @@
  * \brief  Implementation of the Parser class.
  */
 
-#include <exception>
-
 #include "Parser.h"
-#include "grammar.h"
 
-/* SYMBOLS ********************************************************************/
-
-ostream& operator << (ostream& output, const Symbol& symbol)
-{
-	symbol.print(output);
-	return output;
-}
-
-/* RULES **********************************************************************/
-
-Ref<Rule> operator + (Ref<Rule> a, Ref<Rule> b)
-{
-	return new ChainRule(a, b);
-}
-
-Ref<Rule> operator | (Ref<Rule> a, Ref<Rule> b)
-{
-	return new ChoiceRule(a, b);
-}
-
-/* PARSER *********************************************************************/
-
-Parser::Parser()
+SyntaxError::SyntaxError(string message) throw()
+	: Exception(message)
 {
 }
 
-void Parser::parse(istream& input, ostream& output)
+Token Parser::accept(Token::Type type)
 {
-	_output = &output;
-	_lexer = new Lexer(&input);
+	if (peek().type != type)
+		// TODO: Add syntax error handling here.
+		return accept();
+	return accept();
+}
 
-	while (!_stack.empty()) _stack.pop();
-	while (!_nonterminals.empty()) _nonterminals.pop();
+void Parser::startContext(vector<Ref<Object> >& match, Ref<Object>& result)
+{
+	_contexts.next();
+}
+
+void Parser::closeContext(vector<Ref<Object> >& match, Ref<Object>& result)
+{
+	_contexts.close();
+}
+
+void Parser::makeIdentList(vector<Ref<Object> >& match, Ref<Object>& result)
+{
+	result = new Box<list<string> >();
+}
+
+void Parser::appendIdentList(vector<Ref<Object> >& match, Ref<Object>& result)
+{
+	BRef<list<string> > list;
+	BRef<string>        ident;
 	
-	_current = _lexer->getToken();
-	
-	// _stack.push(NonterminalRule<Program>::rule);
-	_stack.push(new NonterminalRule<Program>());
-	
-	while (!_stack.empty()) {
-		// dumpState(output);
-
-		Ref<Symbol> top = _stack.top();
-		_stack.pop();
-		
-		top->onPop(*this);
+	if (match.size() > 2) {
+		list = match[2];
+		ident = match[1];
+	} else {
+		list = match[1];
+		ident = match[0];
 	}
-}
-
-void Parser::push(Ref<Symbol> symbol)
-{
-	_stack.push(symbol);
-	symbol->onPush(*this);
-}
-
-void Parser::append(Ref<InputSymbol> symbol)
-{
-	if (!_nonterminals.empty())
-		getNonterminal()->append(symbol);
-}
-
-void Parser::accept()
-{
-	append(new Terminal(_current));
-	_current = _lexer->getToken();
-}
-
-void Parser::startNonterminal(Ref<Nonterminal> nonterminal)
-{
-	_nonterminals.push(nonterminal);
-	// _auxiliary.push(vector<Ref<Symbol> >());
-}
-
-Ref<Nonterminal> Parser::getNonterminal()
-{
-	return _nonterminals.top();
-}
-
-/*
-vector<Ref<Symbol> >& Parser::getMatched()
-{
-	return _auxiliary.top();
-}
-*/
-
-void Parser::endNonterminal()
-{
-	if (_nonterminals.empty())
-		throw std::exception();
 	
-	Ref<Nonterminal> nonterminal = getNonterminal();
-	_nonterminals.pop();
-	nonterminal->onFinished(*this);
-	nonterminal->matched.clear();
-	append(nonterminal);
+	list->push_front(*ident);
+	result = list;
 }
 
-void Parser::dumpState(ostream& output)
+void Parser::parse(Ref<Input> input, Ref<Output> output)
 {
-	output << "PARSER STATE:" << endl;
-	output << "\tTOKEN: " << _current << endl;
-	output << "\tSTACK SIZE: " << _stack.size() << endl;
-	if (_stack.empty())
-		output << "\tTOP OF STACK: - " << endl;
-	else
-		output << "\tTOP OF STACK: " << *(_stack.top()) << endl;
-	if (_nonterminals.empty())
-		output << "\tNONTERMINAL: - " << endl;
-	else {
-		output << "\tNONTERMINAL: " << *(_nonterminals.top()) << endl;
-		output << "\t\tMATCHED: ";
-		foreach (i, _nonterminals.top()->matched)
-			output << **i << ", ";
-		output << endl;
-	}
+	// 1. pass
+	
+	_input = input;
+	_output = output;
+	_lexer = new Lexer(input);
+	_contexts.reset();
+	_writer.clear();
+	
+	parseProgram();
+	
+	// 2. pass
+	
+	_contexts.reset();
+	_writer.clear();
+	
+	parseProgram();
+	
+	_lexer = NULL;
+	_input = NULL;
+	_output = NULL;
+	_writer.output(output);
 }
 
