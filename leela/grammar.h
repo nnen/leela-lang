@@ -1,79 +1,64 @@
 /**
- * \file   leela/grammar.h
+ * \file   Grammar.h
  * \author Jan Milík <milikjan@fit.cvut.cz>
- * \date   2011-03-29
+ * \date   2011-04-20
  *
- * \brief  Defines classes for nonterminal symbols and grammar rules.
+ * \brief  
  */
 
-#ifndef GRAMMAR_H_32098SDVFD349
-#define GRAMMAR_H_32098SDVFD349
+#ifndef GRAMMAR_H_23498SDS203GFQZGTD
+#define GRAMMAR_H_23498SDS203GFQZGTD
 
 #include <ostream>
-#include <list>
+#include <vector>
+#include <map>
+#include <string>
 
-#include "Parser.h"
-
-#define NONTERMINALS     \
-	NT(Program)           \
-	NT(Preamble)          \
-	NT(VarDecl)           \
-	NT(CompoundStatement) \
-	NT(Statement)         \
-	/*                    \
-	NT(MoreStatements)    \
-	*/                    \
-	NT(IfStatement)       \
-	NT(ElseStatement)     \
-	NT(WhileStatement)    \
-	NT(ReturnStatement)   \
-	NT(Assignment)        \
-	\
-	NT(Expression)        \
-	NT(Term)              \
-	NT(Factor)            \
-   \
-	NT(Lambda)            \
-	NT(IdentList)         \
-	// NT(IdentListRest)
+#include "Object.h"
+#include "GSymbol.h"
+#include "Conflict.h"
 
 using namespace std;
 
-/* NONTERMINALS ***************************************************************/
+class Grammar : public Object {
+private:
+	GSymbol::Set                      _allSymbols;
+	vector<Ref<GSymbol> >             _sortedSymbols;
+	
+	map<string, Ref<NonterminalDef> > _nonterminals;
+	vector<Ref<Conflict> >            _conflicts;
+	
+	Ref<NonterminalDef>               _startingSymbol;
+	
+	NonterminalDef& definition(int line, string name);
+	Ref<GSymbol>    terminal(int line, Token::Type terminal);
+	Ref<GSymbol>    epsilon(int line);
+	Ref<GSymbol>    nonterminal(int line, string name);
+	
+	void            init();
+	void            discover();
+	void            check();
+	
+	vector<GSymbol::Set> getComponents();
 
-#define NONTERM(name) class name : public Nonterminal { \
-	public: \
-		name() : Nonterminal() {} \
-		virtual ~name() {} \
-		static const char * getName() { return #name; } \
-		virtual void print(ostream& output) const { output << getName(); }
-
-NONTERM(Program)           };
-NONTERM(Preamble)          };
-NONTERM(VarDecl)           };
-
-NONTERM(CompoundStatement) };
-NONTERM(Statement)         };
-NONTERM(IfStatement)       };
-NONTERM(ElseStatement)     };
-NONTERM(WhileStatement)    };
-NONTERM(ReturnStatement)   };
-NONTERM(Assignment)        };
-
-NONTERM(Expression)        };
-NONTERM(Term)              };
-NONTERM(Factor)            };
-
-NONTERM(Lambda)            };
-
-NONTERM(IdentList)
-	virtual void onFinished(Parser& parser);
+public:
+	Grammar();
+	virtual ~Grammar() {}
+	
+	Ref<NonterminalDef> getNonterminal(string name);
+	
+	void                addConflict(Ref<Conflict> conflict);
+	
+	void output(string message);
+	void warning(string message);
+	void warning(Ref<NonterminalDef> nonterminal, string message);
+	void warning(string nonterminal, string message);
+	void error(string message);
+	void error(Ref<NonterminalDef> nonterminal, string message);
+	void error(string nonterminal, string message);
+	
+	void dump(ostream& output);
 };
 
-/* NONTERMINALS ***************************************************************/
-
-void initGrammar();
-void dumpGrammar(ostream& output);
-
-#endif // end of include guard GRAMMAR_H_32098SDVFD349
+#endif /* end of include guard: GRAMMAR_H_23498SDS203GFQZGTD */
 

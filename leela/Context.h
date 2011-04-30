@@ -12,6 +12,7 @@
 #include <string>
 #include <map>
 #include <vector>
+#include <stack>
 
 #include "leela.h"
 #include "Object.h"
@@ -34,7 +35,7 @@ public:
 	Ref<Symbol> freeVar;
 	
 	Symbol(string name, Type type);
-	virtual ~Symbol();
+	virtual ~Symbol() {}
 };
 
 class Context : public Object {
@@ -55,7 +56,7 @@ private:
 public:
 	Context();
 	Context(Ref<Context> parent);
-	virtual ~Context();
+	virtual ~Context() {}
 	
 	/**
 	 * Resets the context for another parser pass.
@@ -78,8 +79,8 @@ private:
 	stack<Ref<Context> >  _openContexts;
 
 public:
-	ContextTable();
-	virtual ~ContextTable();
+	ContextTable() : Object(), _next(0) {}
+	virtual ~ContextTable() {}
 	
 	/**
 	 * Resets the context table for another parser pass.

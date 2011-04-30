@@ -6,6 +6,8 @@
  * \brief  
  */
 
+#include <fstream>
+
 #include "Output.h"
 
 FileOutput::FileOutput(string fileName)
@@ -18,20 +20,20 @@ FileOutput::~FileOutput()
 	close();
 }
 
-void Output::open()
+void FileOutput::open()
 {
 	close();
 	_output = new ofstream(_fileName.c_str());
 }
 
-void Output::close()
+void FileOutput::close()
 {
 	if (_output) _output->close();
 	delete _output;
 	_output = NULL;
 }
 
-ostream& Output::stream()
+ostream& FileOutput::stream()
 {
 	if (_output == NULL) open();
 	return *_output;

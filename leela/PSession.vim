@@ -12,6 +12,7 @@ Editcpp Object
 Editcpp Token
 Editcpp Lexer
 Editcpp Parser
+Edit3 Parser.h Parser.cpp leela_grammar.txt
 Editcpp Context
 Editcpp AsmWriter
 Edit3 grammar.py Parser.rules.tpl.cpp leela_grammar.txt

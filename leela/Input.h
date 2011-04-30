@@ -12,6 +12,7 @@
 #include <string>
 #include <iostream>
 #include <fstream>
+#include <sstream>
 
 #include "Object.h"
 
@@ -56,13 +57,13 @@ private:
 	stringstream _stream;
 
 public:
-	BufferedInput(Ref<Input> input);
+	BufferedInput(Input& input);
 	virtual ~BufferedInput() {}
 
 	void rewind();
 	
 	virtual istream& stream() { return _stream; }
-}
+};
 
 #endif /* end of include guard: INPUT_H_234098SVF11098 */
 

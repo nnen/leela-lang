@@ -13,7 +13,7 @@ Exception::Exception() throw()
 {
 }
 
-Exception::Exception(string message)
+Exception::Exception(string message) throw()
 	: exception(), _message(message)
 {
 }

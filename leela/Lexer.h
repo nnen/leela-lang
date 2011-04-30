@@ -18,11 +18,11 @@
 #include "Input.h"
 
 #define LEXER_STATES \
-	S( INIT )       \
-	S( IDENT )      \
-	S( NUMBER )     \
-	S( STRING )     \
-	S( ESCAPED )    \
+	S( INIT )        \
+	S( IDENT )       \
+	S( NUMBER )      \
+	S( STRING )      \
+	S( ESCAPED )     \
 	S( UNKNOWN )
 
 using namespace std;

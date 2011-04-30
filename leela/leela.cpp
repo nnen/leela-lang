@@ -14,87 +14,44 @@
 #include "leela.h"
 #include "Input.h"
 #include "Lexer.h"
+#include "Parser.h"
 #include "Machine.h"
-#include "grammar.h"
 
 int main(int argc, const char * argv[])
 {
-	/*
-	Lexer lexer(&std::cin);
-	Token token;
-	
-	while ((token = lexer.getToken()).type != Token::END) {
-		std::cout << token << std::endl;
-	}
-	std::cout << token << std::endl;
-	*/
-
-	bool dumpGrammarFlag = false;
-	bool tokenizeFlag = false;
-
-	initGrammar();
-	// dumpGrammar(std::cout);
-
 	int c;
 
-	while ((c = getopt(argc, const_cast<char * const *>(argv), "gt")) != -1) {
+	Ref<Output> output = new StdOutput();
+
+	while ((c = getopt(argc, const_cast<char * const *>(argv), "o:")) != -1) {
 		switch (c) {
-		case 'g':
-			dumpGrammarFlag = true;
-			break;
-		case 't':
-			tokenizeFlag = true;
+		case 'o':
+			output = new FileOutput(optarg);
 			break;
 		default:
 			abort();
 		}
 	}
-
-	if (dumpGrammarFlag) {
-		dumpGrammar(std::cout);
-		return 0;
-	}
-
+	
 	if (optind >= argc) {
-		std::cerr << "No input file given.";
+		std::cerr << "No input file given." << endl;
 		return 1;
 	}
 	
-	if (tokenizeFlag) {
-		std::ifstream f(argv[optind], std::ifstream::in);
-		Lexer lexer(&f);
-		lexer.dumpTokens(std::cout);
-		f.close();
+	Ref<FileInput> file(new FileInput(argv[optind++]));
+		
+	if (file->getExtension() == "leela") {
+		Parser parser;
+		parser.parse(file, output);
+	} else if (file->getExtension() == "cleela") {
+		Machine machine;
+		machine.loadBytecode(file);
+		cout << "Running " << argv[optind - 1] << "..." << endl;
+		machine.run();
 	} else {
-		while (optind < argc) {
-			Ref<FileInput> file(new FileInput(argv[optind++]));
-			
-			if (file->getExtension() == "cleela") {
-				Machine machine;
-				machine.loadBytecode(file);
-				cout << "Running " << argv[optind - 1] << "..." << endl;
-				machine.run();
-			} else {
-				Parser parser;
-				parser.parse(file->stream());
-			}
-		}
+		std::cerr << "Unknown input file extension." << endl;
+		return 1;
 	}
-	
-	/*
-	std::cout << std::endl << std::endl << "OUTPUT:" << std::endl;
-
-
-	if (argc > 1) {
-		if (strcmp(argv[1], "--tokens") == 0) {
-		} else {
-			Parser parser;
-			std::ifstream f(argv[1], std::ifstream::in);
-			parser.parse(f);
-			f.close();
-		}
-	}*/ /* else
-		parser.parse(); */
 	
 	return 0;
 }

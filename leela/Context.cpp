@@ -9,7 +9,17 @@
 #include "Context.h"
 
 Symbol::Symbol(string name, Type type)
-	: name(name), type(type), index(0), indexInvalid(true)
+	: Object(), name(name), type(type), index(0), indexInvalid(true)
+{
+}
+
+Context::Context()
+	: Object()
+{
+}
+
+Context::Context(Ref<Context> parent)
+	: Object(), _parent(parent)
 {
 }
 
@@ -103,12 +113,13 @@ Ref<Symbol> Context::getSymbol(string name)
 void ContextTable::reset()
 {
 	_next = 0;
-	_openContexts.clear();
+	while (!_openContexts.empty())
+		_openContexts.pop();
 }
 
 Ref<Context> ContextTable::current()
 {
-	if (_openContexts.size < 1) next();
+	if (_openContexts.size() < 1) next();
 	return _openContexts.top();
 }
 

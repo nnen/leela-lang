@@ -35,7 +35,7 @@ Parser.rules.cpp: leela_grammar.txt Parser.rules.tpl.cpp
 Parser.rules.h: leela_grammar.txt Parser.rules.tpl.h
 	cat leela_grammar.txt | python grammar.py
 
-leela: leela.o Input.o Char.o Token.o Parser.o Lexer.o Object.o Value.o Function.o grammar.o Instruction.o Bytecode.o Machine.o
+leela: leela.o Exception.o Input.o Output.o Char.o Token.o Parser.o Parser.rules.o Context.o AsmWriter.o AsmScanner.o Lexer.o Object.o Value.o Function.o Instruction.o Bytecode.o Machine.o
 	$(CXX) $(CXXFLAGS) -o leela $^
 
 leela-asm: asm.o Object.o Input.o Instruction.o AsmScanner.o Assembler.o Bytecode.o

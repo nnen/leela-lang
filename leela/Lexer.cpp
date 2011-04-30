@@ -27,7 +27,7 @@ Char Lexer::next()
 
 Char Lexer::advance()
 {
-	assert(_input != NULL);
+	assert(!_input.isNull());
 	
 	Char result = _current;
 	
@@ -80,16 +80,16 @@ Token Lexer::getToken()
 			if (current().isLetter() || current().isDigit()) {
 				append();
 			} else {
-				#define TK(name, str) if (_tokenString == str) return endToken(Token::KW_##name);
+				#define TK(name, str, repr) if (_tokenString == str) return endToken(Token::name);
 				#include "token_types.h"
-				return endToken(Token::IDENTIFIER);
+				return endToken(Token::IDENT);
 			}
 			break;
 		case STATE_NUMBER:
 			if (current().isDigit()) {
 				append();
 			} else if (current().isDelimiter()) {
-				return endToken(Token::NUMBER_LITERAL);
+				return endToken(Token::NUMBER);
 			} else {
 				append();
 				_state = STATE_UNKNOWN;
@@ -98,7 +98,7 @@ Token Lexer::getToken()
 		case STATE_STRING:
 			if (current() == '"') {
 				advance();
-				return endToken(Token::STRING_LITERAL);
+				return endToken(Token::STRING);
 			} else if (current() == '\\') {
 				advance();
 				_state = STATE_ESCAPED;

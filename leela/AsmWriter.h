@@ -30,8 +30,8 @@ private:
 	void writeMnemonic(AsmScanner::Tokens mnemonic);
 
 public:
-	AsmWriter();
-	virtual ~AsmWriter();
+	AsmWriter() : Object() { }
+	virtual ~AsmWriter() {}
 
 	void clear();
 	

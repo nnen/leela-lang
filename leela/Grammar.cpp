@@ -1,220 +1,118 @@
 /**
- * \file   Grammar.cpp
+ * \file   leela/grammar.cpp
  * \author Jan Milík <milikjan@fit.cvut.cz>
- * \date   2011-04-20
+ * \date   2011-03-29
  *
- * \brief  
+ * \brief  Defines classes for nonterminal symbols and grammar rules.
  */
 
-#include <queue>
-#include <sstream>
-#include <iostream>
+#include "grammar.h"
 
-#include "Grammar.h"
+/* NONTERMINALS ***************************************************************/
 
-NonterminalDef& Grammar::definition(int line, string name)
+void IdentList::onFinished(Parser& parser)
 {
-	if (_nonterminals.count(name) > 0)
-		return *_nonterminals[name];
-	
-	Ref<NonterminalDef> def = new NonterminalDef(this, line, name);
-	_nonterminals[name] = def;
-		
-	if (_startingSymbol.isNull())
-		_startingSymbol = def;
-	
-	return *def;
-}
+	BRef<list<string> > attribute = list<string>();
 
-Ref<GSymbol> Grammar::terminal(int line, Token::Type terminal)
-{
-	return new Terminal(this, line, terminal);
-}
-
-Ref<GSymbol> Grammar::epsilon(int line)
-{
-	return new Terminal(this, line);
-}
-
-Ref<GSymbol> Grammar::nonterminal(int line, string name)
-{
-	return new NonterminalRef(this, line, name);
-}
-
-void Grammar::init()
-{
-	#define DEF(name) definition(__LINE__, #name)
-	#define T(name)   terminal(__LINE__, Token::name)
-	#define E         epsilon(__LINE__)
-	#define N(name)   nonterminal(__LINE__, #name)
-	
-	DEF(Program)           = N(Preamble) + N(CompoundStatement);
-	DEF(Preamble)          = T(KW_VAR) + N(IdentList) + T(SEMICOLON);
-	DEF(Statement)         = N(CompoundStatement) | N(IfStatement);
-	DEF(CompoundStatement) = T(KW_BEGIN) + N(StatementList) + T(KW_END);
-	DEF(StatementList)     = (N(Statement) + N(StatementListRest)) | E;
-	DEF(StatementListRest) = (T(SEMICOLON) + N(Statement) + N(StatementListRest)) | E;
-	DEF(IfStatement)       = T(KW_IF) + N(Expression) + T(KW_THEN) + N(Statement) + T(KW_ELSE) + N(Statement);
-	DEF(IdentList)         = T(IDENTIFIER) + N(IdentListRest);
-	DEF(IdentListRest)     = (T(COMMA) + T(IDENTIFIER) + N(IdentListRest)) | E;
-	
-	DEF(Expression)        = T(NUMBER_LITERAL);
-	
-	#undef DEF
-	#undef T
-	#undef N
-}
-
-void Grammar::discover()
-{
-	queue<Ref<GSymbol> > toAdd;
-	
-	toAdd.push(_startingSymbol->getSymbol());
-	
-	_allSymbols.clear();
-	_sortedSymbols.clear();
-	
-	while (!toAdd.empty()) {
-		Ref<GSymbol> symbol = toAdd.front();
-		toAdd.pop();
-
-		cerr << symbol << " ";
-		
-		if (_allSymbols.count(symbol) > 0)
-			continue;
-		
-		_allSymbols.insert(symbol);
-		_sortedSymbols.push_back(symbol);
-		GSymbol::Set children = symbol->getChildren();
-		cerr << "children(" << children.size() << ") ";
-		foreach (child, children) {
-			cerr << "child(" << *child << ") ";
-			toAdd.push(*child);
+	if (matched.size() > 0) {
+		for (unsigned int i = 0; i < matched.size(); i += 2) {
+			attribute->push_back(getMatched<Terminal>(i)->getValue<String>()->getValue());
 		}
 	}
 	
-	cerr << endl;
-}
-
-void Grammar::check()
-{
-	foreach (item, _nonterminals)
-		item->second->getSymbol()->checkRecursion();
+	/*
+	parser.getOutput() << "IDENTLIST: ";
+	foreach(i, *attribute)
+		parser.getOutput() << *i << ", ";
+	parser.getOutput() << std::endl;
+	*/
 	
-	foreach (item, _nonterminals)
-		if (item->second->getSymbol()->isRecursive())
-			item->second->hasLeftRecursion();
+	_attribute = attribute.box();
 	
-	foreach(item, _nonterminals)
-		item->second->getSymbol()->calculateFirst();
+	Nonterminal::onFinished(parser);
+}
+
+/* GRAMMAR ********************************************************************/
+
+void initGrammar()
+{
+	#define DEF(t) NonterminalRule<t>::rule
+	#define N(t) Ref<Rule>(new NonterminalRule<t>())
+	#define T(t) Ref<Rule>(new TerminalRule(Token::t))
+	#define A(type, action) Ref<Rule>(new SemanticAction<type>(&type::action, #action))
+	#define STR(str) Ref<Rule>(new StringOutput(str))
+	#define REPEAT(rule) Ref<Rule>(new RepeatRule((rule)))
+	#define epsilon Ref<Rule>(new EpsilonRule())
 	
-	foreach(item, _nonterminals)
-		item->second->getSymbol()->calculateFollow();
-}
-
-vector<GSymbol::Set> Grammar::getComponents()
-{
-	vector<GSymbol::Set> components;
-	stack<Ref<GSymbol> > stack;
-	int                  nextIndex = 0;
+	DEF(Program)           = N(Preamble) + N(CompoundStatement) + STR("\tSTOP\n");
 	
-	foreach (def, _nonterminals)
-		def->second->getSymbol()->getStrongComponents(components, stack, nextIndex);
+	DEF(Preamble)          = (N(VarDecl) + N(Preamble)) | epsilon;
+
+	DEF(VarDecl)           = T(KW_VAR) + N(IdentList) + T(SEMICOLON);
 	
-	return components;
-}
-
-Grammar::Grammar()
-{
-	init();
-	check();
-	discover();
-}
-
-Ref<NonterminalDef> Grammar::getNonterminal(string name)
-{
-	if (_nonterminals.count(name) < 1)
-		return NULL;
-	return _nonterminals[name];
-}
-
-void Grammar::addConflict(Ref<Conflict> conflict)
-{
-	_conflicts.push_back(conflict);
-}
-
-void Grammar::output(string message)
-{
-	/* code */
-}
-
-void Grammar::warning(string message)
-{
-	stringstream s;
-	s << "GRAMMAR WARNING: " << message << endl;
-	output(s.str());
-}
-
-void Grammar::warning(Ref<NonterminalDef> nonterminal, string message)
-{
-	stringstream s;
-	s << "(Nonterminal \"" << nonterminal->getName() << "\" on line " << nonterminal->getLine() << ") ";
-	s << message;
-	warning(s.str());
-}
-
-void Grammar::warning(string nonterminal, string message)
-{
-	warning(_nonterminals[nonterminal], message);
-}
-
-void Grammar::error(string message)
-{
-	stringstream s;
-	s << "GRAMMAR ERROR: " << message << endl;
-	output(s.str());
-}
-
-void Grammar::error(Ref<NonterminalDef> nonterminal, string message)
-{
-	stringstream s;
-	s << "(Nonterminal \"" << nonterminal->getName() << "\" on line " << nonterminal->getLine() << ") ";
-	s << message;
-	warning(s.str());
-}
-
-void Grammar::error(string nonterminal, string message)
-{
-	error(_nonterminals[nonterminal], message);
-}
-
-void Grammar::dump(ostream& output)
-{
-	output << "***** GRAMMAR *****" << endl;
+	DEF(CompoundStatement) = T(KW_BEGIN) + N(Statement) + REPEAT(T(SEMICOLON) + N(Statement)) + T(KW_END);
 	
-	output << "Nonterminals:" << endl;
-	foreach (def, _nonterminals) {
-		output << "   ";
-		output << def->second->getName();
-		output << " -> " << def->second->getSymbol();
-		output << endl;
-	}
+	DEF(Statement)         = N(Assignment) | N(IfStatement) | N(ReturnStatement) | N(CompoundStatement) | epsilon;
 	
-	output << endl << "Topological order:" << endl;
-	foreach (symbol, _sortedSymbols) {
-		output << "   ";
-		output << (*symbol)->getNonterminal()->getName() << ":";
-		output << (*symbol)->getLine() << ": ";
-		output << (*symbol);
-		output << endl;
-	}
+	DEF(Assignment)        = T(IDENTIFIER) + T(ASSIGN) + N(Expression) + STR("\tSTR\n");
+	
+	DEF(IfStatement)       = T(KW_IF) + N(Expression) + T(KW_THEN) + N(Statement) + N(ElseStatement);
+	
+	DEF(ElseStatement)     = (T(KW_ELSE) + N(Statement)) | epsilon;
+	
+	DEF(WhileStatement)    = (T(KW_WHILE) + N(Expression) + N(Statement)) | epsilon;
+	
+	// ReturnStatement    -> 'return' Expression (RETURN)
+	DEF(ReturnStatement)   = T(KW_RETURN) + N(Expression) + STR("\tRETURN\n");
+	
+	// Expression         -> ['-'] Term { '+' Term (ADD) | '-' Term (SUB) }
+	DEF(Expression)        = (T(MINUS) | epsilon) + N(Term) + REPEAT(
+	                             (T(PLUS)  + N(Term) + STR("\tADD\n")) |
+	                             (T(MINUS) + N(Term) + STR("\tSUB\n"))
+                              );
+	
+	// Term               -> Factor { '*' Factor (MULT) | '/' Factor (DIV) }
+	DEF(Term)              = N(Factor) + REPEAT(
+	                             (T(ASTERIX) + N(Factor) + STR("\tMULT\n")) |
+	                             (T(SLASH)   + N(Factor) + STR("\tDIV\n"))
+	                         );
+	
+	// Factor             -> identifier | number_literal | string_literal | Lambda | '(' Expression ')'
+	DEF(Factor)            = T(IDENTIFIER) | T(NUMBER_LITERAL) | T(STRING_LITERAL) | N(Lambda) | ( T(LEFT_PAR) + N(Expression) + T(RIGHT_PAR) );
+	
+	// Lambda             -> 'lambda' IdentList ':' Expression
+	DEF(Lambda)            = T(KW_LAMBDA) + N(IdentList) + T(COLON) + N(Expression);
+	
+	// IdentList          -> identifier { ',' identifier } | e
+	DEF(IdentList)         = T(IDENTIFIER) + REPEAT(T(COMMA) + T(IDENTIFIER)) | epsilon;
+	
+	#undef DEF
+	#undef N
+	#undef T
+	#undef A
+	#undef STR
+	#undef epsilon
 
-	output << endl << "Strong components:" << endl;
-	vector<GSymbol::Set> components = getComponents();
-	foreach (component, components) {
-		output << "   =====================" << endl;
-		foreach (symbol, *component)
-			output << "   " << *symbol << endl;
-	}
+	#define NT(name) NonterminalRule<name>::rule->init();
+	NONTERMINALS
+	#undef NT
+
+	#define NT(name) NonterminalRule<name>::rule->getFirsts();
+	NONTERMINALS
+	NONTERMINALS
+	NONTERMINALS
+	#undef NT
+
+	#define NT(name) NonterminalRule<name>::calculateFollow();
+	NONTERMINALS
+	NONTERMINALS
+	#undef NT
+}
+
+void dumpGrammar(ostream& output)
+{
+	#define NT(name) { NonterminalRule<name>::dumpRule(output); output << endl << endl; }
+	NONTERMINALS
+	#undef NT
 }
 

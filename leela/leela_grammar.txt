@@ -25,8 +25,8 @@ ElseStmt           -> else Statement
 LValue             -> ident LValueRest .
 LValueRest         -> Index LValueRest | .
 RValue             -> Expression
-                    | function left_par ArgNameList right_par colon VarDecl !startContext Statement !closeContext
-                    | lambda left_par ArgNameList right_par colon !startContext RValue !closeContext .
+                    | function left_par ArgNameList right_par colon VarDecl !startChunk !startContext Statement !endContext !endChunk
+                    | lambda left_par ArgNameList right_par colon !startChunk !startContext RValue :RETURN !endContext !endChunk .
 
 Expression         -> Term ExpressionRest
                     | minus Term ExpressionRest .

@@ -50,14 +50,18 @@ private:
 	Token accept(Token::Type type);
 	
 	void startContext(vector<Ref<Object> >& match, Ref<Object>& result);
-	void closeContext(vector<Ref<Object> >& match, Ref<Object>& result);
+	void endContext(vector<Ref<Object> >& match, Ref<Object>& result);
+	void startChunk(vector<Ref<Object> >& match, Ref<Object>& result);
+	void endChunk(vector<Ref<Object> >& match, Ref<Object>& result);
 	
-	void makeIdentList(vector<Ref<Object> >& match, Ref<Object>& result);
-	void appendIdentList(vector<Ref<Object> >& match, Ref<Object>& result);
+	void addLocal(vector<Ref<Object> >& match, Ref<Object>& result) {}
+	void addArg(vector<Ref<Object> >& match, Ref<Object>& result) {}
+	void addConst(vector<Ref<Object> >& match, Ref<Object>& result) {}
+	void pushNumber(vector<Ref<Object> >& match, Ref<Object>& result) {}
 
 public:
-	Parser();
-	virtual ~Parser();
+	Parser() {}
+	virtual ~Parser() {}
 	
 	void parse(Ref<Input> input, Ref<Output> output);
 };

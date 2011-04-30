@@ -6,6 +6,8 @@
  * \brief  Implementation file for the {@link AsmWriter} class.
  */
 
+#include <iomanip>
+
 #include "AsmWriter.h"
 
 ostream& AsmWriter::currentChunk()
@@ -19,7 +21,8 @@ void AsmWriter::clear()
 		_openChunks.pop();
 	while (!_closedChunks.empty())
 		_closedChunks.pop();
-	_labels.clear();
+	while (!_labels.empty())
+		_labels.pop();
 }
 
 void AsmWriter::writeLabels()

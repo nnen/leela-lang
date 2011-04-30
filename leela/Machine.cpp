@@ -86,7 +86,8 @@ void Machine::execute(Instruction instr)
 		break;
 	
 	case Instruction::MAKE_FUNCTION:
-		push(new Function(instr.payload.address));
+		// TODO: Figure out how to pass number of arguments to a function constructor.
+		push(new Function(instr.payload.address, 0));
 		break;
 	case Instruction::LOAD_CLOSURE: {
 		Ref<Function> function = pop().as<Function>();
@@ -173,7 +174,7 @@ void Machine::reset()
 {
 	_callStack.clear();
 	
-	Ref<Function> bootLoader = new Function(0);
+	Ref<Function> bootLoader = new Function(0, 0);
 	_callStack.push_back(bootLoader->activate());
 	
 	_stop = false;

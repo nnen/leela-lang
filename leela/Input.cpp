@@ -40,7 +40,6 @@ string FileInput::getExtension() const
 
 BufferedInput::BufferedInput(Input& input)
 {
-	int c;
 	while (input.stream().good())
 		_stream.put(input.stream().get());
 	rewind();

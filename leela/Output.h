@@ -9,13 +9,15 @@
 #ifndef OUTPUT_H_12DFD019DTGBFV128957DF35AZ65G
 #define OUTPUT_H_12DFD019DTGBFV128957DF35AZ65G
 
-#include <ostream>
+#include <iostream>
 
 #include "Object.h"
 
+using namespace std;
+
 class Output : public Object {
 public:
-	Output() {}
+	Output() : Object() {}
 	virtual ~Output() {}
 	
 	virtual ostream& stream() = 0;
@@ -33,16 +35,16 @@ public:
 	void open();
 	void close();
 	
-	virtual ostream& stream() { return _output; }
+	virtual ostream& stream();
 };
 
 class StdOutput : public Output {
 public:
-	StdOutput() {}
+	StdOutput() : Output() {}
 	virtual ~StdOutput() {}
 
 	virtual ostream& stream() { return cout; }
-}
+};
 
 #endif /* end of include guard: OUTPUT_H_12DFD019DTGBFV128957DF35AZ65G */
 
