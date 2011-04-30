@@ -53,11 +53,15 @@ private:
 	void endContext(vector<Ref<Object> >& match, Ref<Object>& result);
 	void startChunk(vector<Ref<Object> >& match, Ref<Object>& result);
 	void endChunk(vector<Ref<Object> >& match, Ref<Object>& result);
+	void startFunction(vector<Ref<Object> >& match, Ref<Object>& result);
+	void endFunction(vector<Ref<Object> >& match, Ref<Object>& result);
 	
-	void addLocal(vector<Ref<Object> >& match, Ref<Object>& result) {}
-	void addArg(vector<Ref<Object> >& match, Ref<Object>& result) {}
+	void addLocal(vector<Ref<Object> >& match, Ref<Object>& result);
+	void allocLocals(vector<Ref<Object> >& match, Ref<Object>& result);
+	void addArg(vector<Ref<Object> >& match, Ref<Object>& result);
 	void addConst(vector<Ref<Object> >& match, Ref<Object>& result) {}
-	void pushNumber(vector<Ref<Object> >& match, Ref<Object>& result) {}
+	void pushNumber(vector<Ref<Object> >& match, Ref<Object>& result);
+	void getSymbolValue(vector<Ref<Object> >& match, Ref<Object>& result);
 	
 	void syntaxError(vector<Ref<Object> >& match, Ref<Object>& result);
 	void unexpectedToken(vector<Ref<Object> >& match, Ref<Object>& result);

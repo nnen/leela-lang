@@ -13,7 +13,7 @@ Ref<Object> Parser::parse{{ nonterminal.name }}()
 {
 	vector<Ref<Object> > match;
 	Ref<Object> result;
-	
+
 	switch (peek().type) {
 {%- for rule, terminals in nonterminal.rules.items() -%}
 {%- for terminal in terminals %}

@@ -13,7 +13,7 @@ Ref<Object> Parser::parseIndex()
 {
 	vector<Ref<Object> > match;
 	Ref<Object> result;
-	
+
 	switch (peek().type) {
 	default:
 		unexpectedToken(match, result);
@@ -34,7 +34,7 @@ Ref<Object> Parser::parseVarDeclRest()
 {
 	vector<Ref<Object> > match;
 	Ref<Object> result;
-	
+
 	switch (peek().type) {
 	default:
 		break;
@@ -55,7 +55,7 @@ Ref<Object> Parser::parseProgram()
 {
 	vector<Ref<Object> > match;
 	Ref<Object> result;
-	
+
 	switch (peek().type) {
 	default:
 		unexpectedToken(match, result);
@@ -64,12 +64,11 @@ Ref<Object> Parser::parseProgram()
 	case Token::VAR:
 	case Token::BEGIN:
 	case Token::CONST:
-		startChunk(match, result);
 		startContext(match, result);
 		match.push_back(parsePreamble());
+		allocLocals(match, result);
 		match.push_back(parseCompoundStmt());
 		_writer.writeInstruction(AsmScanner::TOKEN_STOP);
-		endChunk(match, result);
 		break;
 		
 	}
@@ -81,27 +80,10 @@ Ref<Object> Parser::parseStatement()
 {
 	vector<Ref<Object> > match;
 	Ref<Object> result;
-	
+
 	switch (peek().type) {
-	default:
-		break;
-		
 	case Token::BEGIN:
 		match.push_back(parseCompoundStmt());
-		break;
-		
-	case Token::IF:
-		match.push_back(accept(Token::IF).value);
-		match.push_back(parseExpression());
-		match.push_back(accept(Token::THEN).value);
-		match.push_back(parseStatement());
-		match.push_back(parseElseStmt());
-		break;
-		
-	case Token::RETURN:
-		match.push_back(accept(Token::RETURN).value);
-		match.push_back(parseRValue());
-		_writer.writeInstruction(AsmScanner::TOKEN_RETURN);
 		break;
 		
 	case Token::IDENT:
@@ -110,11 +92,28 @@ Ref<Object> Parser::parseStatement()
 		match.push_back(parseRValue());
 		break;
 		
+	default:
+		break;
+		
+	case Token::RETURN:
+		match.push_back(accept(Token::RETURN).value);
+		match.push_back(parseRValue());
+		_writer.writeInstruction(AsmScanner::TOKEN_RETURN);
+		break;
+		
 	case Token::WHILE:
 		match.push_back(accept(Token::WHILE).value);
 		match.push_back(parseExpression());
 		match.push_back(accept(Token::DO).value);
 		match.push_back(parseStatement());
+		break;
+		
+	case Token::IF:
+		match.push_back(accept(Token::IF).value);
+		match.push_back(parseExpression());
+		match.push_back(accept(Token::THEN).value);
+		match.push_back(parseStatement());
+		match.push_back(parseElseStmt());
 		break;
 		
 	}
@@ -126,25 +125,25 @@ Ref<Object> Parser::parseFactor()
 {
 	vector<Ref<Object> > match;
 	Ref<Object> result;
-	
+
 	switch (peek().type) {
-	case Token::LEFT_PAR:
-		match.push_back(accept(Token::LEFT_PAR).value);
-		match.push_back(parseExpression());
-		match.push_back(accept(Token::RIGHT_PAR).value);
-		break;
-		
 	case Token::NUMBER:
 		match.push_back(accept(Token::NUMBER).value);
 		pushNumber(match, result);
+		break;
+		
+	case Token::IDENT:
+		match.push_back(parsePrimaryExpr());
 		break;
 		
 	default:
 		unexpectedToken(match, result);
 		break;
 		
-	case Token::IDENT:
-		match.push_back(parsePrimaryExpr());
+	case Token::LEFT_PAR:
+		match.push_back(accept(Token::LEFT_PAR).value);
+		match.push_back(parseExpression());
+		match.push_back(accept(Token::RIGHT_PAR).value);
 		break;
 		
 	}
@@ -156,7 +155,7 @@ Ref<Object> Parser::parseConstDeclRest()
 {
 	vector<Ref<Object> > match;
 	Ref<Object> result;
-	
+
 	switch (peek().type) {
 	default:
 		break;
@@ -179,7 +178,7 @@ Ref<Object> Parser::parseTermRest()
 {
 	vector<Ref<Object> > match;
 	Ref<Object> result;
-	
+
 	switch (peek().type) {
 	case Token::SLASH:
 		match.push_back(accept(Token::SLASH).value);
@@ -207,7 +206,7 @@ Ref<Object> Parser::parseLValue()
 {
 	vector<Ref<Object> > match;
 	Ref<Object> result;
-	
+
 	switch (peek().type) {
 	default:
 		unexpectedToken(match, result);
@@ -227,7 +226,7 @@ Ref<Object> Parser::parseArgNameList()
 {
 	vector<Ref<Object> > match;
 	Ref<Object> result;
-	
+
 	switch (peek().type) {
 	default:
 		break;
@@ -247,7 +246,7 @@ Ref<Object> Parser::parseArgNameListRest()
 {
 	vector<Ref<Object> > match;
 	Ref<Object> result;
-	
+
 	switch (peek().type) {
 	default:
 		break;
@@ -268,7 +267,7 @@ Ref<Object> Parser::parseStatementRest()
 {
 	vector<Ref<Object> > match;
 	Ref<Object> result;
-	
+
 	switch (peek().type) {
 	default:
 		break;
@@ -288,19 +287,19 @@ Ref<Object> Parser::parsePreamble()
 {
 	vector<Ref<Object> > match;
 	Ref<Object> result;
-	
+
 	switch (peek().type) {
 	case Token::VAR:
 		match.push_back(parseVarDecl());
 		match.push_back(parsePreamble());
 		break;
 		
-	default:
-		break;
-		
 	case Token::CONST:
 		match.push_back(parseConstDecl());
 		match.push_back(parsePreamble());
+		break;
+		
+	default:
 		break;
 		
 	}
@@ -312,7 +311,7 @@ Ref<Object> Parser::parseElseStmt()
 {
 	vector<Ref<Object> > match;
 	Ref<Object> result;
-	
+
 	switch (peek().type) {
 	default:
 		break;
@@ -331,7 +330,7 @@ Ref<Object> Parser::parseTerm()
 {
 	vector<Ref<Object> > match;
 	Ref<Object> result;
-	
+
 	switch (peek().type) {
 	default:
 		unexpectedToken(match, result);
@@ -353,24 +352,19 @@ Ref<Object> Parser::parseRValue()
 {
 	vector<Ref<Object> > match;
 	Ref<Object> result;
-	
+
 	switch (peek().type) {
 	case Token::FUNCTION:
 		match.push_back(accept(Token::FUNCTION).value);
+		startFunction(match, result);
 		match.push_back(accept(Token::LEFT_PAR).value);
 		match.push_back(parseArgNameList());
 		match.push_back(accept(Token::RIGHT_PAR).value);
 		match.push_back(accept(Token::COLON).value);
 		match.push_back(parseVarDecl());
-		startChunk(match, result);
-		startContext(match, result);
+		allocLocals(match, result);
 		match.push_back(parseStatement());
-		endContext(match, result);
-		endChunk(match, result);
-		break;
-		
-	default:
-		unexpectedToken(match, result);
+		endFunction(match, result);
 		break;
 		
 	case Token::IDENT:
@@ -382,16 +376,18 @@ Ref<Object> Parser::parseRValue()
 		
 	case Token::LAMBDA:
 		match.push_back(accept(Token::LAMBDA).value);
+		startFunction(match, result);
 		match.push_back(accept(Token::LEFT_PAR).value);
 		match.push_back(parseArgNameList());
 		match.push_back(accept(Token::RIGHT_PAR).value);
 		match.push_back(accept(Token::COLON).value);
-		startChunk(match, result);
-		startContext(match, result);
 		match.push_back(parseRValue());
 		_writer.writeInstruction(AsmScanner::TOKEN_RETURN);
-		endContext(match, result);
-		endChunk(match, result);
+		endFunction(match, result);
+		break;
+		
+	default:
+		unexpectedToken(match, result);
 		break;
 		
 	}
@@ -403,7 +399,7 @@ Ref<Object> Parser::parseParamListRest()
 {
 	vector<Ref<Object> > match;
 	Ref<Object> result;
-	
+
 	switch (peek().type) {
 	default:
 		break;
@@ -423,7 +419,7 @@ Ref<Object> Parser::parseParamList()
 {
 	vector<Ref<Object> > match;
 	Ref<Object> result;
-	
+
 	switch (peek().type) {
 	default:
 		break;
@@ -447,7 +443,7 @@ Ref<Object> Parser::parseExpression()
 {
 	vector<Ref<Object> > match;
 	Ref<Object> result;
-	
+
 	switch (peek().type) {
 	case Token::MINUS:
 		match.push_back(accept(Token::MINUS).value);
@@ -455,15 +451,15 @@ Ref<Object> Parser::parseExpression()
 		match.push_back(parseExpressionRest());
 		break;
 		
+	default:
+		unexpectedToken(match, result);
+		break;
+		
 	case Token::IDENT:
 	case Token::NUMBER:
 	case Token::LEFT_PAR:
 		match.push_back(parseTerm());
 		match.push_back(parseExpressionRest());
-		break;
-		
-	default:
-		unexpectedToken(match, result);
 		break;
 		
 	}
@@ -475,16 +471,16 @@ Ref<Object> Parser::parseExpressionRest()
 {
 	vector<Ref<Object> > match;
 	Ref<Object> result;
-	
+
 	switch (peek().type) {
-	default:
-		break;
-		
 	case Token::MINUS:
 		match.push_back(accept(Token::MINUS).value);
 		match.push_back(parseTerm());
 		_writer.writeInstruction(AsmScanner::TOKEN_SUB);
 		match.push_back(parseExpressionRest());
+		break;
+		
+	default:
 		break;
 		
 	case Token::PLUS:
@@ -503,7 +499,7 @@ Ref<Object> Parser::parsePostfixOp()
 {
 	vector<Ref<Object> > match;
 	Ref<Object> result;
-	
+
 	switch (peek().type) {
 	case Token::LEFT_PAR:
 		match.push_back(accept(Token::LEFT_PAR).value);
@@ -512,12 +508,12 @@ Ref<Object> Parser::parsePostfixOp()
 		match.push_back(parsePostfixOp());
 		break;
 		
-	default:
-		break;
-		
 	case Token::LEFT_BRA:
 		match.push_back(parseIndex());
 		match.push_back(parsePostfixOp());
+		break;
+		
+	default:
 		break;
 		
 	}
@@ -529,7 +525,7 @@ Ref<Object> Parser::parseVarDecl()
 {
 	vector<Ref<Object> > match;
 	Ref<Object> result;
-	
+
 	switch (peek().type) {
 	default:
 		unexpectedToken(match, result);
@@ -552,7 +548,7 @@ Ref<Object> Parser::parseLValueRest()
 {
 	vector<Ref<Object> > match;
 	Ref<Object> result;
-	
+
 	switch (peek().type) {
 	default:
 		break;
@@ -571,7 +567,7 @@ Ref<Object> Parser::parsePrimaryExpr()
 {
 	vector<Ref<Object> > match;
 	Ref<Object> result;
-	
+
 	switch (peek().type) {
 	default:
 		unexpectedToken(match, result);
@@ -579,6 +575,7 @@ Ref<Object> Parser::parsePrimaryExpr()
 		
 	case Token::IDENT:
 		match.push_back(accept(Token::IDENT).value);
+		getSymbolValue(match, result);
 		match.push_back(parsePostfixOp());
 		break;
 		
@@ -591,7 +588,7 @@ Ref<Object> Parser::parseConstDecl()
 {
 	vector<Ref<Object> > match;
 	Ref<Object> result;
-	
+
 	switch (peek().type) {
 	default:
 		unexpectedToken(match, result);
@@ -616,7 +613,7 @@ Ref<Object> Parser::parseCompoundStmt()
 {
 	vector<Ref<Object> > match;
 	Ref<Object> result;
-	
+
 	switch (peek().type) {
 	default:
 		unexpectedToken(match, result);

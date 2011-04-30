@@ -54,15 +54,16 @@ public:
 
 class BufferedInput : public Input {
 private:
-	stringstream _stream;
+	string         _buffer;
+	stringstream * _stream;
 
 public:
 	BufferedInput(Input& input);
-	virtual ~BufferedInput() {}
+	virtual ~BufferedInput();
 
 	void rewind();
 	
-	virtual istream& stream() { return _stream; }
+	virtual istream& stream() { return *_stream; }
 };
 
 #endif /* end of include guard: INPUT_H_234098SVF11098 */

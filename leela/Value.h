@@ -17,8 +17,6 @@
 
 using namespace std;
 
-class Interpreter;
-
 class Boolean;
 class Number;
 class String;

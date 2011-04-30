@@ -378,7 +378,7 @@ if __name__ == "__main__":
 	#parser.dump_tokens(sys.stdin.read())
 	grammar = parser.parse(sys.stdin.read())
 	grammar.update()
-	print grammar
+	# print grammar
 	# grammar.generate_header(sys.stdout)
 	# grammar.generate_rules(sys.stdout)
 	generator = Generator()

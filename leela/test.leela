@@ -1,13 +1,21 @@
+
 var x, a, b, someVariable;
 begin
-	x := 2 + 123 * 321 + 2;
-	a := 0;
-	b := "\"Hello World!\"";
-	if a then begin
-		x := lambda a, b: 0;
-	end else begin
-		x := lambda a: lambda b: "suprise!";
+	return x;
+	return a;
+	return b;
+	return someVariable;
+	return 1337;
+	return function ():
+	var c;
+	begin
+		return 13
 	end;
-	return 0;
-end
+	
+	return function (d, e):
+	var f, g;
+	begin
+		return 0
+	end
+end  
 

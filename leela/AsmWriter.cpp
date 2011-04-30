@@ -12,6 +12,8 @@
 
 ostream& AsmWriter::currentChunk()
 {
+	if (_openChunks.empty())
+		startChunk();
 	return *_openChunks.top();
 }
 
@@ -26,6 +28,9 @@ void AsmWriter::clear()
 		_closedChunks.pop();
 	while (!_labels.empty())
 		_labels.pop();
+	while (!_labelStack.empty())
+		_labelStack.pop();
+	_nextLabel = 0;
 }
 
 void AsmWriter::writeLabels()
@@ -77,6 +82,11 @@ void AsmWriter::writeInstruction(AsmScanner::Tokens mnemonic, string reference)
 	currentChunk() << reference << endl;
 }
 
+void AsmWriter::writeComment(string comment)
+{
+	currentChunk() << "; " << comment << endl;
+}
+
 void AsmWriter::startChunk()
 {
 	_openChunks.push(new stringstream());
@@ -91,8 +101,35 @@ void AsmWriter::endChunk()
 	stream = NULL;
 }
 
+void AsmWriter::endAll()
+{
+	while (!_openChunks.empty())
+		endChunk();
+}
+
+void AsmWriter::pushLabel(string prefix)
+{
+	stringstream s;
+	s << prefix << "_" << _nextLabel++;
+	_labelStack.push(s.str());
+	writeLabel(s.str());
+}
+
+void AsmWriter::popLabel(AsmScanner::Tokens mnemonic)
+{
+	writeInstruction(mnemonic, _labelStack.top());
+	_labelStack.pop();
+}
+
+void AsmWriter::makeFunction()
+{
+	popLabel(AsmScanner::TOKEN_MAKE);
+}
+
 void AsmWriter::output(ostream &output)
 {
+	endAll();
+	
 	output << "; Chunk count: " << _closedChunks.size() << endl;
 	
 	while (!_closedChunks.empty()) {

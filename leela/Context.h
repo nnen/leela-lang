@@ -57,6 +57,10 @@ public:
 	Context();
 	Context(Ref<Context> parent);
 	virtual ~Context() {}
+
+	int getLocalCount() { return _symbols.size() - _paramCount - _freeVarCount; }
+	int getParamCount() { return _paramCount; }
+	int getFreeVarCount() { return _freeVarCount; }
 	
 	/**
 	 * Resets the context for another parser pass.
@@ -68,7 +72,7 @@ public:
 	Ref<Symbol> addFreeVar(string name);
 	Ref<Symbol> getSymbol(string name);
 	
-	Ref<Symbol> getSymbol();
+	// Ref<Symbol> getSymbol(string name);
 };
 
 class ContextTable : public Object {

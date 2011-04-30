@@ -39,15 +39,24 @@ string FileInput::getExtension() const
 }
 
 BufferedInput::BufferedInput(Input& input)
+	: Input(), _stream(NULL)
 {
+	stringstream s;
 	while (input.stream().good())
-		_stream.put(input.stream().get());
+		s.put(input.stream().get());
+	_buffer = s.str();
 	rewind();
+}
+
+BufferedInput::~BufferedInput()
+{
+	delete _stream;
+	_stream = NULL;
 }
 
 void BufferedInput::rewind()
 {
-	// _stream.seekg(0, ios::beg);
-	_stream.seekg(0);
+	delete _stream;
+	_stream = new stringstream(_buffer);
 }
 

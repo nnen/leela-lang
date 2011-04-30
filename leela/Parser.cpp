@@ -15,9 +15,12 @@ SyntaxError::SyntaxError(string message) throw()
 
 Token Parser::accept(Token::Type type)
 {
-	if (peek().type != type)
+	if (peek().type != type) {
 		// TODO: Add syntax error handling here.
-		throw SyntaxError("Unexpected token!");
+		stringstream s;
+		s << "Unexpected token. Expected: " << Token::getTypeName(type);
+		throw SyntaxError(s.str());
+	}
 	return accept();
 }
 
@@ -39,6 +42,50 @@ void Parser::startChunk(vector<Ref<Object> >& match, Ref<Object>& result)
 void Parser::endChunk(vector<Ref<Object> >& match, Ref<Object>& result)
 {
 	_writer.endChunk();
+}
+
+void Parser::startFunction(vector<Ref<Object> >& match, Ref<Object>& result)
+{
+	startChunk(match, result);
+	startContext(match, result);
+	_writer.pushLabel("function");
+}
+
+void Parser::endFunction(vector<Ref<Object> >& match, Ref<Object>& result)
+{
+	endContext(match, result);
+	endChunk(match, result);
+	_writer.makeFunction();
+}
+
+void Parser::addLocal(vector<Ref<Object> >& match, Ref<Object>& result)
+{
+	_contexts->current()->addLocal(match.back().as<String>()->getValue());
+}
+
+void Parser::allocLocals(vector<Ref<Object> >& match, Ref<Object>& result)
+{
+	_writer.writeInstruction(
+		AsmScanner::TOKEN_ALLOC,
+		_contexts->current()->getLocalCount()
+	);
+}
+
+void Parser::addArg(vector<Ref<Object> >& match, Ref<Object>& result)
+{
+	_contexts->current()->addParam(match.back().as<String>()->getValue());
+}
+
+void Parser::pushNumber(vector<Ref<Object> >& match, Ref<Object>& result)
+{
+	_writer.writeInstruction(AsmScanner::TOKEN_PUSH, match.back().as<Number>()->getValue());
+}
+
+void Parser::getSymbolValue(vector<Ref<Object> >& match, Ref<Object>& result)
+{
+	Ref<Symbol> symbol =
+		_contexts->current()->getSymbol(match.back().as<String>()->getValue());
+	_writer.writeInstruction(AsmScanner::TOKEN_LOAD, symbol->index);
 }
 
 void Parser::syntaxError(vector<Ref<Object> >& match, Ref<Object>& result)
@@ -64,7 +111,7 @@ void Parser::parse(Ref<Input> input, Ref<Output> output)
 	_writer.clear();
 
 	parseProgram();
-
+	
 	// 2. pass
 	
 	_input->rewind();

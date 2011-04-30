@@ -23,11 +23,13 @@ private:
 	stack<stringstream*> _openChunks;
 	stack<string>        _closedChunks;
 	queue<string>        _labels;
-
+	stack<string>        _labelStack;
+	int                  _nextLabel;
+	
 	ostream&             currentChunk();
 	
-	void writeLabels();
-	void writeMnemonic(AsmScanner::Tokens mnemonic);
+	void                 writeLabels();
+	void                 writeMnemonic(AsmScanner::Tokens mnemonic);
 
 public:
 	AsmWriter() : Object() { startChunk(); }
@@ -40,9 +42,15 @@ public:
 	void writeInstruction(AsmScanner::Tokens mnemonic, Integer integer);
 	void writeInstruction(AsmScanner::Tokens mnemonic, UInteger uinteger);
 	void writeInstruction(AsmScanner::Tokens mnemonic, string reference);
+	void writeComment(string comment);
 	
 	void startChunk();
 	void endChunk();
+	void endAll();
+
+	void pushLabel(string prefix);
+	void popLabel(AsmScanner::Tokens mnemonic);
+	void makeFunction();
 	
 	void output(ostream &output);
 	void output(Ref<Output> output);

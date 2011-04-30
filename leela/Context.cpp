@@ -14,8 +14,14 @@ Symbol::Symbol(string name, Type type)
 }
 
 Context::Context()
-	: Object()
+	: Object(),
+	  _freeVarCount(0),
+	  _paramCount(0),
+	  _nextFreeVar(0),
+	  _nextParam(0),
+	  _nextLocal(0)
 {
+	reset();
 }
 
 Context::Context(Ref<Context> parent)
@@ -25,12 +31,12 @@ Context::Context(Ref<Context> parent)
 
 void Context::reset()
 {
-_nextFreeVar = 0;
-_nextParam   = 0;
-_nextLocal   = 0;
+	_nextFreeVar = 0;
+	_nextParam   = 0;
+	_nextLocal   = 0;
 
-foreach(pair, _symbols)
-	(*pair).second->indexInvalid = true;
+	foreach(pair, _symbols)
+		(*pair).second->indexInvalid = true;
 }
 
 bool Context::addParam(string name)
@@ -127,6 +133,7 @@ void ContextTable::next()
 {
 	if (_next < _contexts.size()) {
 		_openContexts.push(_contexts[_next++]);
+		_openContexts.top()->reset();
 		return;
 	}
 	

@@ -1,4 +1,4 @@
-Program            -> !startChunk !startContext Preamble CompoundStmt :STOP !endChunk .
+Program            -> !startContext Preamble !allocLocals CompoundStmt :STOP .
 
 Preamble           -> ConstDecl Preamble
                     | VarDecl Preamble
@@ -26,8 +26,8 @@ ElseStmt           -> else Statement
 LValue             -> ident LValueRest .
 LValueRest         -> Index LValueRest | .
 RValue             -> Expression
-                    | function left_par ArgNameList right_par colon VarDecl !startChunk !startContext Statement !endContext !endChunk
-                    | lambda left_par ArgNameList right_par colon !startChunk !startContext RValue :RETURN !endContext !endChunk .
+                    | function !startFunction left_par ArgNameList right_par colon VarDecl !allocLocals Statement !endFunction
+                    | lambda !startFunction left_par ArgNameList right_par colon RValue :RETURN !endFunction .
 
 Expression         -> Term ExpressionRest
                     | minus Term ExpressionRest .
@@ -41,7 +41,7 @@ TermRest           -> asterix Factor :MUL TermRest
 Factor             -> PrimaryExpr
                     | number !pushNumber
                     | left_par Expression right_par .
-PrimaryExpr        -> ident PostfixOp .
+PrimaryExpr        -> ident !getSymbolValue PostfixOp .
 PostfixOp          -> Index PostfixOp
                     | left_par ParamList right_par PostfixOp
                     | .
