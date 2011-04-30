@@ -20,14 +20,14 @@
 int main(int argc, const char * argv[])
 {
 	int c;
-
+	bool dumpTokens = false;
+	
 	Ref<Output> output = new StdOutput();
 
-	while ((c = getopt(argc, const_cast<char * const *>(argv), "o:")) != -1) {
+	while ((c = getopt(argc, const_cast<char * const *>(argv), "to:")) != -1) {
 		switch (c) {
-		case 'o':
-			output = new FileOutput(optarg);
-			break;
+		case 't': dumpTokens = true;               break;
+		case 'o': output = new FileOutput(optarg); break;
 		default:
 			abort();
 		}
@@ -39,8 +39,11 @@ int main(int argc, const char * argv[])
 	}
 	
 	Ref<FileInput> file(new FileInput(argv[optind++]));
-		
-	if (file->getExtension() == "leela") {
+	
+	if (dumpTokens) {
+		Lexer lexer(file);
+		lexer.dumpTokens(output);
+	} else if (file->getExtension() == "leela") {
 		Parser parser;
 		parser.parse(file, output);
 	} else if (file->getExtension() == "cleela") {

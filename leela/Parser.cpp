@@ -17,7 +17,7 @@ Token Parser::accept(Token::Type type)
 {
 	if (peek().type != type)
 		// TODO: Add syntax error handling here.
-		return accept();
+		throw SyntaxError("Unexpected token!");
 	return accept();
 }
 
@@ -41,21 +41,34 @@ void Parser::endChunk(vector<Ref<Object> >& match, Ref<Object>& result)
 	_writer.endChunk();
 }
 
+void Parser::syntaxError(vector<Ref<Object> >& match, Ref<Object>& result)
+{
+	throw SyntaxError("Syntax error!");
+}
+
+void Parser::unexpectedToken(vector<Ref<Object> >& match, Ref<Object>& result)
+{
+	stringstream s;
+	s << "Unexpected token: " << Token::getTypeName(_lexer->peek().type);
+	throw SyntaxError(s.str());
+}
+
 void Parser::parse(Ref<Input> input, Ref<Output> output)
 {
 	// 1. pass
 	
-	_input = input;
+	_input = new BufferedInput(*input);
 	_output = output;
-	_lexer = new Lexer(input);
+	_lexer = new Lexer(_input);
 	_contexts = new ContextTable();
 	_writer.clear();
-	
+
 	parseProgram();
-	
+
 	// 2. pass
 	
-	_lexer = new Lexer(input);
+	_input->rewind();
+	_lexer = new Lexer(_input);
 	_contexts->reset();
 	_writer.clear();
 	

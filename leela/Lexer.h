@@ -16,6 +16,7 @@
 #include "Object.h"
 #include "Token.h"
 #include "Input.h"
+#include "Output.h"
 
 #define LEXER_STATES \
 	S( INIT )        \
@@ -75,6 +76,7 @@ public:
 	Token                    get();
 	
 	void                     dumpTokens(ostream& output);
+	void                     dumpTokens(Ref<Output> output);
 	void                     dumpTokens() { dumpTokens(std::cout); }
 	void                     dumpState(ostream& output);
 };

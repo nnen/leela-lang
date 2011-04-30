@@ -127,7 +127,7 @@ Token Lexer::getToken()
 			break;
 		}
 	}
-	return Token(Token::END);
+	return Token(Token::EOI);
 }
 
 const char * Lexer::getStateName(Lexer::LexerState state)
@@ -169,7 +169,9 @@ void Lexer::dumpTokens(ostream& output)
 	Token token;
 	int lastLine = -1;
 	
-	while ((token = getToken()).type != Token::END) {
+	while (peek().type != Token::EOI) {
+		token = get();
+		
 		if (token.location.line != lastLine)
 			output << std::endl << "Line " << token.location.line << ":" << std::endl;
 		output << "   " << setiosflags(ios_base::left) << setw(16) << Token::getTypeName(token.type)
@@ -181,6 +183,11 @@ void Lexer::dumpTokens(ostream& output)
 
 		lastLine = token.location.line;
 	}
+}
+
+void Lexer::dumpTokens(Ref<Output> output)
+{
+	dumpTokens(output->stream());
 }
 
 void Lexer::dumpState(ostream& output)

@@ -17,8 +17,11 @@ ostream& AsmWriter::currentChunk()
 
 void AsmWriter::clear()
 {
-	while (!_openChunks.empty())
+	while (!_openChunks.empty()) {
+		stringstream* s = _openChunks.top();
+		delete s;
 		_openChunks.pop();
+	}
 	while (!_closedChunks.empty())
 		_closedChunks.pop();
 	while (!_labels.empty())
@@ -90,6 +93,8 @@ void AsmWriter::endChunk()
 
 void AsmWriter::output(ostream &output)
 {
+	output << "; Chunk count: " << _closedChunks.size() << endl;
+	
 	while (!_closedChunks.empty()) {
 		output << _closedChunks.top();
 		_closedChunks.pop();

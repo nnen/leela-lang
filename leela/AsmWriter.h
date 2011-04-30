@@ -30,9 +30,9 @@ private:
 	void writeMnemonic(AsmScanner::Tokens mnemonic);
 
 public:
-	AsmWriter() : Object() { }
+	AsmWriter() : Object() { startChunk(); }
 	virtual ~AsmWriter() {}
-
+	
 	void clear();
 	
 	void writeLabel(string label);

@@ -1,4 +1,4 @@
-Program            -> !startContext Preamble CompoundStmt :STOP .
+Program            -> !startChunk !startContext Preamble CompoundStmt :STOP !endChunk .
 
 Preamble           -> ConstDecl Preamble
                     | VarDecl Preamble
@@ -15,6 +15,7 @@ Statement          -> CompoundStmt
                     | LValue assign RValue
                     | if Expression then Statement ElseStmt
                     | while Expression do Statement
+					| return RValue :RETURN
                     | .
 CompoundStmt       -> begin Statement StatementRest end .
 StatementRest      -> semicolon Statement StatementRest

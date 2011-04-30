@@ -205,7 +205,7 @@ public:
 	{
 		// Ref<U> r(dynamic_cast<U*>(getPtr()));
 		Ref<U> ref = this->as<U>();
-		if (ref.isNull())
+		if (ref.isNull() && !this->isNull())
 			throw InvalidCastException();
 		return ref;
 	}

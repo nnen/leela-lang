@@ -38,9 +38,9 @@ public:
 	#include "Parser.rules.h"
 
 private:
-	Ref<Input>        _input;
-	Ref<Output>       _output;
-	Ref<Lexer>        _lexer;
+	Ref<BufferedInput> _input;
+	Ref<Output>        _output;
+	Ref<Lexer>         _lexer;
 	
 	Ref<ContextTable> _contexts;
 	AsmWriter         _writer;
@@ -58,6 +58,9 @@ private:
 	void addArg(vector<Ref<Object> >& match, Ref<Object>& result) {}
 	void addConst(vector<Ref<Object> >& match, Ref<Object>& result) {}
 	void pushNumber(vector<Ref<Object> >& match, Ref<Object>& result) {}
+	
+	void syntaxError(vector<Ref<Object> >& match, Ref<Object>& result);
+	void unexpectedToken(vector<Ref<Object> >& match, Ref<Object>& result);
 
 public:
 	Parser() {}

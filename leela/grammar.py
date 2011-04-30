@@ -49,6 +49,9 @@ class Symbol(object):
 	
 	def __hash__(self):
 		return hash(self.name)
+	
+	def __eq__(self, other):
+		return self.name == other.name
 
 class Terminal(Symbol):
 	TERMINALS = {
@@ -96,7 +99,6 @@ class Nonterminal(Symbol):
 		self.table = {}
 		self.rules = {}
 		self.annotations = {}
-		self.epsilon_rule = None
 	
 	def print_table(self):
 		result = "%s:\n" % self.name
@@ -117,13 +119,18 @@ class Nonterminal(Symbol):
 	def update_first(self):
 		self.table = {}
 		self.rules = {}
+		
 		for child in self.children:
 			for terminal in child.get_first():
-				if terminal.is_epsilon:
-					self.epsilon_rule = child
-				else:
-					self.table[terminal] = child
-					self.rules.setdefault(child, set([])).add(terminal)
+				if terminal in self.table:
+					continue
+				self.table[terminal] = child
+				self.rules.setdefault(child, set([])).add(terminal)
+		
+		if Terminal("epsilon") not in self.table:
+			erule = String()
+			erule.children.append(Action("unexpectedToken"))
+			self.rules[erule] = set([Terminal("epsilon"), ])
 	
 	def get_first(self):
 		return set(self.table.keys())
@@ -371,6 +378,7 @@ if __name__ == "__main__":
 	#parser.dump_tokens(sys.stdin.read())
 	grammar = parser.parse(sys.stdin.read())
 	grammar.update()
+	print grammar
 	# grammar.generate_header(sys.stdout)
 	# grammar.generate_rules(sys.stdout)
 	generator = Generator()

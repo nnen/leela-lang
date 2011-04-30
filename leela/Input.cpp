@@ -47,6 +47,7 @@ BufferedInput::BufferedInput(Input& input)
 
 void BufferedInput::rewind()
 {
+	// _stream.seekg(0, ios::beg);
 	_stream.seekg(0);
 }
 

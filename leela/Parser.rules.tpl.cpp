@@ -17,7 +17,7 @@ Ref<Object> Parser::parse{{ nonterminal.name }}()
 	switch (peek().type) {
 {%- for rule, terminals in nonterminal.rules.items() -%}
 {%- for terminal in terminals %}
-	case Token::{{ terminal.name|upper }}:{% endfor -%}
+	{% if terminal.is_epsilon %}default:{% else %}case Token::{{ terminal.name|upper }}:{% endif %}{% endfor -%}
 {% for child in rule.children %}{% if isinstance(child, Terminal) and not child.is_epsilon %}
 		match.push_back(accept(Token::{{ child.name|upper }}).value);
 		{%- elif isinstance(child, Nonterminal) %}
@@ -27,9 +27,6 @@ Ref<Object> Parser::parse{{ nonterminal.name }}()
 		{%- endif %}{% endfor %}
 		break;
 		{% endfor %}
-	default:
-		// Syntax error.
-		break;
 	}
 	
 	return result;
