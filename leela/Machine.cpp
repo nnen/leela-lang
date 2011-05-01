@@ -7,29 +7,133 @@
  */
 
 #include "Machine.h"
+#include "Exception.h"
 
-RuntimeError::RuntimeError(Machine &machine, string message)
+/* Program flow conteol *******************************************************/
+
+void Machine::do_STOP() { _stop = true; }
+
+void Machine::do_NOOP() { }
+
+void Machine::do_RETURN()
 {
-	if (machine.getCallStack().size() < 1)
-		_address = -1;
-	else
-		_address = machine.getCallStack().back()->instrCounter;
-	_message = message;
+	Ref<Value> value = pop();
+	popFrame();
+	push(value);
 }
 
-void RuntimeError::print(ostream &output) const
+void Machine::do_CALL(UInteger count)
 {
-	output << "RuntimeError (@" << _address << "): " << _message;
+	vector<Ref<Value> > arguments;
+	while (count-- > 0) arguments.push_back(pop());
+	pushFrame(pop()->call(arguments));
 }
 
-void Machine::do_PULL(Instruction instr)
+/* Stack operations ***********************************************************/
+
+void Machine::do_POP() { pop(); }
+
+void Machine::do_DUP()
+{
+	Ref<Value> value = pop();
+	push(value);
+	push(value);
+}
+
+void Machine::do_PUSH(Integer value)
+{
+	push(new Number(value));
+}
+
+void Machine::do_PUSH_NONE()
+{
+	push(None::getInstance());
+}
+
+/* Binary operations **********************************************************/
+
+void Machine::do_ADD()
+{
+	Ref<Value> second = pop();
+	Ref<Value> first  = pop();
+	push(first->add(second));
+}
+
+void Machine::do_SUB()
+{
+	Ref<Value> second = pop();
+	Ref<Value> first  = pop();
+	push(first->subtract(second));
+}
+
+void Machine::do_MUL()
+{
+	Ref<Value> second = pop();
+	Ref<Value> first  = pop();
+	push(first->multiply(second));
+}
+
+void Machine::do_DIV()
+{
+	Ref<Value> second = pop();
+	Ref<Value> first  = pop();
+	push(first->divide(second));
+}
+
+/* IO operations **************************************************************/
+
+void Machine::do_PRINT()
+{
+	cout << *pop() << endl;
+}
+
+void Machine::do_DUMP()
+{
+	// TODO: Implement the DUMP instruction.
+}
+
+void Machine::do_DUMP_STACK(UInteger limit)
+{
+	dumpStack(cout, limit);
+}
+
+/* Variable operations ********************************************************/
+
+void Machine::do_LOAD(UInteger variable)
+{
+	/* code */
+}
+
+void Machine::do_PULL(UInteger count)
 {
 	if (_callStack.size() < 2)
-		throw RuntimeError(*this, "There's no activation frame to pull from.");
+		throw RuntimeError("There's no activation frame to pull from.");
 	
-	for (int i = 0; i < instr.payload.uinteger; i++)
+	for (UInteger i = 0; i < count; i++)
 		getFrame()->pushVariable(_callStack[_callStack.size() - 2]->pop());
 }
+
+/* Function operations ********************************************************/
+
+void Machine::do_MAKE_FUNCTION(Address address)
+{
+	Ref<Number> argCount = pop()->toNumber();
+	push(new Function(address, argCount->getValue()));
+}
+
+void Machine::do_LOAD_CLOSURE(UInteger variable)
+{
+	/* code */
+}
+
+/* Table operations ***********************************************************/
+
+void Machine::do_MAKE_TABLE()
+{
+	push(new Table());
+}
+
+/******************************************************************************/
 
 Instruction Machine::loadInstr()
 {
@@ -48,7 +152,16 @@ Instruction Machine::loadInstr()
 void Machine::execute(Instruction instr)
 {
 	_instr = instr;
+
+	switch (instr.opcode) {
+	#define OC(name) case Instruction::name: do_##name(); break;
+	#define OC1(name, argname, type) case Instruction::name: do_##name(instr.argname); break;
+	default:
+		throw RuntimeError();
+		break;
+	}
 	
+	/*
 	switch (instr.opcode) {
 	case Instruction::STOP:
 		_stop = true;
@@ -108,6 +221,7 @@ void Machine::execute(Instruction instr)
 		throw RuntimeError(*this, "Unknown or unimplemented instruction code.");
 		break;
 	}
+	*/
 }
 
 void Machine::push(Ref<Value> value)
@@ -118,7 +232,7 @@ void Machine::push(Ref<Value> value)
 Ref<Value> Machine::pop()
 {
 	if (getFrame()->getStack().size() < 1)
-		throw RuntimeError(*this, "Data stack empty.");
+		throw RuntimeError("Data stack empty.");
 	return getFrame()->pop();
 }
 
@@ -146,7 +260,7 @@ void Machine::pushFrame(Ref<ActivationFrame> frame)
 Ref<ActivationFrame> Machine::popFrame()
 {
 	if (_callStack.size() < 1)
-		throw RuntimeError(*this, "Stack empty.");
+		throw RuntimeError("Call stack empty.");
 	Ref<ActivationFrame> top = _callStack.back();
 	_callStack.pop_back();
 	return top;
@@ -160,7 +274,7 @@ bool Machine::step()
 	try {
 		Instruction instr = loadInstr();
 		execute(instr);
-	} catch (const RuntimeError &e) {
+	} catch (RuntimeError &e) {
 		e.print(cerr);
 		cerr << endl;
 		
@@ -195,7 +309,7 @@ void Machine::loadBytecode(Ref<Input> input)
 	reset();
 }
 
-void Machine::dumpStack(ostream &output, int limit) const
+void Machine::dumpStack(ostream &output, int limit)
 {
 	CallStack::const_reverse_iterator it = _callStack.rbegin();
 	int offset = _callStack.size() - limit - 1;
@@ -204,7 +318,9 @@ void Machine::dumpStack(ostream &output, int limit) const
 	
 	for (it = _callStack.rbegin(); it != _callStack.rend() && limit > 0; it++, limit--) {
 		output << "[" << offset + limit << "] ";
-		output << **it << endl;
+		(*it)->print(output);
+		output << endl;
+		// output << **it << endl;
 	}
 	
 	if (limit < (int) _callStack.size())

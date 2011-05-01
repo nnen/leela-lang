@@ -13,6 +13,8 @@ VarDeclRest        -> comma ident !addLocal VarDeclRest
 
 Statement          -> CompoundStmt
                     | LValue assign RValue
+                    | Assignment
+					| print RValue :PRINT
                     | if Expression then Statement ElseStmt
                     | while Expression do Statement
 					| return RValue :RETURN
@@ -23,11 +25,22 @@ StatementRest      -> semicolon Statement StatementRest
 ElseStmt           -> else Statement
                     | .
 
+Assignment         -> ident AssignVar .
+AssignVar          -> assign RValue :STORE
+                    | period :LOAD ident !identToString AssignIndex
+					| left_br :LOAD RValue right_br AssignIndex
+AssignIndex        -> assign RValue :SET_INDEX
+                    | period ident AssignIndex
+					| left_bt RValue right_br AssignIndex
+
 LValue             -> ident LValueRest .
 LValueRest         -> Index LValueRest | .
 RValue             -> Expression
-                    | function !startFunction left_par ArgNameList right_par colon VarDecl !allocLocals Statement !endFunction
+                    | function !startFunction left_par ArgNameList right_par colon FunctionPreamble !allocLocals Statement :PUSH :RETURN !endFunction
                     | lambda !startFunction left_par ArgNameList right_par colon RValue :RETURN !endFunction .
+
+FunctionPreamble   -> VarDecl FunctionPreamble
+                    | .
 
 Expression         -> Term ExpressionRest
                     | minus Term ExpressionRest .

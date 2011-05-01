@@ -30,6 +30,29 @@ Ref<Object> Parser::parseIndex()
 	return result;
 }
 
+Ref<Object> Parser::parseVarDecl()
+{
+	vector<Ref<Object> > match;
+	Ref<Object> result;
+
+	switch (peek().type) {
+	default:
+		unexpectedToken(match, result);
+		break;
+		
+	case Token::VAR:
+		match.push_back(accept(Token::VAR).value);
+		match.push_back(accept(Token::IDENT).value);
+		addLocal(match, result);
+		match.push_back(parseVarDeclRest());
+		match.push_back(accept(Token::SEMICOLON).value);
+		break;
+		
+	}
+	
+	return result;
+}
+
 Ref<Object> Parser::parseVarDeclRest()
 {
 	vector<Ref<Object> > match;
@@ -82,6 +105,21 @@ Ref<Object> Parser::parseStatement()
 	Ref<Object> result;
 
 	switch (peek().type) {
+	default:
+		break;
+		
+	case Token::PRINT:
+		match.push_back(accept(Token::PRINT).value);
+		match.push_back(parseRValue());
+		_writer.writeInstruction(AsmScanner::TOKEN_PRINT);
+		break;
+		
+	case Token::RETURN:
+		match.push_back(accept(Token::RETURN).value);
+		match.push_back(parseRValue());
+		_writer.writeInstruction(AsmScanner::TOKEN_RETURN);
+		break;
+		
 	case Token::BEGIN:
 		match.push_back(parseCompoundStmt());
 		break;
@@ -90,15 +128,6 @@ Ref<Object> Parser::parseStatement()
 		match.push_back(parseLValue());
 		match.push_back(accept(Token::ASSIGN).value);
 		match.push_back(parseRValue());
-		break;
-		
-	default:
-		break;
-		
-	case Token::RETURN:
-		match.push_back(accept(Token::RETURN).value);
-		match.push_back(parseRValue());
-		_writer.writeInstruction(AsmScanner::TOKEN_RETURN);
 		break;
 		
 	case Token::WHILE:
@@ -354,6 +383,10 @@ Ref<Object> Parser::parseRValue()
 	Ref<Object> result;
 
 	switch (peek().type) {
+	default:
+		unexpectedToken(match, result);
+		break;
+		
 	case Token::FUNCTION:
 		match.push_back(accept(Token::FUNCTION).value);
 		startFunction(match, result);
@@ -361,17 +394,12 @@ Ref<Object> Parser::parseRValue()
 		match.push_back(parseArgNameList());
 		match.push_back(accept(Token::RIGHT_PAR).value);
 		match.push_back(accept(Token::COLON).value);
-		match.push_back(parseVarDecl());
+		match.push_back(parseFunctionPreamble());
 		allocLocals(match, result);
 		match.push_back(parseStatement());
+		_writer.writeInstruction(AsmScanner::TOKEN_PUSH);
+		_writer.writeInstruction(AsmScanner::TOKEN_RETURN);
 		endFunction(match, result);
-		break;
-		
-	case Token::IDENT:
-	case Token::NUMBER:
-	case Token::LEFT_PAR:
-	case Token::MINUS:
-		match.push_back(parseExpression());
 		break;
 		
 	case Token::LAMBDA:
@@ -386,8 +414,11 @@ Ref<Object> Parser::parseRValue()
 		endFunction(match, result);
 		break;
 		
-	default:
-		unexpectedToken(match, result);
+	case Token::IDENT:
+	case Token::NUMBER:
+	case Token::LEFT_PAR:
+	case Token::MINUS:
+		match.push_back(parseExpression());
 		break;
 		
 	}
@@ -445,14 +476,14 @@ Ref<Object> Parser::parseExpression()
 	Ref<Object> result;
 
 	switch (peek().type) {
+	default:
+		unexpectedToken(match, result);
+		break;
+		
 	case Token::MINUS:
 		match.push_back(accept(Token::MINUS).value);
 		match.push_back(parseTerm());
 		match.push_back(parseExpressionRest());
-		break;
-		
-	default:
-		unexpectedToken(match, result);
 		break;
 		
 	case Token::IDENT:
@@ -473,14 +504,14 @@ Ref<Object> Parser::parseExpressionRest()
 	Ref<Object> result;
 
 	switch (peek().type) {
+	default:
+		break;
+		
 	case Token::MINUS:
 		match.push_back(accept(Token::MINUS).value);
 		match.push_back(parseTerm());
 		_writer.writeInstruction(AsmScanner::TOKEN_SUB);
 		match.push_back(parseExpressionRest());
-		break;
-		
-	default:
 		break;
 		
 	case Token::PLUS:
@@ -521,22 +552,18 @@ Ref<Object> Parser::parsePostfixOp()
 	return result;
 }
 
-Ref<Object> Parser::parseVarDecl()
+Ref<Object> Parser::parseFunctionPreamble()
 {
 	vector<Ref<Object> > match;
 	Ref<Object> result;
 
 	switch (peek().type) {
 	default:
-		unexpectedToken(match, result);
 		break;
 		
 	case Token::VAR:
-		match.push_back(accept(Token::VAR).value);
-		match.push_back(accept(Token::IDENT).value);
-		addLocal(match, result);
-		match.push_back(parseVarDeclRest());
-		match.push_back(accept(Token::SEMICOLON).value);
+		match.push_back(parseVarDecl());
+		match.push_back(parseFunctionPreamble());
 		break;
 		
 	}

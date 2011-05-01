@@ -71,7 +71,7 @@ public:
 	static const char * getRepresentation(Type type);
 };
 
-ostream& operator << (ostream& output, const Token& token);
+ostream& operator << (ostream& output, Token& token);
 
 bool operator < (Token::Type a, Token::Type b);
 bool operator > (Token::Type a, Token::Type b);

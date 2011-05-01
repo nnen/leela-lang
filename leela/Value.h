@@ -11,6 +11,9 @@
 
 #include <string>
 #include <ostream>
+#include <vector>
+#include <map>
+#include <utility>
 
 #include "leela.h"
 #include "Object.h"
@@ -20,25 +23,66 @@ using namespace std;
 class Boolean;
 class Number;
 class String;
+class ActivationFrame;
+
+/* Value **********************************************************************/
 
 class Value : public Object {
 public:
 	Value() : Object() {}
 	virtual ~Value() {}
 	
-	virtual void print(ostream& output) const;
+	virtual void print(ostream& output);
+	virtual void repr(ostream& output);
 	
+	virtual Ref<Boolean> toBoolean();
+	virtual Ref<Number>  toNumber();
+	virtual Ref<String>  toString();
+	
+	virtual int          getHash() const;
+	
+	virtual Ref<Value>   add(Ref<Value> other);
+	virtual Ref<Value>   subtract(Ref<Value> other);
+	virtual Ref<Value>   multiply(Ref<Value> other);
+	virtual Ref<Value>   divide(Ref<Value> other);
+	
+	virtual bool         equals(Ref<Value> other);
+	virtual bool         lessThan(Ref<Value> other);
+	
+	virtual Ref<Value>   index(Ref<Value> key);
+	virtual void         assign(Ref<Value> value);
+	virtual Ref<ActivationFrame> call(vector<Ref<Value> > arguments);
+	
+	static  bool         equals(Ref<Value> first, Ref<Value> second);
+};
+
+typedef pair<Ref<Value>, Ref<Value> > ValuePair;
+
+std::ostream& operator<< (std::ostream& output, Value& value);
+
+/* None ***********************************************************************/
+
+class None : public Value {
+private:
+	static Ref<None> _instance;
+
+	None() : Value() {}
+
+public:
+	virtual ~None() {}
+
+	static Ref<None>     getInstance();
+
 	virtual Ref<Boolean> toBoolean() const;
 	virtual Ref<Number>  toNumber() const;
 	virtual Ref<String>  toString() const;
 	
-	virtual Ref<Value> add(Ref<Value> other);
-	virtual Ref<Value> subtract(Ref<Value> other);
-	virtual Ref<Value> multiply(Ref<Value> other);
-	virtual Ref<Value> divide(Ref<Value> other);
+	virtual int          getHash() const;
 	
-	// virtual void call(Interpreter& interpreter);
+	virtual bool         lessThan(Ref<Value> other);
 };
+
+/* ScalarValue ****************************************************************/
 
 template<class T>
 class ScalarValue : public Value {
@@ -55,14 +99,18 @@ public:
 	virtual T getValue() const { return _value; }
 };
 
+/* Boolean ********************************************************************/
+
 class Boolean : public ScalarValue<bool> {
 public:
 	Boolean() : ScalarValue<bool>(false) {}
 	Boolean(bool value) : ScalarValue<bool>(value) {}
 	virtual ~Boolean() {}
-
+	
 	virtual void print(ostream& output) const;
 };
+
+/* Number *********************************************************************/
 
 class Number : public ScalarValue<Integer> {
 public:
@@ -75,6 +123,8 @@ public:
 	virtual void print(ostream& output) const;
 };
 
+/* String *********************************************************************/
+
 class String : public ScalarValue<string> {
 public:
 	String() : ScalarValue<string>() {}
@@ -84,42 +134,21 @@ public:
 	virtual void print(ostream& output) const;
 };
 
-/*
-class Boolean : public Value {
+/* Table **********************************************************************/
+
+class Table : public Value {
 private:
-	bool _value;
+	map<int, vector<ValuePair>* > _table;
 
 public:
-	Boolean() : _value(false) { }
-	Boolean(bool value) : _value(value) { }
+	Table() {}
+	virtual ~Table() {}
+	
+	void       set(Ref<Value> key, Ref<Value> value);
+	Ref<Value> get(Ref<Value> key, Ref<Value> deflt);
 };
 
-class Number : public Value {
-private:
-	int _value;
-
-public:
-	Number();
-	Number(int value);
-	
-	virtual void print(ostream& output) const;
-	
-	int getValue() const { return _value; }
-	
-	static Ref<Number> parse(string str);
-};
-
-class String : public Value {
-private:
-	string _value;
-
-public:
-	String();
-	String(string value);
-	
-	virtual void print(ostream& output) const;
-};
-*/
+/* Variable *******************************************************************/
 
 class Variable : public Value {
 private:
@@ -130,11 +159,12 @@ public:
 	Variable(Ref<Value> value) : Value(), _value(value) {}
 	virtual ~Variable() {}
 	
-	Ref<Value> getValue() const { return _value; }
-	void       setValue(Ref<Value> value) { _value = value; }
+	Ref<Value>           getValue() const { return _value; }
+	void                 setValue(Ref<Value> value) { _value = value; }
+
+	virtual void         assign(Ref<Value> value);
 };
 
-std::ostream& operator<< (std::ostream& output, const Value& value);
 
 #endif /* end of include guard: VALUE_H_235HDVSVGD34 */
 

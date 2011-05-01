@@ -8,6 +8,7 @@
 
 enum Nonterminals {
 	INDEX,
+	VAR_DECL,
 	VAR_DECL_REST,
 	PROGRAM,
 	STATEMENT,
@@ -27,7 +28,7 @@ enum Nonterminals {
 	EXPRESSION,
 	EXPRESSION_REST,
 	POSTFIX_OP,
-	VAR_DECL,
+	FUNCTION_PREAMBLE,
 	L_VALUE_REST,
 	PRIMARY_EXPR,
 	CONST_DECL,
@@ -38,6 +39,7 @@ enum Nonterminals {
 private:
 
 Ref<Object> parseIndex();
+Ref<Object> parseVarDecl();
 Ref<Object> parseVarDeclRest();
 Ref<Object> parseProgram();
 Ref<Object> parseStatement();
@@ -57,7 +59,7 @@ Ref<Object> parseParamList();
 Ref<Object> parseExpression();
 Ref<Object> parseExpressionRest();
 Ref<Object> parsePostfixOp();
-Ref<Object> parseVarDecl();
+Ref<Object> parseFunctionPreamble();
 Ref<Object> parseLValueRest();
 Ref<Object> parsePrimaryExpr();
 Ref<Object> parseConstDecl();

@@ -1,21 +1,16 @@
 
-var x, a, b, someVariable;
+var counter;
 begin
-	return x;
-	return a;
-	return b;
-	return someVariable;
-	return 1337;
-	return function ():
-	var c;
+	counter := lambda (countFrom) : function () :
+	var result;
 	begin
-		return 13
+		result := countFrom;
+		countFrom := countFrom - 1;
+		return result
 	end;
-	
-	return function (d, e):
-	var f, g;
-	begin
-		return 0
-	end
+
+	print counter();
+	print counter();
+	print counter()
 end  
 

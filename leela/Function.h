@@ -27,7 +27,7 @@ public:
 	Function(Address code, int paramCount);
 	virtual ~Function() {}
 	
-	virtual Ref<String> toString() const;
+	virtual Ref<String> toString();
 	
 	Address getCode() const { return _code; }
 	
@@ -50,7 +50,7 @@ public:
 	ActivationFrame(Ref<Function> function);
 	virtual ~ActivationFrame() {}
 	
-	virtual Ref<String>  toString() const;
+	virtual Ref<String>  toString();
 	
 	Ref<Variable>        getVar(int index);
 	vector<Ref<Value> >& getStack() { return _stack; }

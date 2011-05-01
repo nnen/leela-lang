@@ -53,9 +53,18 @@ void Parser::startFunction(vector<Ref<Object> >& match, Ref<Object>& result)
 
 void Parser::endFunction(vector<Ref<Object> >& match, Ref<Object>& result)
 {
+	Ref<Context> context = _contexts->current();
+	
 	endContext(match, result);
 	endChunk(match, result);
 	_writer.makeFunction();
+	
+	foreach (freeVar, context->getFreeVars()) {
+		_writer.writeInstruction(
+			AsmScanner::TOKEN_LOAD_CLOSURE,
+			(*freeVar)->freeVar->index
+		);
+	}
 }
 
 void Parser::addLocal(vector<Ref<Object> >& match, Ref<Object>& result)
@@ -78,7 +87,10 @@ void Parser::addArg(vector<Ref<Object> >& match, Ref<Object>& result)
 
 void Parser::pushNumber(vector<Ref<Object> >& match, Ref<Object>& result)
 {
-	_writer.writeInstruction(AsmScanner::TOKEN_PUSH, match.back().as<Number>()->getValue());
+	_writer.writeInstruction(
+		AsmScanner::TOKEN_PUSH,
+		match.back().as<Number>()->getValue()
+	);
 }
 
 void Parser::getSymbolValue(vector<Ref<Object> >& match, Ref<Object>& result)

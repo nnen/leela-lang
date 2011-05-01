@@ -61,6 +61,8 @@ public:
 	int getLocalCount() { return _symbols.size() - _paramCount - _freeVarCount; }
 	int getParamCount() { return _paramCount; }
 	int getFreeVarCount() { return _freeVarCount; }
+
+	vector<Ref<Symbol> >& getFreeVars() { return _freeVars; }
 	
 	/**
 	 * Resets the context for another parser pass.

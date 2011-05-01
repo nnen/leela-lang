@@ -21,22 +21,6 @@
 
 using namespace std;
 
-class Machine;
-
-class RuntimeError : public exception {
-private:
-	Address _address;
-	string  _message;
-
-public:
-	RuntimeError(Machine &machine, string message);
-	virtual ~RuntimeError() throw () { }
-	
-	Address getAddress() const { return _address; }
-		
-	void print(ostream &output) const;
-};
-
 class Machine {
 public:
 	typedef vector<Ref<ActivationFrame> > CallStack;
@@ -48,7 +32,9 @@ private:
 	Instruction                  _instr;
 	bool                         _stop;
 	
-	void        do_PULL(Instruction instr);
+	#define OC(name) void do_##name();
+	#define OC1(name, argname, type) void do_##name(type argument);
+	#include "opcodes.h"
 	
 	Instruction loadInstr();
 	void        execute(Instruction instr);
@@ -74,7 +60,7 @@ public:
 	
 	void loadBytecode(Ref<Input> input);
 
-	void dumpStack(ostream &output, int limit = 10) const;
+	void dumpStack(ostream &output, int limit = 10);
 };
 
 #endif /* end of include guard: MACHINE_H_FVZAS0983YUA2VFDV6 */

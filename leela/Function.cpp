@@ -16,7 +16,7 @@ Function::Function(Address code, int paramCount)
 {
 }
 
-Ref<String> Function::toString() const
+Ref<String> Function::toString()
 {
 	stringstream s;
 	s << "<Function @" << getCode() << ">";
@@ -41,7 +41,7 @@ ActivationFrame::ActivationFrame(Ref<Function> function)
 {
 }
 
-Ref<String> ActivationFrame::toString() const
+Ref<String> ActivationFrame::toString()
 {
 	stringstream s;
 	s << *_function;
@@ -53,7 +53,7 @@ Ref<String> ActivationFrame::toString() const
 
 Ref<Variable> ActivationFrame::getVar(int index)
 {
-	if (index >= _variables.size())
+	if (index >= (int) _variables.size())
 		return Ref<Variable>();
 	return _variables[index];
 }

@@ -87,7 +87,7 @@ const char * Token::getRepresentation(Type type)
 	}
 }
 
-ostream& operator << (ostream& output, const Token& token)
+ostream& operator << (ostream& output, Token& token)
 {
 	output << "Token(" << Token::getTypeName(token.type);
 

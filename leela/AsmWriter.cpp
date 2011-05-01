@@ -50,7 +50,7 @@ void AsmWriter::writeMnemonic(AsmScanner::Tokens mnemonic)
 {
 	currentChunk()
 		<< "    "
-		<< setw(AsmScanner::getLongestMnemonic()) << left
+		<< setw(AsmScanner::getLongestMnemonic() + 1) << left
 		<< AsmScanner::getMnemonic(mnemonic);
 }
 
@@ -89,6 +89,7 @@ void AsmWriter::writeComment(string comment)
 
 void AsmWriter::startChunk()
 {
+	writeLabels();
 	_openChunks.push(new stringstream());
 }
 
@@ -133,7 +134,7 @@ void AsmWriter::output(ostream &output)
 	output << "; Chunk count: " << _closedChunks.size() << endl;
 	
 	while (!_closedChunks.empty()) {
-		output << _closedChunks.top();
+		output << _closedChunks.top() << endl;
 		_closedChunks.pop();
 	}
 }
