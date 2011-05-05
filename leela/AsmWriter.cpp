@@ -82,6 +82,13 @@ void AsmWriter::writeInstruction(AsmScanner::Tokens mnemonic, string reference)
 	currentChunk() << reference << endl;
 }
 
+void AsmWriter::write(Ref<String> string)
+{
+	writeLabels();
+	currentChunk()
+		<< "    " << "\"" << string->getValue() << "\"" endl;
+}
+
 void AsmWriter::writeComment(string comment)
 {
 	currentChunk() << "; " << comment << endl;

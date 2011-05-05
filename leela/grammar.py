@@ -210,7 +210,9 @@ class Parser(object):
 	
 	def t_ACTION(self, t):
 		r'\![A-Za-z][A-Za-z0-9_-]*'
-		t.value = Action(t.value[1:])
+		action = Action(t.value[1:])
+		self.actions[action.name] = action
+		t.value = action
 		return t
 	
 	def t_INSTR(self, t):
@@ -256,6 +258,7 @@ class Parser(object):
 		else:
 			p[0] = Grammar()
 			p[0].nonterminals[p[1].name] = p[1]
+		p[0].actions = self.actions
 		return p[0]
 	
 	def p_definition(self, p):
@@ -325,8 +328,9 @@ class Parser(object):
 	
 	def parse(self, input):
 		self.nonterminals = {}
+		self.actions = {}
 		return self.parser.parse(input, debug = logging.getLogger())
-
+	
 	def dump_tokens(self, input):
 		self.lexer.input(input)
 		while True:

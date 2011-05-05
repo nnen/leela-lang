@@ -20,6 +20,7 @@
 #include "Lexer.h"
 #include "Token.h"
 #include "Context.h"
+#include "StringTable.h"
 #include "Input.h"
 #include "Output.h"
 #include "Exception.h"
@@ -35,6 +36,8 @@ public:
 
 class Parser {
 public:
+	typedef vector<Ref<Object> > Match;
+	
 	#include "Parser.rules.h"
 
 private:
@@ -43,12 +46,14 @@ private:
 	Ref<Lexer>         _lexer;
 	
 	Ref<ContextTable> _contexts;
+	Ref<StringTable>  _strings;
 	AsmWriter         _writer;
 	
 	Token peek() { return _lexer->peek(); }
 	Token accept() { return _lexer->get(); }
 	Token accept(Token::Type type);
 	
+	/*
 	void startContext(vector<Ref<Object> >& match, Ref<Object>& result);
 	void endContext(vector<Ref<Object> >& match, Ref<Object>& result);
 	void startChunk(vector<Ref<Object> >& match, Ref<Object>& result);
@@ -61,10 +66,12 @@ private:
 	void addArg(vector<Ref<Object> >& match, Ref<Object>& result);
 	void addConst(vector<Ref<Object> >& match, Ref<Object>& result) {}
 	void pushNumber(vector<Ref<Object> >& match, Ref<Object>& result);
+	void pushString(Ref<Object> inherited, Match siblings, Match& match, Ref<Object>& result);
 	void getSymbolValue(vector<Ref<Object> >& match, Ref<Object>& result);
 	
 	void syntaxError(vector<Ref<Object> >& match, Ref<Object>& result);
 	void unexpectedToken(vector<Ref<Object> >& match, Ref<Object>& result);
+	*/
 
 public:
 	Parser() {}

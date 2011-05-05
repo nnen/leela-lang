@@ -1,4 +1,4 @@
-Program            -> !startContext Preamble !allocLocals CompoundStmt :STOP .
+Program            -> !startContext Preamble !allocLocals CompoundStmt :STOP !writeChunks !writeStrings .
 
 Preamble           -> ConstDecl Preamble
                     | VarDecl Preamble
@@ -14,10 +14,10 @@ VarDeclRest        -> comma ident !addLocal VarDeclRest
 Statement          -> CompoundStmt
                     | LValue assign RValue
                     | Assignment
-					| print RValue :PRINT
+				| print RValue :PRINT
                     | if Expression then Statement ElseStmt
                     | while Expression do Statement
-					| return RValue :RETURN
+				| return RValue :RETURN
                     | .
 CompoundStmt       -> begin Statement StatementRest end .
 StatementRest      -> semicolon Statement StatementRest
@@ -26,12 +26,12 @@ ElseStmt           -> else Statement
                     | .
 
 Assignment         -> ident AssignVar .
-AssignVar          -> assign RValue :STORE
-                    | period :LOAD ident !identToString AssignIndex
-					| left_br :LOAD RValue right_br AssignIndex
-AssignIndex        -> assign RValue :SET_INDEX
-                    | period ident AssignIndex
-					| left_bt RValue right_br AssignIndex
+AssignVar          -> assign RValue !assignVar
+                    | period ident !identToString AssignIndex
+                    | left_br RValue right_br AssignIndex .
+AssignIndex        -> assign RValue !assignIndex
+                    | period ident !identToString AssignIndex
+                    | left_bra RValue right_bra AssignIndex .
 
 LValue             -> ident LValueRest .
 LValueRest         -> Index LValueRest | .
@@ -53,6 +53,7 @@ TermRest           -> asterix Factor :MUL TermRest
                     | .
 Factor             -> PrimaryExpr
                     | number !pushNumber
+                    | string !pushString
                     | left_par Expression right_par .
 PrimaryExpr        -> ident !getSymbolValue PostfixOp .
 PostfixOp          -> Index PostfixOp

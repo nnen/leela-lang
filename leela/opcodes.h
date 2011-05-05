@@ -21,9 +21,11 @@ OC(  STOP                                )
 OC(  NOOP                                )
 OC(  RETURN                              )
 OC1( CALL,           uinteger, UInteger  )
+OC1( BUILTIN,        uinteger, UInteger  )
 
 // Stack operations
 OC1( PUSH,           integer,  Integer   )
+OC1( PUSH_STRING,    address,  Address   )
 OC(  PUSH_NONE                           )
 OC(  POP                                 )
 OC(  DUP                                 )

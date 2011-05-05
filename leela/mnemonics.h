@@ -15,8 +15,9 @@ M( STOP,         STOP,       STOP,         STOP,          STOP,          STOP   
 M( NOOP,         NOOP,       NOOP,         NOOP,          NOOP,          NOOP           )
 M( RETURN,       RETURN,     RETURN,       RETURN,        RETURN,        RETURN         )
 M( CALL,         NOOP,       CALL,         NOOP,          NOOP,          NOOP           )
+M( BUILTIN,      NOOP,       BUILTIN,      NOOP,          NOOP,          NOOP           )
 
-M( PUSH,         PUSH_NONE,  PUSH,         PUSH,          PUSH,          NOOP           )
+M( PUSH,         PUSH_NONE,  PUSH,         PUSH_STRING,   PUSH_STRING,   NOOP           )
 M( POP,          POP,        POP,          POP,           POP,           NOOP           )
 M( DUP,          DUP,        NOOP,         NOOP,          NOOP,          NOOP           )
 

@@ -42,6 +42,7 @@ public:
 	void writeInstruction(AsmScanner::Tokens mnemonic, Integer integer);
 	void writeInstruction(AsmScanner::Tokens mnemonic, UInteger uinteger);
 	void writeInstruction(AsmScanner::Tokens mnemonic, string reference);
+	void write(Ref<String> string);
 	void writeComment(string comment);
 	
 	void startChunk();

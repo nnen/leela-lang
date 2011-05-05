@@ -9,7 +9,7 @@
 #include "Parser.h"
 
 {% for nonterminal in grammar.nonterminals.values() %}
-Ref<Object> Parser::parse{{ nonterminal.name }}()
+Ref<Object> Parser::parse{{ nonterminal.name }}(Ref<Object> inherited, vector<Ref<Object> > siblings)
 {
 	vector<Ref<Object> > match;
 	Ref<Object> result;
@@ -21,7 +21,7 @@ Ref<Object> Parser::parse{{ nonterminal.name }}()
 {% for child in rule.children %}{% if isinstance(child, Terminal) and not child.is_epsilon %}
 		match.push_back(accept(Token::{{ child.name|upper }}).value);
 		{%- elif isinstance(child, Nonterminal) %}
-		match.push_back(parse{{ child.name }}());
+		match.push_back(parse{{ child.name }}(result, match));
 		{%- elif isinstance(child, Action) %}
 		{% if child.instruction %}_writer.writeInstruction(AsmScanner::TOKEN_{{ child.name }});{% else %}{{ child.name }}(match, result);{% endif %}
 		{%- endif %}{% endfor %}

@@ -267,6 +267,8 @@ public:
 	}
 };
 
+typedef Ref<Object> ObjRef;
+
 template<class T>
 class BRef {
 private:
