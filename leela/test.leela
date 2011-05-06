@@ -1,5 +1,5 @@
 
-var counter;
+var counter, obj;
 begin
 	counter := lambda (countFrom) : function () :
 	var result;
@@ -11,6 +11,12 @@ begin
 
 	print counter();
 	print counter();
-	print counter()
+	print counter();
+	
+	obj.attribute := 0;
+	obj.otherAttribute := 1;
+	obj.attribute := 13;
+	obj["attribute"] := 1337;
+	obj.attribute1.attribute2 := 0
 end  
 

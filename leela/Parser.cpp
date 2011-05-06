@@ -25,78 +25,73 @@ Token Parser::accept(Token::Type type)
 }
 
 /* SEMANTIC ACTIONS **********************************************************************/
-void Parser::startContext(Ref<Object>           inherited,
-                          vector<Ref<Object> >  siblings,
-                          vector<Ref<Object> >& match,
-                          Ref<Object>&          result)
+
+#define SEMANTIC_ACTION(name) void Parser::name(Ref<Object> inherited, \
+	Match siblings, \
+	Match& match, \
+	Ref<Object>& result)
+
+SEMANTIC_ACTION(startContext)
 {
 	_contexts->next();
 }
 
-void Parser::endContext(Ref<Object>           inherited,
-                        vector<Ref<Object> >  siblings,
-                        vector<Ref<Object> >& match,
-                        Ref<Object>&          result)
+/*
+SEMANTIC_ACTION(endContext)
 {
 	_contexts->close();
 }
 
-void Parser::startChunk(Ref<Object>           inherited,
-                        vector<Ref<Object> >  siblings,
-                        vector<Ref<Object> >& match,
-                        Ref<Object>&          result)
+SEMANTIC_ACTION(startChunk)
 {
 	_writer.startChunk();
 }
+*/
 
-void Parser::endChunk(Ref<Object>           inherited,
-                      vector<Ref<Object> >  siblings,
-                      vector<Ref<Object> >& match,
-                      Ref<Object>&          result)
+/*
+SEMANTIC_ACTION(endChunk)
 {
 	_writer.endChunk();
 }
+*/
 
-void Parser::writeChunks(Ref<Object>           inherited,
-                         vector<Ref<Object> >  siblings,
-                         vector<Ref<Object> >& match,
-                         Ref<Object>&          result)
+SEMANTIC_ACTION(writeChunks)
 {
-	_writer.endAllChunks();
+	_writer.endAll();
 }
 
-void Parser::writeStrings(Ref<Object>           inherited,
-                          vector<Ref<Object> >  siblings,
-                          vector<Ref<Object> >& match,
-                          Ref<Object>&          result)
+SEMANTIC_ACTION(writeStrings)
 {
 	_writer.writeComment("===== Strings section =====");
-	foreach (str, _strings->getStrings()) {
-		_writer.writeLabel(_strings->getLabel(*str));
-		_writer.write(*str);
+
+	vector<Ref<String> > strings = _strings->getStrings();
+	
+	foreach (str, strings) {
+		Ref<String> s = *str;
+		if (s.isNull()) throw Exception();
+		_writer.writeLabel(_strings->getLabel(s));
+		_writer.write(s);
+
+		//if (str->isNull()) throw Exception();
+		//_writer.writeLabel(_strings->getLabel(*str));
+		//if (str->isNull()) throw Exception();
+		//_writer.write(*str);
 	}
 }
 
-void Parser::startFunction(Ref<Object>           inherited,
-                           vector<Ref<Object> >  siblings,
-                           vector<Ref<Object> >& match,
-                           Ref<Object>&          result)
+SEMANTIC_ACTION(startFunction)
 {
-	startChunk(match, result);
-	startContext(match, result);
+	_writer.startChunk();
+	_contexts->next();
 	_writer.pushLabel("function");
 }
 
-void Parser::endFunction(vector<Ref<Object> >& match, Ref<Object>& result)
-(Ref<Object>           inherited,
-                         vector<Ref<Object> >  siblings,
-                         vector<Ref<Object> >& match,
-                         Ref<Object>&          result)
+SEMANTIC_ACTION(endFunction)
 {
 	Ref<Context> context = _contexts->current();
 	
-	endContext(match, result);
-	endChunk(match, result);
+	_contexts->close();
+	_writer.endChunk();
 	_writer.makeFunction();
 	
 	foreach (freeVar, context->getFreeVars()) {
@@ -107,20 +102,17 @@ void Parser::endFunction(vector<Ref<Object> >& match, Ref<Object>& result)
 	}
 }
 
-void Parser::addLocal(vector<Ref<Object> >& match, Ref<Object>& result)
-(Ref<Object>           inherited,
-                         vector<Ref<Object> >  siblings,
-                         vector<Ref<Object> >& match,
-                         Ref<Object>&          result)
+SEMANTIC_ACTION(addConst)
+{
+	// TODO: Implement this semantic action.
+}
 
+SEMANTIC_ACTION(addLocal)
 {
 	_contexts->current()->addLocal(match.back().as<String>()->getValue());
 }
 
-void Parser::aloocLocals(Ref<Object>           inherited,
-                         vector<Ref<Object> >  siblings,
-                         vector<Ref<Object> >& match,
-                         Ref<Object>&          result)
+SEMANTIC_ACTION(allocLocals)
 {
 	_writer.writeInstruction(
 		AsmScanner::TOKEN_ALLOC,
@@ -128,20 +120,12 @@ void Parser::aloocLocals(Ref<Object>           inherited,
 	);
 }
 
-void Parser::addArg(Ref<Object>           inherited,
-                    vector<Ref<Object> >  siblings,
-                    vector<Ref<Object> >& match,
-                    Ref<Object>&          result)
-
+SEMANTIC_ACTION(addArg)
 {
 	_contexts->current()->addParam(match.back().as<String>()->getValue());
 }
 
-void Parser::pushNumber(Ref<Object>           inherited,
-                        vector<Ref<Object> >  siblings,
-                        vector<Ref<Object> >& match,
-                        Ref<Object>&          result)
-
+SEMANTIC_ACTION(pushNumber)
 {
 	_writer.writeInstruction(
 		AsmScanner::TOKEN_PUSH,
@@ -149,63 +133,71 @@ void Parser::pushNumber(Ref<Object>           inherited,
 	);
 }
 
-void Parser::pushString(Ref<Object>           inherited,
-                        vector<Ref<Object> >  siblings,
-                        vector<Ref<Object> >& match,
-                        Ref<Object>&          result)
+SEMANTIC_ACTION(pushString)
 {
 	_writer.writeInstruction(
 		AsmScanner::TOKEN_PUSH,
-		_strings->getLabel(match.back().as<String>()->getValue());
+		_strings->getLabel(match.back().as<String>())
 	);
 }
 
-void Parser::getSymbolValue(Ref<Object>           inherited,
-                            vector<Ref<Object> >  siblings,
-                            vector<Ref<Object> >& match,
-                            Ref<Object>&          result)
+SEMANTIC_ACTION(getSymbolValue)
 {
 	Ref<Symbol> symbol =
 		_contexts->current()->getSymbol(match.back().as<String>()->getValue());
 	_writer.writeInstruction(AsmScanner::TOKEN_LOAD, symbol->index);
 }
 
-void Parser::assignVar(Ref<Object>           inherited,
-                       vector<Ref<Object> >  siblings,
-                       vector<Ref<Object> >& match,
-                       Ref<Object>&          result)
+SEMANTIC_ACTION(assignVar)
 {
-	ident = siblings[0]->as<String>();
-	if (ident.isNull()) throw Exception("Parsing error.");
+	Ref<String> ident = (Ref<String>) siblings[0];
+	//Ref<String> ident = siblings[0].as<String>();
+	//if (ident.isNull()) throw Exception("Parsing error.");
 	
 	_writer.writeInstruction(
 		AsmScanner::TOKEN_STORE,
-		_contexts->current->getSymbol(ident->getValue()).index
+		_contexts->current()->getSymbol(ident->getValue())->index
 	);
 }
 
-void Parser::identToString(Ref<Object>           inherited,
-                           vector<Ref<Object> >  siblings,
-                           vector<Ref<Object> >& match,
-                           Ref<Object>&          result)
+SEMANTIC_ACTION(getValueForLookup)
 {
-	ident = match->back()->as<String>();
-	if (ident.isNull()) throw Exception("Parsing error.");
+	Ref<String> ident = (Ref<String>) siblings[0];
 	
 	_writer.writeInstruction(
-		AsmScanner::PUSH_STRING
+		AsmScanner::TOKEN_LOAD,
+		_contexts->current()->getSymbol(ident->getValue())->index
 	);
 }
 
-void Parser::syntaxError(Ref<Object>           inherited,
-                         vector<Ref<Object> >  siblings,
-                         vector<Ref<Object> >& match,
-                         Ref<Object>&          result)
+/*
+SEMANTIC_ACTION(assignIndex)
 {
-	throw SyntaxError("Syntax error!");
+	// TODO: Implement the "assignIndex" semantic actions.
+}
+*/
+
+SEMANTIC_ACTION(identToString)
+{
+	//Ref<String> ident = match.back().as<String>();
+	//if (ident.isNull()) throw Exception("Parsing error.");
+	Ref<String> ident = (Ref<String>) match.back();
+	
+	_writer.writeInstruction(
+		AsmScanner::TOKEN_PUSH,
+		_strings->getLabel(ident)
+	);
 }
 
-void Parser::unexpectedToken(vector<Ref<Object> >& match, Ref<Object>& result)
+//SEMANTIC_ACTION(syntaxError)
+//{
+//	throw SyntaxError("Syntax error!");
+//}
+
+void Parser::unexpectedToken(Ref<Object> inherited,
+                             Match siblings,
+					    Match& match,
+					    Ref<Object>& result)
 {
 	stringstream s;
 	s << "Unexpected token: " << Token::getTypeName(_lexer->peek().type);
@@ -220,9 +212,10 @@ void Parser::parse(Ref<Input> input, Ref<Output> output)
 	_output = output;
 	_lexer = new Lexer(_input);
 	_contexts = new ContextTable();
+	_strings = new StringTable();
 	_writer.clear();
 
-	parseProgram();
+	parseProgram(NULL, vector<Ref<Object> >());
 	
 	// 2. pass
 	
@@ -231,7 +224,7 @@ void Parser::parse(Ref<Input> input, Ref<Output> output)
 	_contexts->reset();
 	_writer.clear();
 	
-	parseProgram();
+	parseProgram(NULL, vector<Ref<Object> >());
 	
 	_lexer = NULL;
 	_input = NULL;

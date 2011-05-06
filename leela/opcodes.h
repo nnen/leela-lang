@@ -53,6 +53,7 @@ OC1( LOAD_CLOSURE,   uinteger, UInteger  )
 
 // Table operations
 OC(  MAKE_TABLE                          )
+OC(  SET_ITEM                            )
 
 #undef OC
 #undef OC1

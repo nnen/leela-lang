@@ -2,6 +2,22 @@
 CXX      = g++
 CXXFLAGS = -Wall -g -pedantic -D __DEBUG__
 
+BASE_FILES = Object.o \
+             Value.o \
+             Exception.o \
+             Input.o \
+             Output.o
+
+LEXER_FILES = Char.o \
+              Token.o \
+              Lexer.o
+
+PARSER_FILES = Parser.o \
+               Parser.rules.o \
+               Context.o \
+               StringTable.o \
+               AsmWriter.o
+
 build: Dependencies
 	make leela
 	make leela-asm
@@ -12,7 +28,7 @@ clean:
 	\rm -f leela-asm
 	\rm -f leela-test
 	\rm -f tags
-	\rm -f *.o
+	\rm -f *.o *.a
 
 rebuild:
 	make clean
@@ -35,13 +51,16 @@ Parser.rules.cpp: leela_grammar.txt Parser.rules.tpl.cpp
 Parser.rules.h: leela_grammar.txt Parser.rules.tpl.h
 	cat leela_grammar.txt | python grammar.py
 
-base.o: Object.o Value.o Exception.o Input.o Output.o
+base.a: base.a(Object.o Value.o Exception.o Input.o Output.o)
+	ranlib $@
 
-lexer.o: Char.o Token.o Lexer.o
+lexer.a: lexer.a(Char.o Token.o Lexer.o)
+	ranlib $@
 
-parser.o: Parser.o Parser.rules.o Context.o StringTable.o AsmWriter.o
+parser.a: parser.a(Parser.o Parser.rules.o Context.o StringTable.o AsmWriter.o)
+	ranlib $@
 
-leela: leela.o base.o lexer.o parser.o AsmScanner.o Function.o Instruction.o Bytecode.o Machine.o
+leela: leela.o ${BASE_FILES} ${LEXER_FILES} ${PARSER_FILES} AsmScanner.o Function.o Instruction.o Bytecode.o Machine.o
 	$(CXX) $(CXXFLAGS) -o leela $^
 
 leela-asm: asm.o Object.o Input.o Instruction.o AsmScanner.o Assembler.o Bytecode.o

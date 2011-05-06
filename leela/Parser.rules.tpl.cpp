@@ -23,7 +23,7 @@ Ref<Object> Parser::parse{{ nonterminal.name }}(Ref<Object> inherited, vector<Re
 		{%- elif isinstance(child, Nonterminal) %}
 		match.push_back(parse{{ child.name }}(result, match));
 		{%- elif isinstance(child, Action) %}
-		{% if child.instruction %}_writer.writeInstruction(AsmScanner::TOKEN_{{ child.name }});{% else %}{{ child.name }}(match, result);{% endif %}
+		{% if child.instruction %}_writer.writeInstruction(AsmScanner::TOKEN_{{ child.name }});{% else %}{{ child.name }}(inherited, siblings, match, result);{% endif %}
 		{%- endif %}{% endfor %}
 		break;
 		{% endfor %}

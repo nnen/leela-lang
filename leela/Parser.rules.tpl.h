@@ -25,7 +25,7 @@ Ref<Object> parse{{ nonterminal.name }}(Ref<Object> inherited, vector<Ref<Object
 /* Semantic actions ************************************/
 
 {% for action in grammar.actions.values() -%}
-Ref<Object> {{ action.name }}(
+void {{ action.name }}(
 	Ref<Object> inherited,
 	Match siblings,
 	Match& matched,

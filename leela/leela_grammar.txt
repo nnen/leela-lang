@@ -12,12 +12,11 @@ VarDeclRest        -> comma ident !addLocal VarDeclRest
                     | .
 
 Statement          -> CompoundStmt
-                    | LValue assign RValue
                     | Assignment
-				| print RValue :PRINT
+                    | print RValue :PRINT
                     | if Expression then Statement ElseStmt
                     | while Expression do Statement
-				| return RValue :RETURN
+                    | return RValue :RETURN
                     | .
 CompoundStmt       -> begin Statement StatementRest end .
 StatementRest      -> semicolon Statement StatementRest
@@ -27,11 +26,11 @@ ElseStmt           -> else Statement
 
 Assignment         -> ident AssignVar .
 AssignVar          -> assign RValue !assignVar
-                    | period ident !identToString AssignIndex
-                    | left_br RValue right_br AssignIndex .
-AssignIndex        -> assign RValue !assignIndex
-                    | period ident !identToString AssignIndex
-                    | left_bra RValue right_bra AssignIndex .
+                    | !getValueForLookup period ident !identToString AssignIndex
+                    | !getValueForLookup left_bra RValue right_bra AssignIndex .
+AssignIndex        -> assign RValue :STORE
+                    | :LOAD period ident !identToString AssignIndex
+                    | :LOAD left_bra RValue right_bra AssignIndex .
 
 LValue             -> ident LValueRest .
 LValueRest         -> Index LValueRest | .

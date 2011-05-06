@@ -31,7 +31,7 @@ M( DUMP,         DUMP,       NOOP,         NOOP,          NOOP,          NOOP   
 M( DUMP_STACK,   NOOP,       DUMP_STACK,   NOOP,          NOOP,          NOOP           )
 
 M( LOAD,         NOOP,       LOAD,         NOOP,          NOOP,          NOOP           )
-M( STORE,        NOOP,       STORE,        NOOP,          NOOP,          NOOP           )
+M( STORE,        SET_ITEM,   STORE,        NOOP,          NOOP,          NOOP           )
 M( PULL,         NOOP,       PULL,         NOOP,          NOOP,          NOOP           )
 M( ALLOC,        NOOP,       ALLOC,        NOOP,          NOOP,          NOOP           )
 

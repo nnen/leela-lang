@@ -68,10 +68,13 @@ private:
 	void pushNumber(vector<Ref<Object> >& match, Ref<Object>& result);
 	void pushString(Ref<Object> inherited, Match siblings, Match& match, Ref<Object>& result);
 	void getSymbolValue(vector<Ref<Object> >& match, Ref<Object>& result);
-	
-	void syntaxError(vector<Ref<Object> >& match, Ref<Object>& result);
-	void unexpectedToken(vector<Ref<Object> >& match, Ref<Object>& result);
 	*/
+
+	//void syntaxError(vector<Ref<Object> >& match, Ref<Object>& result);
+	void unexpectedToken(Ref<Object> inherited,
+	                     Match siblings,
+	                     Match& match,
+					 Ref<Object>& result);
 
 public:
 	Parser() {}

@@ -23,11 +23,11 @@ StringTable::StringTable()
 int StringTable::getIndex(Ref<String> str)
 {
 	if (_index.count(str->getValue()) > 0)
-		return _index[str->getValue];
+		return _index[str->getValue()];
 
 	int index = _list.size();
 	_list.push_back(str);
-	_labels[str->getValue()] = index;
+	_index[str->getValue()] = index;
 	return index;
 }
 
@@ -41,8 +41,11 @@ string StringTable::getLabel(Ref<String> str)
 	return s.str();
 }
 
-vector<Ref<String> >& StringTable::getStrings()
+vector<Ref<String> > StringTable::getStrings()
 {
+	foreach (s, _list)
+		(*s)->checkHealth();
+
 	return _list;
 }
 

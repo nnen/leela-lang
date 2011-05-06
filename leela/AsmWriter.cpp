@@ -24,8 +24,9 @@ void AsmWriter::clear()
 		delete s;
 		_openChunks.pop();
 	}
-	while (!_closedChunks.empty())
-		_closedChunks.pop();
+	_closedChunks.clear();
+	//while (!_closedChunks.empty())
+	//	_closedChunks.pop();
 	while (!_labels.empty())
 		_labels.pop();
 	while (!_labelStack.empty())
@@ -86,7 +87,7 @@ void AsmWriter::write(Ref<String> string)
 {
 	writeLabels();
 	currentChunk()
-		<< "    " << "\"" << string->getValue() << "\"" endl;
+		<< "    " << "\"" << string->getValue() << "\"" << endl;
 }
 
 void AsmWriter::writeComment(string comment)
@@ -98,15 +99,28 @@ void AsmWriter::startChunk()
 {
 	writeLabels();
 	_openChunks.push(new stringstream());
+	_children.push(vector<stringstream*>());
 }
 
 void AsmWriter::endChunk()
 {
-	stringstream * stream = _openChunks.top();
+	stringstream * chunk = _openChunks.top();
 	_openChunks.pop();
-	_closedChunks.push(stream->str());
-	delete stream;
-	stream = NULL;
+
+	vector<stringstream*> children = _children.top();
+	_children.pop();
+
+	foreach (child, children) {
+		*chunk << endl << (*child)->str();
+		delete *child;
+	}
+
+	if (_openChunks.empty()) {
+		_closedChunks.push_back(chunk->str());
+		delete chunk;
+	} else {
+		_children.top().push_back(chunk);
+	}
 }
 
 void AsmWriter::endAll()
@@ -139,11 +153,9 @@ void AsmWriter::output(ostream &output)
 	endAll();
 	
 	output << "; Chunk count: " << _closedChunks.size() << endl;
-	
-	while (!_closedChunks.empty()) {
-		output << _closedChunks.top() << endl;
-		_closedChunks.pop();
-	}
+
+	foreach (chunk, _closedChunks)
+		output << endl << *chunk;
 }
 
 void AsmWriter::output(Ref<Output> output)

@@ -15,16 +15,19 @@
 #include <queue>
 
 #include "Object.h"
+#include "Value.h"
 #include "AsmScanner.h"
 #include "Output.h"
 
 class AsmWriter : public Object {
 private:
-	stack<stringstream*> _openChunks;
-	stack<string>        _closedChunks;
-	queue<string>        _labels;
-	stack<string>        _labelStack;
-	int                  _nextLabel;
+	stack<stringstream*>          _openChunks;
+	stack<vector<stringstream*> > _children;
+	vector<string>                _closedChunks;
+
+	queue<string>                 _labels;
+	stack<string>                 _labelStack;
+	int                           _nextLabel;
 	
 	ostream&             currentChunk();
 	

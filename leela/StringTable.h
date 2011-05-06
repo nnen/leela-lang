@@ -22,8 +22,6 @@ private:
 	vector<Ref<String> > _list;
 	map<string, int>     _index;
 	
-	map<string, string>  _labels;
-	
 	string nextLabel();
 
 public:
@@ -33,7 +31,7 @@ public:
 	int getIndex(Ref<String> str);
 	string getLabel(Ref<String> str);
 	
-	vector<Ref<String> >& getStrings();
+	vector<Ref<String> > getStrings();
 };
 
 #endif /* end of include guard: STRING_TABLE_H_2356BDFDVF324SDc */
