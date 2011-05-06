@@ -11,7 +11,7 @@
 string StringTable::nextLabel()
 {
 	stringstream s;
-	s << "string_" << _list.size();
+	s << "string_" << _list.size();
 	return s.str();
 }
 
@@ -20,14 +20,25 @@ StringTable::StringTable()
 {
 }
 
+int StringTable::getIndex(Ref<String> str)
+{
+	if (_index.count(str->getValue()) > 0)
+		return _index[str->getValue];
+
+	int index = _list.size();
+	_list.push_back(str);
+	_labels[str->getValue()] = index;
+	return index;
+}
+
 string StringTable::getLabel(Ref<String> str)
 {
-	if (_labels.count(str->getValue()) > 0)
-		return _labels[str->getValue()];
+	stringstream s;
+	int index = getIndex(str);
 	
-	_list.push_back(str);
-	_addresses[str->getValue()] = 0;
-	return 0;
+	s << "string_" << index;
+
+	return s.str();
 }
 
 vector<Ref<String> >& StringTable::getStrings()
