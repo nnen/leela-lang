@@ -1,0 +1,2 @@
+--regex-c++=/\/\/\s*FIXME(.*)/fixme\1/
+--regex-c++=/\/\/\s*TODO(.*)/todo\1/
