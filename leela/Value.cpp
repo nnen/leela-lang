@@ -6,6 +6,8 @@
  * \brief  Implementation of the Value class.
  */
 
+#include <cctype>
+
 #include "Value.h"
 #include "Function.h"
 #include "Exception.h"
@@ -21,7 +23,8 @@ void Value::print(ostream& output)
 
 void Value::repr(ostream& output)
 {
-	print(output);
+	output << "<Value object at " << this << ">";
+	// print(output);
 }
 
 Ref<Boolean> Value::toBoolean()
@@ -113,11 +116,6 @@ void Value::assign(Ref<Value> value)
 	throw InvalidOperationError(this, value, "assign value");
 }
 
-Ref<ActivationFrame> Value::call(vector<Ref<Value> > arguments)
-{
-	throw InvalidOperationError(this, "call");
-}
-
 bool Value::equals(Ref<Value> first, Ref<Value> second)
 {
 	if (first->equals(second)) return true;
@@ -134,6 +132,11 @@ std::ostream& operator<< (std::ostream& output, Value& value)
 /* None ***********************************************************************/
 
 Ref<None> None::_instance;
+
+void None::repr(ostream& output)
+{
+	output << "<None>";
+}
 
 Ref<None> None::getInstance()
 {
@@ -171,7 +174,7 @@ bool None::lessThan(Ref<Value> other)
 
 /* Boolean ********************************************************************/
 
-void Boolean::print(ostream& output) const
+void Boolean::print(ostream& output)
 {
 	if (getValue())
 		output << "true";
@@ -181,7 +184,12 @@ void Boolean::print(ostream& output) const
 
 /* Number *********************************************************************/
 
-void Number::print(ostream& output) const
+void Number::print(ostream& output)
+{
+	output << _value;
+}
+
+void Number::repr(ostream& output)
 {
 	output << _value;
 }
@@ -200,14 +208,75 @@ Ref<Number> Number::parse(string str)
 
 /* String *********************************************************************/
 
-void String::print(ostream& output) const
+void String::print(ostream& output)
 {
 	output << _value;
 }
 
+void String::repr(ostream& output)
+{
+	output << '"';
+	for (unsigned int i = 0; i < _value.size(); i++) {
+		if (isprint(_value[i]) && !isspace(_value[i]) && (_value[i] != '"'))
+			output << _value[i];
+		else
+			output << "\\x" << charToHex(_value[i]);
+	}
+	output << '"';
+}
+
+int String::hexToInt(char c)
+{
+	if (c >= '0' && c <= '9')
+		return (c - '0');
+	else if (c >= 'a' && c <= 'f')
+		return (0x0a + (c - 'a'));
+	else if (c >= 'A' && c <= 'F')
+		return (0x0a + (c - 'A'));
+	return 0;
+}
+
+char String::hexToChar(char digit1, char digit2)
+{
+	unsigned char result = 0;
+	result += 0x10 * hexToInt(digit1);
+	result +=        hexToInt(digit2);
+	return (char)result;
+}
+
+char String::intToHex(int i)
+{
+	if (i >= 0 && i <= 9)
+		return ('0' + i);
+	else if (i >= 10 && i <= 15)
+		return ('a' + (i - 10));
+	return '0';
+}
+
+string String::charToHex(char c)
+{
+	string s = "00";
+	unsigned char uc = (unsigned char) c;
+	s[0] = intToHex(uc / 0x10);
+	s[1] = intToHex(uc % 0x10);
+	return s;
+}
+
 /* Table **********************************************************************/
 
-/*
+bool Table::hasKey(Ref<Value> key)
+{
+	int hash = key->getHash();
+
+	if (_table.count(hash) < 1) return false;
+	
+	vector<ValuePair> * list = _table[hash];
+
+	foreach (pair, *list)
+		if (Value::equals(pair->first, key)) return true;
+	return false;
+}
+
 void Table::set(Ref<Value> key, Ref<Value> value)
 {
 	int hash = key->getHash();
@@ -222,12 +291,15 @@ void Table::set(Ref<Value> key, Ref<Value> value)
 	
 	list = _table[hash];
 	
-	for (int i = 0; i < list->size(); ) {
-		if (Value::equals((*list)[i].first, key))
-			list->
+	for (unsigned int i = 0; i < list->size(); ) {
+		if (Value::equals((*list)[i].first, key)) {
+			(*list)[i].second = value;
+			return;
+		}
 	}
+
+	list->push_back(make_pair(key, value));
 }
-*/
 
 Ref<Value> Table::get(Ref<Value> key, Ref<Value> dflt)
 {
@@ -243,6 +315,11 @@ Ref<Value> Table::get(Ref<Value> key, Ref<Value> dflt)
 }
 
 /* Variable *******************************************************************/
+
+void Variable::repr(ostream& output)
+{
+	output << "<Variable object at " << this << ">";
+}
 
 void Variable::assign(Ref<Value> value)
 {

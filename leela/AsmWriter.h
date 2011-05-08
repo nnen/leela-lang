@@ -51,10 +51,11 @@ public:
 	void startChunk();
 	void endChunk();
 	void endAll();
-
-	void pushLabel(string prefix);
-	void popLabel(AsmScanner::Tokens mnemonic);
-	void makeFunction();
+	
+	void   pushLabel(string prefix);
+	string popLabel();
+	void   popLabel(AsmScanner::Tokens mnemonic);
+	void   makeFunction(UInteger argCount);
 	
 	void output(ostream &output);
 	void output(Ref<Output> output);

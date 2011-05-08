@@ -16,8 +16,17 @@
 #include "Value.h"
 
 class ActivationFrame;
+class Machine;
 
-class Function : public Value {
+class Callable : public Value {
+public:
+	Callable() : Value() {}
+	virtual ~Callable() {}
+	
+	virtual void call(Machine& machine, vector<Ref<Value> > arguments) = 0;
+};
+
+class Function : public Callable {
 private:
 	Address                _code;
 	int                    _paramCount;
@@ -26,16 +35,32 @@ private:
 public:
 	Function(Address code, int paramCount);
 	virtual ~Function() {}
+
+	virtual void        repr(ostream& output);
 	
 	virtual Ref<String> toString();
+	virtual void        call(Machine& machine, vector<Ref<Value> > arguments);
 	
 	Address getCode() const { return _code; }
 	
 	int getParamCount() const { return _paramCount; }
 	
 	void pushClosure(Ref<Variable> variable);
+};
+
+class BuiltinFunction : public Callable {
+public:
+	typedef Ref<Value> (*Function)(Machine& machine, vector<Ref<Value> > arguments);
+
+private:
+	Function _function;
+	int      _argCount;
 	
-	Ref<ActivationFrame> activate();
+public:
+	BuiltinFunction(Function function, int argCount) : Callable(), _function(function), _argCount(argCount) {}
+	virtual ~BuiltinFunction() {}
+	
+	virtual void call(Machine& machine, vector<Ref<Value> > arguments);
 };
 
 class ActivationFrame : public Value {
@@ -60,6 +85,7 @@ public:
 	void pushVariable();
 	
 	void       push(Ref<Value> value);
+	Ref<Value> peek();
 	Ref<Value> pop();
 };
 

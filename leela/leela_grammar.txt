@@ -55,13 +55,14 @@ Factor             -> PrimaryExpr
                     | string !pushString
                     | left_par Expression right_par .
 PrimaryExpr        -> ident !getSymbolValue PostfixOp .
-PostfixOp          -> Index PostfixOp
-                    | left_par ParamList right_par PostfixOp
+PostfixOp          -> left_bra Expression :LOAD right_bra PostfixOp
+                    | left_par ParamList !writeCall right_par PostfixOp
                     | .
-Index              -> left_bra Expression right_bra .
 
-ParamList          -> RValue ParamListRest | .
-ParamListRest      -> comma RValue ParamListRest | .
+ParamList          -> RValue ParamListRest !returnPlusOne
+                    | !returnZero .
+ParamListRest      -> comma RValue ParamListRest !returnPlusOne
+                    | !returnZero .
 
 ArgNameList        -> ident !addArg ArgNameListRest
                     | .

@@ -1,4 +1,4 @@
-" PSession.vim
+" ASMSession.vim
 " Parser session
 
 source include.vim

@@ -27,6 +27,7 @@ public:
 		TOKEN_INTEGER,
 		TOKEN_REFERENCE,
 		TOKEN_ADDRESS,
+		TOKEN_STRING,
 		
 		#define M(name, nothing, integer, reference, address, register) TOKEN_##name,
 		#include "mnemonics.h"
@@ -52,11 +53,14 @@ private:
 	Tokens readToken();
 
 public:
+	int      line;
+	
 	string   label;
 	string   reference;
 	Address  address;
 	UInteger reg;
 	Integer  integer;
+	string   str;
 	
 	AsmScanner();
 	virtual ~AsmScanner();
@@ -65,7 +69,7 @@ public:
 	
 	Tokens peekToken();
 	Tokens getToken();
-	
+
 	static const char * getTokenName(Tokens token);
 	static const char * getMnemonic(Tokens mnemonic);
 	static int          getLongestMnemonic();

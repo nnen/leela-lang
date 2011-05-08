@@ -1,22 +1,31 @@
 
-var counter, obj;
+var makeCounter, counter, obj;
 begin
-	counter := lambda (countFrom) : function () :
+	makeCounter := lambda (countFrom) : function () :
 	var result;
 	begin
 		result := countFrom;
 		countFrom := countFrom - 1;
 		return result
 	end;
-
+	
+	counter := makeCounter(10);
+	print "Counting from 10...";
+	print counter();
+	print counter();
 	print counter();
 	print counter();
 	print counter();
 	
-	obj.attribute := 0;
-	obj.otherAttribute := 1;
-	obj.attribute := 13;
-	obj["attribute"] := 1337;
-	obj.attribute1.attribute2 := 0
+	counter := makeCounter(3);
+	print "Counting from 3...";
+	print counter();
+	print counter();
+	print counter();
+	print counter();
+	print counter();
+	print counter();
+	
+	print "end";
 end  
 

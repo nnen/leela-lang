@@ -6,14 +6,24 @@
  * \brief  
  */
 
+#include <stack>
 #include <sstream>
 #include <typeinfo>
 
 #include "Function.h"
+#include "Machine.h"
+#include "Exception.h"
+
+/* Function *******************************************************************/
 
 Function::Function(Address code, int paramCount)
 	: _code(code), _paramCount(paramCount)
 {
+}
+
+void Function::repr(ostream& output)
+{
+	output << "<Function @" << _code << " (" << _paramCount << ")>";
 }
 
 Ref<String> Function::toString()
@@ -23,18 +33,36 @@ Ref<String> Function::toString()
 	return new String(s.str());
 }
 
+void Function::call(Machine& machine, vector<Ref<Value> > arguments)
+{
+	Ref<ActivationFrame> frame = new ActivationFrame(this);
+
+	// Push the free variables to the
+	// activation frame.
+	foreach (var, _closure)
+		frame->pushClosure(*var);
+
+	// Pop arguments from the stack and push
+	// them to the activation frame.
+	foreach (arg, arguments)
+		frame->pushVariable(*arg);
+	
+	machine.pushFrame(frame);
+}
+
 void Function::pushClosure(Ref<Variable> variable)
 {
 	_closure.push_back(variable);
 }
 
-Ref<ActivationFrame> Function::activate()
+/* BuiltinFunction ************************************************************/
+
+void BuiltinFunction::call(Machine& machine, vector<Ref<Value> > arguments)
 {
-	Ref<ActivationFrame> result = new ActivationFrame(this);
-	foreach (var, _closure)
-		result->pushClosure(*var);
-	return result;
+	machine.push(_function(machine, arguments));
 }
+
+/* ActivationFrame ************************************************************/
 
 ActivationFrame::ActivationFrame(Ref<Function> function)
 	: _function(function), instrCounter(function->getCode())
@@ -44,17 +72,20 @@ ActivationFrame::ActivationFrame(Ref<Function> function)
 Ref<String> ActivationFrame::toString()
 {
 	stringstream s;
-	s << *_function;
+	s << *_function << " (stack size: " << _stack.size() << ", alloc: " << _variables.size() << ")" << endl;
 	foreach (it, _stack) {
-		s << "\t[" << typeid(**it).name() << "]: " << **it << endl;
+		// s << "\t[" << typeid(**it).name() << "]: " << **it << endl;
+		s << "\t";
+		(*it)->repr(s);
+		s << endl;
 	}
 	return new String(s.str());
 }
 
 Ref<Variable> ActivationFrame::getVar(int index)
 {
-	if (index >= (int) _variables.size())
-		return Ref<Variable>();
+	if (index < 0 || index >= (int) _variables.size())
+		throw RuntimeError("Variable index out of range.");
 	return _variables[index];
 }
 
@@ -76,6 +107,12 @@ void ActivationFrame::pushVariable()
 void ActivationFrame::push(Ref<Value> value)
 {
 	_stack.push_back(value);
+}
+
+Ref<Value> ActivationFrame::peek()
+{
+	if (_stack.size() < 1) return Ref<Value>();
+	return _stack.back();
 }
 
 Ref<Value> ActivationFrame::pop()

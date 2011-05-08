@@ -49,6 +49,7 @@ public:
 	
 	virtual istream& stream() { return _input; }
 	
+	string getBasename() const;
 	string getExtension() const;
 };
 

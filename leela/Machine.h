@@ -39,12 +39,12 @@ private:
 	Instruction loadInstr();
 	void        execute(Instruction instr);
 	
-	void        push(Ref<Value> value);
-	Ref<Value>  pop();
-
 public:
 	Machine();
 	virtual ~Machine();
+	
+	void                 push(Ref<Value> value);
+	Ref<Value>           pop();
 	
 	Instruction          getInstr() const { return _instr; }
 	

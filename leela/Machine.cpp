@@ -6,6 +6,8 @@
  * \brief  Implementation of the {@link Machine} class.
  */
 
+#include <iomanip>
+
 #include "Machine.h"
 #include "Exception.h"
 
@@ -24,9 +26,29 @@ void Machine::do_RETURN()
 
 void Machine::do_CALL(UInteger count)
 {
+	/*
 	vector<Ref<Value> > arguments;
 	while (count-- > 0) arguments.push_back(pop());
 	pushFrame(pop()->call(arguments));
+	*/
+
+	// dumpStack(cout);
+
+	vector<Ref<Value> > arguments(count);
+	for (int i = count - 1; i >= 0; i--)
+		arguments[i] = pop();
+	
+	Ref<Callable> callable = pop().as<Callable>();
+	
+	if (callable.isNull())
+		throw RuntimeError("Cannot call noncallable value.");
+	
+	callable->call(*this, arguments);
+}
+
+void Machine::do_BUILTIN(UInteger id)
+{
+	// FIXME: Implement the BUILTIN instruction.
 }
 
 /* Stack operations ***********************************************************/
@@ -43,6 +65,11 @@ void Machine::do_DUP()
 void Machine::do_PUSH(Integer value)
 {
 	push(new Number(value));
+}
+
+void Machine::do_PUSH_STRING(Address address)
+{
+	push(_code->getString(address));
 }
 
 void Machine::do_PUSH_NONE()
@@ -101,7 +128,19 @@ void Machine::do_DUMP_STACK(UInteger limit)
 
 void Machine::do_LOAD(UInteger variable)
 {
-	/* code */
+	if (_callStack.empty())
+		throw RuntimeError("Call stack is empty.");
+	
+	push(_callStack.back()->getVar(variable)->getValue());
+}
+
+void Machine::do_STORE(UInteger variable)
+{
+	if (_callStack.empty())
+		throw RuntimeError("Call stack is empty.");
+
+	Ref<Value> value = pop();
+	_callStack.back()->getVar(variable)->setValue(value);
 }
 
 void Machine::do_PULL(UInteger count)
@@ -111,6 +150,12 @@ void Machine::do_PULL(UInteger count)
 	
 	for (UInteger i = 0; i < count; i++)
 		getFrame()->pushVariable(_callStack[_callStack.size() - 2]->pop());
+}
+
+void Machine::do_ALLOC(UInteger count)
+{
+	for (UInteger i = 0; i < count; i++)
+		getFrame()->pushVariable();
 }
 
 /* Function operations ********************************************************/
@@ -123,7 +168,12 @@ void Machine::do_MAKE_FUNCTION(Address address)
 
 void Machine::do_LOAD_CLOSURE(UInteger variable)
 {
-	/* code */
+	Ref<Function> function = (Ref<Function>) getFrame()->peek();
+	
+	if (function.isNull())
+		throw RuntimeError("Expected a function on stack.");
+	
+	function->pushClosure(getFrame()->getVar(variable));
 }
 
 /* Table operations ***********************************************************/
@@ -131,6 +181,34 @@ void Machine::do_LOAD_CLOSURE(UInteger variable)
 void Machine::do_MAKE_TABLE()
 {
 	push(new Table());
+}
+
+void Machine::do_SET_ITEM()
+{
+	Ref<Value> value = pop();
+	Ref<Value> key = pop();
+	Ref<Table> table = pop().as<Table>();
+
+	if (table.isNull())
+		throw RuntimeError("Value could not be converted to Table.");
+	
+	table->set(key, value);
+}
+
+void Machine::do_GET_ITEM()
+{
+	Ref<Value> key = pop();
+	Ref<Table> table = pop().as<Table>();
+
+	if (table.isNull())
+		throw RuntimeError("Value could not be converted to Table.");
+
+	Ref<Value> value = table->get(key, NULL);
+
+	if (value.isNull())
+		throw RuntimeError("Invalid key error.");
+
+	push(value);
 }
 
 /******************************************************************************/
@@ -153,11 +231,16 @@ void Machine::execute(Instruction instr)
 {
 	_instr = instr;
 
+	//cout << "Executing: ";
+	//instr.print(cout);
+	//cout << endl;
+	
 	switch (instr.opcode) {
 	#define OC(name) case Instruction::name: do_##name(); break;
-	#define OC1(name, argname, type) case Instruction::name: do_##name(instr.argname); break;
+	#define OC1(name, argname, type) case Instruction::name: do_##name(instr.payload.argname); break;
+	#include "opcodes.h"
 	default:
-		throw RuntimeError();
+		throw RuntimeError("Unknown instruction.");
 		break;
 	}
 	
@@ -274,9 +357,11 @@ bool Machine::step()
 	try {
 		Instruction instr = loadInstr();
 		execute(instr);
-	} catch (RuntimeError &e) {
+	} catch (RuntimeError e) {
+		cerr << "ERROR: ";
 		e.print(cerr);
 		cerr << endl;
+		dumpStack(cerr, 10);
 		
 		_stop = true;
 	}
@@ -289,7 +374,8 @@ void Machine::reset()
 	_callStack.clear();
 	
 	Ref<Function> bootLoader = new Function(0, 0);
-	_callStack.push_back(bootLoader->activate());
+	bootLoader->call(*this, vector<Ref<Value> >());
+	// _callStack.push_back(bootLoader->activate());
 	
 	_stop = false;
 }
@@ -317,7 +403,7 @@ void Machine::dumpStack(ostream &output, int limit)
 	output << "Call stack:" << endl;
 	
 	for (it = _callStack.rbegin(); it != _callStack.rend() && limit > 0; it++, limit--) {
-		output << "[" << offset + limit << "] ";
+		output << "[Frame " << setw(3) << right << offset + limit << "]: ";
 		(*it)->print(output);
 		output << endl;
 		// output << **it << endl;

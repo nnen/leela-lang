@@ -99,6 +99,22 @@ int Bytecode::writeAddress(Address value)
 	return writeUInteger((UInteger)value);
 }
 
+int Bytecode::write(string value)
+{
+	int result = 1;
+	for (unsigned int i = 0; i < value.size(); i++) {
+		write(value[i]);
+		result++;
+	}
+	write('\0');
+	return result;
+}
+
+char Bytecode::peek()
+{
+	return _bytes[_address];
+}
+
 char Bytecode::read()
 {
 	return _bytes[_address++];
@@ -198,6 +214,26 @@ Address Bytecode::readAddress()
 	return (Address) readUInteger();
 }
 
+Ref<String> Bytecode::readString()
+{
+	string result;
+	int c;
+	
+	while ((_address < _bytes.size()) && (c = read()) != '\0')
+		result += c;
+	
+	return new String(result);
+}
+
+Ref<String> Bytecode::getString(Address address)
+{
+	Address tmp = _address;
+	_address = address;
+	Ref<String> str = readString();
+	_address = tmp;
+	return str;
+}
+
 void Bytecode::write(ostream &output)
 {
 	foreach(c, _bytes)
@@ -221,9 +257,23 @@ void Bytecode::read(Ref<Input> input)
 void Bytecode::dump(ostream &output)
 {
 	rewind();
-	while (_address < _bytes.size()) {
+	//while (_address < _bytes.size()) {
+	//	output << setw(8) << right << _address << "  ";
+	//	readInstr().print(output);
+	//	output << endl;
+	//}
+	
+	while ((_address < _bytes.size()) &&
+	       (Instruction::isOpCodeDefined((Instruction::OpCode) peek()))) {
 		output << setw(8) << right << _address << "  ";
 		readInstr().print(output);
+		output << endl;
+	}
+	
+	while (_address < _bytes.size()) {
+		output << setw(8) << right << _address
+			<< "  ";
+		readString()->repr(output);
 		output << endl;
 	}
 }

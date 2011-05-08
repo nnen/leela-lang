@@ -33,6 +33,12 @@ FileInput::~FileInput()
 	_input.close();
 }
 
+string FileInput::getBasename() const
+{
+	int length = _fileName.find_last_of(".");
+	return _fileName.substr(0, length);
+}
+
 string FileInput::getExtension() const
 {
 	return _fileName.substr(_fileName.find_last_of(".") + 1);

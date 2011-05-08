@@ -51,7 +51,6 @@ public:
 	
 	virtual Ref<Value>   index(Ref<Value> key);
 	virtual void         assign(Ref<Value> value);
-	virtual Ref<ActivationFrame> call(vector<Ref<Value> > arguments);
 	
 	static  bool         equals(Ref<Value> first, Ref<Value> second);
 };
@@ -70,6 +69,8 @@ private:
 
 public:
 	virtual ~None() {}
+
+	virtual void         repr(ostream& output);
 
 	static Ref<None>     getInstance();
 
@@ -94,7 +95,7 @@ public:
 	ScalarValue(T value) : _value(value) {}
 	virtual ~ScalarValue() {}
 
-	virtual void print(ostream& output) const = 0;
+	virtual void print(ostream& output) = 0;
 	
 	virtual T getValue() const { return _value; }
 };
@@ -107,7 +108,7 @@ public:
 	Boolean(bool value) : ScalarValue<bool>(value) {}
 	virtual ~Boolean() {}
 	
-	virtual void print(ostream& output) const;
+	virtual void print(ostream& output);
 };
 
 /* Number *********************************************************************/
@@ -118,9 +119,12 @@ public:
 	Number(Integer value) : ScalarValue<Integer>(value) {}
 	virtual ~Number() {}
 
+	virtual Ref<Number> toNumber() { return this; }
+	
 	static Ref<Number> parse(string str);
 
-	virtual void print(ostream& output) const;
+	virtual void print(ostream& output);
+	virtual void repr(ostream& output);
 };
 
 /* String *********************************************************************/
@@ -131,7 +135,13 @@ public:
 	String(string value) : ScalarValue<string>(value) {}
 	virtual ~String() {}
 
-	virtual void print(ostream& output) const;
+	virtual void print(ostream& output);
+	virtual void repr(ostream& output);
+	
+	static int    hexToInt(char c);
+	static char   hexToChar(char digit1, char digit2);
+	static char   intToHex(int i);
+	static string charToHex(char c);
 };
 
 /* Table **********************************************************************/
@@ -144,6 +154,8 @@ public:
 	Table() {}
 	virtual ~Table() {}
 	
+	bool       hasKey(Ref<Value> key);
+	
 	void       set(Ref<Value> key, Ref<Value> value);
 	Ref<Value> get(Ref<Value> key, Ref<Value> deflt);
 };
@@ -155,9 +167,11 @@ private:
 	Ref<Value> _value;
 
 public:
-	Variable() : Value(), _value() {}
+	Variable() : Value(), _value(None::getInstance()) {}
 	Variable(Ref<Value> value) : Value(), _value(value) {}
 	virtual ~Variable() {}
+
+	virtual void         repr(ostream& output);
 	
 	Ref<Value>           getValue() const { return _value; }
 	void                 setValue(Ref<Value> value) { _value = value; }

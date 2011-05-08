@@ -9,6 +9,7 @@
 #include <cstring>
 
 #include "AsmScanner.h"
+#include "Value.h" // Used for string utility functions defined in String class.
 
 map<string, AsmScanner::Tokens> AsmScanner::_mnemonics;
 
@@ -41,6 +42,7 @@ int AsmScanner::peek()
 int AsmScanner::get()
 {
 	int c = peek();
+	if (c == '\n') line++;
 	_current = -1;
 	return c;
 }
@@ -125,6 +127,33 @@ AsmScanner::Tokens AsmScanner::readToken()
 		}
 		return TOKEN_ADDRESS;
 	}
+
+	// Read string
+	if (peek() == '"') {
+		str = "";
+		get();
+		while (peek() != '"') {
+			if (peek() == '\\') {
+				get();
+				switch (peek()) {
+				case 'n': str += '\n'; break;
+				case 't': str += '\t'; break;
+				case 'x': {
+					get();
+					char d1 = get();
+					char d2 = peek();
+					str += String::hexToChar(d1, d2);
+					} break;
+				default: str += peek(); break;
+				}
+				get();
+			} else {
+				str += get();
+			}
+		}
+		get();
+		return TOKEN_STRING;
+	}
 	
 	return TOKEN_UNKNOWN;
 }
@@ -144,6 +173,8 @@ void AsmScanner::reset(istream *input)
 	_input        = input;
 	_current      = -1;
 	_currentToken = TOKEN_NONE;
+	
+	line          = 0;
 	
 	label         = "";
 	reference     = "";
@@ -178,6 +209,7 @@ const char * AsmScanner::getTokenName(AsmScanner::Tokens token)
 	case TOKEN_INTEGER:   return "INTEGER";
 	case TOKEN_REFERENCE: return "REFERENCE";
 	case TOKEN_ADDRESS:   return "ADDRESS";
+	case TOKEN_STRING:    return "STRING";
 	
 	#define M(name, nothing, integer, reference, address, register) case TOKEN_##name: return #name;
 	#include "mnemonics.h"

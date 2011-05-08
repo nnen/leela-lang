@@ -86,8 +86,9 @@ void AsmWriter::writeInstruction(AsmScanner::Tokens mnemonic, string reference)
 void AsmWriter::write(Ref<String> string)
 {
 	writeLabels();
-	currentChunk()
-		<< "    " << "\"" << string->getValue() << "\"" << endl;
+	currentChunk() << "    ";
+	string->repr(currentChunk());
+	currentChunk() << endl;
 }
 
 void AsmWriter::writeComment(string comment)
@@ -137,15 +138,30 @@ void AsmWriter::pushLabel(string prefix)
 	writeLabel(s.str());
 }
 
+string AsmWriter::popLabel()
+{
+	string label = _labelStack.top();
+	_labelStack.pop();
+	return label;
+}
+
 void AsmWriter::popLabel(AsmScanner::Tokens mnemonic)
 {
 	writeInstruction(mnemonic, _labelStack.top());
 	_labelStack.pop();
 }
 
-void AsmWriter::makeFunction()
+void AsmWriter::makeFunction(UInteger argCount)
 {
-	popLabel(AsmScanner::TOKEN_MAKE);
+	writeInstruction(
+		AsmScanner::TOKEN_PUSH,
+		argCount
+	);
+	writeInstruction(
+		AsmScanner::TOKEN_MAKE,
+		_labelStack.top()
+	);
+	_labelStack.pop();
 }
 
 void AsmWriter::output(ostream &output)

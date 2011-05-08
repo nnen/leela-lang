@@ -48,7 +48,7 @@ public:
 	virtual ~RuntimeError() throw() {}
 };
 
-/* RuntimeError ***************************************************************/
+/* ConversionError ************************************************************/
 
 class ConversionError : public RuntimeError {
 private:

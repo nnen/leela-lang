@@ -11,9 +11,11 @@
 
 #include <vector>
 #include <iostream>
+#include <cctype>
 
 #include "leela.h"
 #include "Object.h"
+#include "Value.h"
 #include "Instruction.h"
 #include "Input.h"
 
@@ -25,6 +27,8 @@ class Bytecode : public Object {
 private:
 	vector<char> _bytes;
 	Address      _address;
+
+	static void dumpString(string str);
 
 public:
 	Bytecode();
@@ -43,13 +47,18 @@ public:
 	int                 writeInteger(  Integer             value  );
 	int                 writeUInteger( UInteger            value  );
 	int                 writeAddress(  Address             value  );
+	int                 write(         string              value  );
 	
+	char                peek();
 	char                read();
 	Instruction         readInstr();
 	Instruction::OpCode readOpCode();
 	Integer             readInteger();
 	UInteger            readUInteger();
 	Address             readAddress();
+	Ref<String>         readString();
+
+	Ref<String>         getString(Address address);
 	
 	void                write(ostream &output);
 	void                read(istream &input);

@@ -52,6 +52,16 @@ void Instruction::print(ostream &output) const
 	}
 }
 
+bool Instruction::isOpCodeDefined(OpCode opcode)
+{
+	switch (opcode) {
+	#define OC(name)                    case name: return true;
+	#define OC1(name, argname, argtype) case name: return true;
+	#include "opcodes.h"
+	default: return false;
+	}
+}
+
 bool Instruction::hasOpCodeArgument(OpCode opcode)
 {
 	switch (opcode) {

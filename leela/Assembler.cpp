@@ -20,7 +20,7 @@ int Assembler::getLabelAddr(string label)
 
 void Assembler::setLabel()
 {
-	_labels[_scanner.label] = _bytecode.getAddress();
+	_labels[_scanner.label] = _bytecode->getAddress();
 }
 
 Instruction::OpCode Assembler::getOpCode(AsmScanner::Tokens mnemonic, AsmScanner::Tokens argument)
@@ -44,7 +44,7 @@ Instruction::OpCode Assembler::getOpCode(AsmScanner::Tokens mnemonic, AsmScanner
 
 void Assembler::doUnexpectedToken(AsmScanner::Tokens token, string message)
 {
-	cerr << "ERROR: Unexpected token: " << AsmScanner::getTokenName(token) << ". ";
+	cerr << "ERROR: Unexpected token: " << AsmScanner::getTokenName(token) << " at line " << _scanner.line << ". ";
 	cerr << message << endl;
 	throw std::exception();
 }
@@ -56,7 +56,7 @@ void Assembler::doUnexpectedToken(AsmScanner::Tokens token)
 
 void Assembler::readInput()
 {
-	_bytecode.rewind();
+	_bytecode->rewind();
 	
 	delete _input;
 	_input = new istringstream(_inputStr);
@@ -71,22 +71,22 @@ void Assembler::readInput()
 
 void Assembler::readLine()
 {
+	readLabel();
+
 	switch (_scanner.peekToken()) {
-	case AsmScanner::TOKEN_LABEL:    readLabelLine();   break;
+	case AsmScanner::TOKEN_STRING:   readString();      break;
 	default:                         readInstruction(); break;
 	}
 }
 
-void Assembler::readLabelLine()
-{
-	readLabel();
-	readInstruction();
-}
-
 void Assembler::readLabel()
 {
+	if (_scanner.peekToken() != AsmScanner::TOKEN_LABEL)
+		return;
+	
 	setLabel();
 	_scanner.getToken();
+	readLabel();
 }
 
 void Assembler::readInstruction()
@@ -95,8 +95,8 @@ void Assembler::readInstruction()
 	Instruction instr(getOpCode(mnemonic, _scanner.peekToken()));
 	
 	if (instr.opcode == Instruction::NOOP && mnemonic != AsmScanner::TOKEN_NOOP)
-		cerr << "Warning: Mnemonic translated as NOOP at "
-		     << _bytecode.getAddress() << "." << endl;
+		cerr << "Warning: Mnemonic translated as NOOP at line "
+		     << _scanner.line << "." << endl;
 	
 	#define M(m, nothing, int_op, ref_op, addr_op, reg_op)                                         \
 		case AsmScanner::TOKEN_##m:                                                               \
@@ -120,7 +120,7 @@ void Assembler::readInstruction()
 				default:                                                                      \
 					break;                                                                   \
 			}                                                                                  \
-			_bytecode.writeInstr(instr);                                                       \
+			_bytecode->writeInstr(instr);                                                       \
 			break;
 	
 	switch (mnemonic) {
@@ -129,6 +129,12 @@ void Assembler::readInstruction()
 		doUnexpectedToken(mnemonic, "Expected a mnemonic.");
 		break;
 	}
+}
+
+void Assembler::readString()
+{
+	_bytecode->write(_scanner.str);
+	_scanner.getToken();
 }
 
 void Assembler::setInput(istream &input)
@@ -160,10 +166,10 @@ Assembler::~Assembler()
 	_input = NULL;
 }
 
-Bytecode Assembler::assemble(istream &input)
+Ref<Bytecode> Assembler::assemble(istream &input)
 {
 	_labels.clear();
-	_bytecode.clear();
+	_bytecode = new Bytecode();
 	
 	setInput(input);
 	
@@ -171,5 +177,12 @@ Bytecode Assembler::assemble(istream &input)
 	readInput();
 	
 	return _bytecode;
+}
+
+bool Assembler::assemble(Ref<Input> input, Ref<Output> output)
+{
+	Ref<Bytecode> bytecode = assemble(input->stream());
+	bytecode->write(output->stream());
+	return true;
 }
 

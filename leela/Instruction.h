@@ -54,7 +54,8 @@ public:
 	bool         hasArgument() const;
 	
 	void         print(ostream &output) const;
-
+	
+	static bool  isOpCodeDefined(OpCode opcode);
 	static bool  hasOpCodeArgument(OpCode opcode);
 	static const char * getOpName(OpCode opcode);
 };

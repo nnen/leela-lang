@@ -48,8 +48,8 @@ int main(int argc, const char *argv[])
 	Assembler assembler;
 	
 	foreach(file, inputFiles) {
-		Bytecode bytecode = assembler.assemble((*file)->stream());
-		bytecode.write(std::cout);
+		Ref<Bytecode> bytecode = assembler.assemble((*file)->stream());
+		bytecode->write(std::cout);
 	}
 	
 	return 0;

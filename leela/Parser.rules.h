@@ -7,7 +7,6 @@
  */
 
 enum Nonterminals {
-	INDEX,
 	VAR_DECL,
 	VAR_DECL_REST,
 	PROGRAM,
@@ -43,7 +42,6 @@ private:
 
 /* Nonterminals ****************************************/
 
-Ref<Object> parseIndex(Ref<Object> inherited, vector<Ref<Object> > siblings);
 Ref<Object> parseVarDecl(Ref<Object> inherited, vector<Ref<Object> > siblings);
 Ref<Object> parseVarDeclRest(Ref<Object> inherited, vector<Ref<Object> > siblings);
 Ref<Object> parseProgram(Ref<Object> inherited, vector<Ref<Object> > siblings);
@@ -86,6 +84,11 @@ void addConst(
 	Match siblings,
 	Match& matched,
 	Ref<Object>& result);
+void returnZero(
+	Ref<Object> inherited,
+	Match siblings,
+	Match& matched,
+	Ref<Object>& result);
 void assignVar(
 	Ref<Object> inherited,
 	Match siblings,
@@ -96,7 +99,12 @@ void endFunction(
 	Match siblings,
 	Match& matched,
 	Ref<Object>& result);
-void addArg(
+void writeCall(
+	Ref<Object> inherited,
+	Match siblings,
+	Match& matched,
+	Ref<Object>& result);
+void returnPlusOne(
 	Ref<Object> inherited,
 	Match siblings,
 	Match& matched,
@@ -122,6 +130,11 @@ void getValueForLookup(
 	Match& matched,
 	Ref<Object>& result);
 void writeStrings(
+	Ref<Object> inherited,
+	Match siblings,
+	Match& matched,
+	Ref<Object>& result);
+void addArg(
 	Ref<Object> inherited,
 	Match siblings,
 	Match& matched,

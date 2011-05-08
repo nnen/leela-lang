@@ -8,9 +8,20 @@
 
 #include "Parser.h"
 
-SyntaxError::SyntaxError(string message) throw()
-	: Exception(message)
+SyntaxError::SyntaxError(Token token, string message) throw()
+	: Exception(), _token(token)
 {
+	stringstream s;
+	s << "Syntax error at line " << token.location.line << ": " << message;
+	setMessage(s.str());
+}
+
+SyntaxError::SyntaxError(string message) throw()
+	: Exception()
+{
+	stringstream s;
+	s << "Syntax error: " << message;
+	setMessage(s.str());
 }
 
 Token Parser::accept(Token::Type type)
@@ -19,7 +30,7 @@ Token Parser::accept(Token::Type type)
 		// TODO: Add syntax error handling here.
 		stringstream s;
 		s << "Unexpected token. Expected: " << Token::getTypeName(type);
-		throw SyntaxError(s.str());
+		throw SyntaxError(peek(), s.str());
 	}
 	return accept();
 }
@@ -92,7 +103,15 @@ SEMANTIC_ACTION(endFunction)
 	
 	_contexts->close();
 	_writer.endChunk();
-	_writer.makeFunction();
+	
+	_writer.writeInstruction(
+		AsmScanner::TOKEN_PUSH,
+		context->getParamCount()
+	);
+	_writer.writeInstruction(
+		AsmScanner::TOKEN_MAKE,
+		_writer.popLabel()
+	);
 	
 	foreach (freeVar, context->getFreeVars()) {
 		_writer.writeInstruction(
@@ -146,6 +165,26 @@ SEMANTIC_ACTION(getSymbolValue)
 	Ref<Symbol> symbol =
 		_contexts->current()->getSymbol(match.back().as<String>()->getValue());
 	_writer.writeInstruction(AsmScanner::TOKEN_LOAD, symbol->index);
+}
+
+SEMANTIC_ACTION(writeCall)
+{
+	Ref<Number> argCount = (Ref<Number>) match.back();
+	_writer.writeInstruction(
+		AsmScanner::TOKEN_CALL,
+		(UInteger) argCount->getValue()
+	);
+}
+
+SEMANTIC_ACTION(returnZero)
+{
+	result = new Number(0);
+}
+
+SEMANTIC_ACTION(returnPlusOne)
+{
+	Ref<Number> number = (Ref<Number>) match.back();
+	result = new Number(number->getValue() + 1);
 }
 
 SEMANTIC_ACTION(assignVar)
@@ -204,7 +243,14 @@ void Parser::unexpectedToken(Ref<Object> inherited,
 	throw SyntaxError(s.str());
 }
 
-void Parser::parse(Ref<Input> input, Ref<Output> output)
+/*
+void Parser::syntaxError(int line, string message)
+{
+	cerr << "Syntax error at line " << line << ": " << message << endl;
+}
+*/
+
+bool Parser::parse(Ref<Input> input, Ref<Output> output)
 {
 	// 1. pass
 	
@@ -215,7 +261,13 @@ void Parser::parse(Ref<Input> input, Ref<Output> output)
 	_strings = new StringTable();
 	_writer.clear();
 
-	parseProgram(NULL, vector<Ref<Object> >());
+	try {
+		parseProgram(NULL, vector<Ref<Object> >());
+	} catch (SyntaxError e) {
+		e.print(cerr);
+		cerr << endl;
+		return false;
+	}
 	
 	// 2. pass
 	
@@ -230,5 +282,7 @@ void Parser::parse(Ref<Input> input, Ref<Output> output)
 	_input = NULL;
 	_output = NULL;
 	_writer.output(output);
+
+	return true;
 }
 

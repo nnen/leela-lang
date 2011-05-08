@@ -41,12 +41,16 @@ ConversionError::ConversionError(Ref<Value> value, string targetType) throw()
 {
 	stringstream s;
 	s << "ConversionError: Value ";
-	value->repr(s);
+	try {
+		value->repr(s);
+	} catch (ConversionError e) {
+		s << "[repr method not implemented]";
+	}
 	s << " cannot be converted to type " << targetType << ".";
 	setMessage(s.str());
 }
 
-/* ConversionError ************************************************************/
+/* InvalidOperationError ******************************************************/
 
 InvalidOperationError::InvalidOperationError(Ref<Value> value, string operation) throw()
 	: RuntimeError(), _first(value), _operation(operation)

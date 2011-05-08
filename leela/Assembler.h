@@ -24,7 +24,7 @@ private:
 	istream                   * _input;
 	
 	AsmScanner                  _scanner;
-	Bytecode                    _bytecode;
+	Ref<Bytecode>               _bytecode;
 	
 	unsigned int                _addr;
 	map<string, unsigned int>   _labels;
@@ -42,6 +42,7 @@ private:
 	void readLabelLine();
 	void readLabel();
 	void readInstruction();
+	void readString();
 	
 	void setInput(istream &input);
 
@@ -50,7 +51,8 @@ public:
 	// Assembler(istream * input, ostream * output);
 	virtual ~Assembler();
 	
-	Bytecode assemble(istream &input);
+	Ref<Bytecode> assemble(istream &input);
+	bool          assemble(Ref<Input> input, Ref<Output> output);
 };
 
 #endif /* end of include guard: ASSEMBLER_H_2389FDVD1209CSA */

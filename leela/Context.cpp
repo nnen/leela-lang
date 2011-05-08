@@ -6,6 +6,8 @@
  * \brief  Implementation of the {@link Context} class.
  */
 
+#include <iostream>
+
 #include "Context.h"
 
 Symbol::Symbol(string name, Type type)
@@ -91,6 +93,8 @@ Ref<Symbol> Context::addFreeVar(string name)
 	} else {
 		if (_parent.isNull()) return NULL;
 		Ref<Symbol> var  = _parent->getSymbol(name);
+		if (var.isNull())
+			cerr << "Syntax error: Symbol " << name << " is undefined." << endl;
 		freeVar          = new Symbol(name, Symbol::FREE_VAR);
 		freeVar->freeVar = var;
 		_symbols[name]   = freeVar;

@@ -29,8 +29,12 @@
 using namespace std;
 
 class SyntaxError : public Exception {
+protected:
+	Token  _token;
+
 public:
 	SyntaxError(string message) throw();
+	SyntaxError(Token token, string message) throw();
 	virtual ~SyntaxError() throw() {}
 };
 
@@ -80,7 +84,7 @@ public:
 	Parser() {}
 	virtual ~Parser() {}
 	
-	void parse(Ref<Input> input, Ref<Output> output);
+	bool parse(Ref<Input> input, Ref<Output> output);
 };
 
 #endif /* end of include guard: PARSER_H_23VERTBYU8N */

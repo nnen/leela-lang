@@ -42,7 +42,7 @@ Dependencies: *.cpp
 
 .PHONY: build clean rebuild test
 
-tags: *.cpp *.h
+tags: *.cpp *.h .ctags
 	ctags --c++-kinds=-vm *.cpp *.h
 
 Parser.rules.cpp: leela_grammar.txt Parser.rules.tpl.cpp
@@ -60,10 +60,10 @@ lexer.a: lexer.a(Char.o Token.o Lexer.o)
 parser.a: parser.a(Parser.o Parser.rules.o Context.o StringTable.o AsmWriter.o)
 	ranlib $@
 
-leela: leela.o ${BASE_FILES} ${LEXER_FILES} ${PARSER_FILES} AsmScanner.o Function.o Instruction.o Bytecode.o Machine.o
+leela: leela.o ${BASE_FILES} ${LEXER_FILES} ${PARSER_FILES} AsmScanner.o Assembler.o Function.o Instruction.o Bytecode.o Machine.o
 	$(CXX) $(CXXFLAGS) -o leela $^
 
-leela-asm: asm.o Object.o Input.o Instruction.o AsmScanner.o Assembler.o Bytecode.o
+leela-asm: asm.o ${BASE_FILES} Instruction.o AsmScanner.o Assembler.o Bytecode.o
 	$(CXX) $(CXXFLAGS) -o leela-asm $^
 
 leela-test: leela-test.o Object.o Token.o Value.o Char.o Grammar.o GSymbol.o Conflict.o
