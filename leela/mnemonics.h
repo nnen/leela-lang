@@ -16,10 +16,14 @@ M( NOOP,         NOOP,       NOOP,         NOOP,          NOOP,          NOOP   
 M( RETURN,       RETURN,     RETURN,       RETURN,        RETURN,        RETURN         )
 M( CALL,         NOOP,       CALL,         NOOP,          NOOP,          NOOP           )
 M( BUILTIN,      NOOP,       BUILTIN,      NOOP,          NOOP,          NOOP           )
+M( JUMP,         NOOP,       NOOP,         JUMP,          JUMP,          NOOP           )
+M( JUMP_IF,      NOOP,       NOOP,         JUMP_IF,       JUMP_IF,       NOOP           )
 
 M( PUSH,         PUSH_NONE,  PUSH,         PUSH_STRING,   PUSH_STRING,   NOOP           )
 M( POP,          POP,        POP,          POP,           POP,           NOOP           )
 M( DUP,          DUP,        NOOP,         NOOP,          NOOP,          NOOP           )
+
+M( NOT,          NOT,        NOOP,         NOOP,          NOOP,          NOOP           )
 
 M( ADD,          ADD,        NOOP,         NOOP,          NOOP,          NOOP           )
 M( SUB,          SUB,        NOOP,         NOOP,          NOOP,          NOOP           )

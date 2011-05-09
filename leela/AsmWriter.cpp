@@ -130,12 +130,13 @@ void AsmWriter::endAll()
 		endChunk();
 }
 
-void AsmWriter::pushLabel(string prefix)
+string AsmWriter::pushLabel(string prefix)
 {
 	stringstream s;
 	s << prefix << "_" << _nextLabel++;
 	_labelStack.push(s.str());
-	writeLabel(s.str());
+	// writeLabel(s.str());
+	return s.str();
 }
 
 string AsmWriter::popLabel()

@@ -35,7 +35,7 @@ private:
 	void                 writeMnemonic(AsmScanner::Tokens mnemonic);
 
 public:
-	AsmWriter() : Object() { startChunk(); }
+	AsmWriter() : Object() { clear(); startChunk(); }
 	virtual ~AsmWriter() {}
 	
 	void clear();
@@ -52,7 +52,7 @@ public:
 	void endChunk();
 	void endAll();
 	
-	void   pushLabel(string prefix);
+	string pushLabel(string prefix);
 	string popLabel();
 	void   popLabel(AsmScanner::Tokens mnemonic);
 	void   makeFunction(UInteger argCount);

@@ -79,7 +79,17 @@ void allocLocals(
 	Match siblings,
 	Match& matched,
 	Ref<Object>& result);
+void startWhile(
+	Ref<Object> inherited,
+	Match siblings,
+	Match& matched,
+	Ref<Object>& result);
 void addConst(
+	Ref<Object> inherited,
+	Match siblings,
+	Match& matched,
+	Ref<Object>& result);
+void pushString(
 	Ref<Object> inherited,
 	Match siblings,
 	Match& matched,
@@ -109,12 +119,12 @@ void returnPlusOne(
 	Match siblings,
 	Match& matched,
 	Ref<Object>& result);
-void pushNumber(
+void endWhile(
 	Ref<Object> inherited,
 	Match siblings,
 	Match& matched,
 	Ref<Object>& result);
-void pushString(
+void pushNumber(
 	Ref<Object> inherited,
 	Match siblings,
 	Match& matched,
@@ -130,6 +140,11 @@ void getValueForLookup(
 	Match& matched,
 	Ref<Object>& result);
 void writeStrings(
+	Ref<Object> inherited,
+	Match siblings,
+	Match& matched,
+	Ref<Object>& result);
+void whileJump(
 	Ref<Object> inherited,
 	Match siblings,
 	Match& matched,

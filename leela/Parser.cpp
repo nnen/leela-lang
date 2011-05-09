@@ -90,11 +90,41 @@ SEMANTIC_ACTION(writeStrings)
 	}
 }
 
+// While statement
+
+SEMANTIC_ACTION(startWhile)
+{
+	_writer.pushLabel("while");
+}
+
+SEMANTIC_ACTION(whileJump)
+{
+	string endLabel = _writer.pushLabel("while_end");
+	_writer.writeInstruction(
+		AsmScanner::TOKEN_JUMP_IF,
+		endLabel
+	);
+}
+
+SEMANTIC_ACTION(endWhile)
+{
+	string endLabel = _writer.popLabel();
+	string startLabel = _writer.popLabel();
+	
+	_writer.writeInstruction(
+		AsmScanner::TOKEN_JUMP,
+		startLabel
+	);
+	
+	_writer.writeLabel(endLabel);
+}
+
 SEMANTIC_ACTION(startFunction)
 {
 	_writer.startChunk();
 	_contexts->next();
-	_writer.pushLabel("function");
+	// _writer.pushLabel("function");
+	_writer.writeLabel(_writer.pushLabel("function"));
 }
 
 SEMANTIC_ACTION(endFunction)

@@ -51,6 +51,18 @@ void Machine::do_BUILTIN(UInteger id)
 	// FIXME: Implement the BUILTIN instruction.
 }
 
+void Machine::do_JUMP(Address address)
+{
+	getFrame()->instrCounter = address;
+}
+
+void Machine::do_JUMP_IF(Address address)
+{
+	Ref<Boolean> condition = pop()->toBoolean();
+	if (condition->getValue())
+		getFrame()->instrCounter = address;
+}
+
 /* Stack operations ***********************************************************/
 
 void Machine::do_POP() { pop(); }
@@ -75,6 +87,14 @@ void Machine::do_PUSH_STRING(Address address)
 void Machine::do_PUSH_NONE()
 {
 	push(None::getInstance());
+}
+
+/* Unary operations ***********************************************************/
+
+void Machine::do_NOT()
+{
+	Ref<Boolean> value = pop()->toBoolean();
+	push(new Boolean(!value->getValue()));
 }
 
 /* Binary operations **********************************************************/

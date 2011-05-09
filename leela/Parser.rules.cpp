@@ -88,9 +88,13 @@ Ref<Object> Parser::parseStatement(Ref<Object> inherited, vector<Ref<Object> > s
 	switch (peek().type) {
 	case Token::WHILE:
 		match.push_back(accept(Token::WHILE).value);
+		startWhile(inherited, siblings, match, result);
 		match.push_back(parseExpression(result, match));
+		_writer.writeInstruction(AsmScanner::TOKEN_NOT);
+		whileJump(inherited, siblings, match, result);
 		match.push_back(accept(Token::DO).value);
 		match.push_back(parseStatement(result, match));
+		endWhile(inherited, siblings, match, result);
 		break;
 		
 	case Token::BEGIN:
@@ -135,9 +139,17 @@ Ref<Object> Parser::parseFactor(Ref<Object> inherited, vector<Ref<Object> > sibl
 	Ref<Object> result;
 
 	switch (peek().type) {
+	default:
+		unexpectedToken(inherited, siblings, match, result);
+		break;
+		
 	case Token::NUMBER:
 		match.push_back(accept(Token::NUMBER).value);
 		pushNumber(inherited, siblings, match, result);
+		break;
+		
+	case Token::IDENT:
+		match.push_back(parsePrimaryExpr(result, match));
 		break;
 		
 	case Token::LEFT_PAR:
@@ -149,14 +161,6 @@ Ref<Object> Parser::parseFactor(Ref<Object> inherited, vector<Ref<Object> > sibl
 	case Token::STRING:
 		match.push_back(accept(Token::STRING).value);
 		pushString(inherited, siblings, match, result);
-		break;
-		
-	case Token::IDENT:
-		match.push_back(parsePrimaryExpr(result, match));
-		break;
-		
-	default:
-		unexpectedToken(inherited, siblings, match, result);
 		break;
 		
 	}
@@ -200,14 +204,14 @@ Ref<Object> Parser::parseTermRest(Ref<Object> inherited, vector<Ref<Object> > si
 		match.push_back(parseTermRest(result, match));
 		break;
 		
+	default:
+		break;
+		
 	case Token::ASTERIX:
 		match.push_back(accept(Token::ASTERIX).value);
 		match.push_back(parseFactor(result, match));
 		_writer.writeInstruction(AsmScanner::TOKEN_MUL);
 		match.push_back(parseTermRest(result, match));
-		break;
-		
-	default:
 		break;
 		
 	}
@@ -368,20 +372,6 @@ Ref<Object> Parser::parseAssignIndex(Ref<Object> inherited, vector<Ref<Object> >
 	Ref<Object> result;
 
 	switch (peek().type) {
-	case Token::PERIOD:
-		_writer.writeInstruction(AsmScanner::TOKEN_LOAD);
-		match.push_back(accept(Token::PERIOD).value);
-		match.push_back(accept(Token::IDENT).value);
-		identToString(inherited, siblings, match, result);
-		match.push_back(parseAssignIndex(result, match));
-		break;
-		
-	case Token::ASSIGN:
-		match.push_back(accept(Token::ASSIGN).value);
-		match.push_back(parseRValue(result, match));
-		_writer.writeInstruction(AsmScanner::TOKEN_STORE);
-		break;
-		
 	case Token::LEFT_BRA:
 		_writer.writeInstruction(AsmScanner::TOKEN_LOAD);
 		match.push_back(accept(Token::LEFT_BRA).value);
@@ -390,8 +380,22 @@ Ref<Object> Parser::parseAssignIndex(Ref<Object> inherited, vector<Ref<Object> >
 		match.push_back(parseAssignIndex(result, match));
 		break;
 		
+	case Token::PERIOD:
+		_writer.writeInstruction(AsmScanner::TOKEN_LOAD);
+		match.push_back(accept(Token::PERIOD).value);
+		match.push_back(accept(Token::IDENT).value);
+		identToString(inherited, siblings, match, result);
+		match.push_back(parseAssignIndex(result, match));
+		break;
+		
 	default:
 		unexpectedToken(inherited, siblings, match, result);
+		break;
+		
+	case Token::ASSIGN:
+		match.push_back(accept(Token::ASSIGN).value);
+		match.push_back(parseRValue(result, match));
+		_writer.writeInstruction(AsmScanner::TOKEN_STORE);
 		break;
 		
 	}
@@ -420,18 +424,6 @@ Ref<Object> Parser::parseRValue(Ref<Object> inherited, vector<Ref<Object> > sibl
 		endFunction(inherited, siblings, match, result);
 		break;
 		
-	default:
-		unexpectedToken(inherited, siblings, match, result);
-		break;
-		
-	case Token::IDENT:
-	case Token::MINUS:
-	case Token::NUMBER:
-	case Token::LEFT_PAR:
-	case Token::STRING:
-		match.push_back(parseExpression(result, match));
-		break;
-		
 	case Token::LAMBDA:
 		match.push_back(accept(Token::LAMBDA).value);
 		startFunction(inherited, siblings, match, result);
@@ -442,6 +434,18 @@ Ref<Object> Parser::parseRValue(Ref<Object> inherited, vector<Ref<Object> > sibl
 		match.push_back(parseRValue(result, match));
 		_writer.writeInstruction(AsmScanner::TOKEN_RETURN);
 		endFunction(inherited, siblings, match, result);
+		break;
+		
+	case Token::IDENT:
+	case Token::MINUS:
+	case Token::NUMBER:
+	case Token::LEFT_PAR:
+	case Token::STRING:
+		match.push_back(parseExpression(result, match));
+		break;
+		
+	default:
+		unexpectedToken(inherited, siblings, match, result);
 		break;
 		
 	}
@@ -510,16 +514,16 @@ Ref<Object> Parser::parseExpression(Ref<Object> inherited, vector<Ref<Object> > 
 		match.push_back(parseExpressionRest(result, match));
 		break;
 		
+	default:
+		unexpectedToken(inherited, siblings, match, result);
+		break;
+		
 	case Token::IDENT:
 	case Token::NUMBER:
 	case Token::LEFT_PAR:
 	case Token::STRING:
 		match.push_back(parseTerm(result, match));
 		match.push_back(parseExpressionRest(result, match));
-		break;
-		
-	default:
-		unexpectedToken(inherited, siblings, match, result);
 		break;
 		
 	}
@@ -561,6 +565,9 @@ Ref<Object> Parser::parsePostfixOp(Ref<Object> inherited, vector<Ref<Object> > s
 	Ref<Object> result;
 
 	switch (peek().type) {
+	default:
+		break;
+		
 	case Token::LEFT_PAR:
 		match.push_back(accept(Token::LEFT_PAR).value);
 		match.push_back(parseParamList(result, match));
@@ -577,9 +584,6 @@ Ref<Object> Parser::parsePostfixOp(Ref<Object> inherited, vector<Ref<Object> > s
 		match.push_back(parsePostfixOp(result, match));
 		break;
 		
-	default:
-		break;
-		
 	}
 	
 	return result;
@@ -591,16 +595,16 @@ Ref<Object> Parser::parseAssignVar(Ref<Object> inherited, vector<Ref<Object> > s
 	Ref<Object> result;
 
 	switch (peek().type) {
+	default:
+		unexpectedToken(inherited, siblings, match, result);
+		break;
+		
 	case Token::PERIOD:
 		getValueForLookup(inherited, siblings, match, result);
 		match.push_back(accept(Token::PERIOD).value);
 		match.push_back(accept(Token::IDENT).value);
 		identToString(inherited, siblings, match, result);
 		match.push_back(parseAssignIndex(result, match));
-		break;
-		
-	default:
-		unexpectedToken(inherited, siblings, match, result);
 		break;
 		
 	case Token::ASSIGN:
