@@ -18,19 +18,26 @@
 #include "Assembler.h"
 #include "Machine.h"
 
+Ref<FileInput> input;
+Ref<Output>    output;
+
 int main(int argc, const char * argv[])
 {
 	int c;
 	bool dumpTokens       = false;
 	bool dumpBytecodeFlag = false;
+	bool parseOnly        = false;
+	bool compileOnly      = false;
 	
-	Ref<Output> output = NULL;
-
-	while ((c = getopt(argc, const_cast<char * const *>(argv), "tdo:")) != -1) {
+	output = NULL;
+	
+	while ((c = getopt(argc, const_cast<char * const *>(argv), "tdo:pc")) != -1) {
 		switch (c) {
 		case 't': dumpTokens = true;               break;
 		case 'd': dumpBytecodeFlag = true;         break;
 		case 'o': output = new FileOutput(optarg); break;
+		case 'p': parseOnly = true;                break;
+		case 'c': compileOnly = true;              break;
 		default:
 			abort();
 		}
@@ -41,20 +48,29 @@ int main(int argc, const char * argv[])
 		return 1;
 	}
 	
-	Ref<FileInput> input(new FileInput(argv[optind++]));
+	input = new FileInput(argv[optind++]);
 	
 	if (dumpTokens) {
 		Lexer lexer(input);
 		lexer.dumpTokens(output);
 	} else if (input->getExtension() == "leela") {
-		if (!parse(input, NULL)) return 1;
+		if (!parse()) return 1;
+		if (parseOnly) return 0;
+		inputFromOutput();
+		if (!compile()) return 1;
+		if (compileOnly) return 0;
+		inputFromOutput();
+		run();
 	} else if (input->getExtension() == "lasm") {
-		if (!compile(input, NULL)) return 1;
+		if (!compile()) return 1;
+		if (compileOnly) return 0;
+		inputFromOutput();
+		run();
 	} else if (input->getExtension() == "leelac") {
 		if (dumpBytecodeFlag)
-			dumpBytecode(input, output);
+			dumpBytecode();
 		else
-			run(input);
+			run();
 	} else {
 		std::cerr << "Unknown input file extension." << endl;
 		return 1;
@@ -77,7 +93,26 @@ Ref<Output> normalizeOutput(Ref<Input> input,
 	return new FileOutput(fileInput->getBasename() + "." + fileNameExtension);
 }
 
-bool parse(Ref<Input> input, Ref<Output> output)
+void normalizeOutput(string extension)
+{
+	output = normalizeOutput(input, output, extension);
+}
+
+void inputFromOutput()
+{
+	Ref<FileOutput> foutput = output.as<FileOutput>();
+	if (foutput.isNull()) {
+		input = NULL;
+		output = NULL;
+		return;
+	}
+	string fileName = foutput->getFileName();
+	foutput = NULL;
+	output  = NULL;
+	input = new FileInput(fileName);
+}
+
+bool parse()
 {
 	output = normalizeOutput(input, output, "lasm");
 	
@@ -85,7 +120,7 @@ bool parse(Ref<Input> input, Ref<Output> output)
 	return parser.parse(input, output);
 }
 
-bool compile(Ref<Input> input, Ref<Output> output)
+bool compile()
 {
 	output = normalizeOutput(input, output, "leelac");
 	
@@ -93,17 +128,17 @@ bool compile(Ref<Input> input, Ref<Output> output)
 	return assembler.assemble(input, output);
 }
 
-void run(Ref<Input> input)
+void run()
 {
 	Machine machine;
 	machine.loadBytecode(input);
 	machine.run();
 }
 
-void dumpBytecode(Ref<Input> input, Ref<Output> output)
+void dumpBytecode()
 {
-	output = normalizeOutput(input, output, "codedump");
-
+	if (output.isNull()) output = new StdOutput();
+	
 	Ref<Bytecode> code = new Bytecode();
 	code->read(input);
 	code->dump(output->stream());

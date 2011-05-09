@@ -31,6 +31,8 @@ private:
 public:
 	FileOutput(string fileName);
 	virtual ~FileOutput();
+
+	string getFileName() { return _fileName; }
 	
 	void open();
 	void close();

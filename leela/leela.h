@@ -26,10 +26,12 @@ typedef int32_t  Integer;
 Ref<Output> normalizeOutput(Ref<Input> input,
                             Ref<Output> output,
                             string fileNamExtension);
-bool parse(Ref<Input> input, Ref<Output> output);
-bool compile(Ref<Input> input, Ref<Output> output);
-void run(Ref<Input> input);
-void dumpBytecode(Ref<Input> input, Ref<Output> output);
+void normalizeOutput(string extension);
+void inputFromOutput();
+bool parse();
+bool compile();
+void run();
+void dumpBytecode();
 
 #endif /* end of include guard: LEELA_H_SD5756UJU65423 */
 
