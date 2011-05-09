@@ -144,7 +144,27 @@ void Machine::do_DUMP_STACK(UInteger limit)
 	dumpStack(cout, limit);
 }
 
+void Machine::do_DUMP_CONSTS()
+{
+	dumpConstants(cout);
+}
+
 /* Variable operations ********************************************************/
+
+void Machine::do_LOAD_CONST(UInteger constant)
+{
+	if (!hasConstant(constant)) {
+		RuntimeError e;
+		e.getStream() << "Undefined constant " << constant << "!";
+		throw e;
+	}
+	push(getConstant(constant));
+}
+
+void Machine::do_DEF_CONST()
+{
+	_constants.push_back(pop());
+}
 
 void Machine::do_LOAD(UInteger variable)
 {
@@ -208,7 +228,7 @@ void Machine::do_SET_ITEM()
 	Ref<Value> value = pop();
 	Ref<Value> key = pop();
 	Ref<Table> table = pop().as<Table>();
-
+	
 	if (table.isNull())
 		throw RuntimeError("Value could not be converted to Table.");
 	
@@ -232,6 +252,15 @@ void Machine::do_GET_ITEM()
 }
 
 /******************************************************************************/
+
+void Machine::initBuiltins()
+{
+	_constants = Constants(BUILTIN_COUNT);
+	
+	#define BUILTIN( name, capname, expression ) \
+		setConstant(BUILTIN_##capname, expression);
+	#include "builtins.h"
+}
 
 Instruction Machine::loadInstr()
 {
@@ -369,6 +398,23 @@ Ref<ActivationFrame> Machine::popFrame()
 	return top;
 }
 
+bool Machine::hasConstant(UInteger index)
+{
+	return (index < _constants.size());
+}
+
+void Machine::setConstant(UInteger index, Ref<Value> value)
+{
+	_constants[index] = value;
+}
+
+Ref<Value> Machine::getConstant(UInteger index)
+{
+	if (index >= _constants.size())
+		return None::getInstance();
+	return _constants[index];
+}
+
 bool Machine::step()
 {
 	if (_stop) return false;
@@ -392,6 +438,9 @@ bool Machine::step()
 void Machine::reset()
 {
 	_callStack.clear();
+	_constants.clear();
+
+	initBuiltins();
 	
 	Ref<Function> bootLoader = new Function(0, 0);
 	bootLoader->call(*this, vector<Ref<Value> >());
@@ -433,5 +482,26 @@ void Machine::dumpStack(ostream &output, int limit)
 		output << "(" << _callStack.size() - limit << " more frames)" << endl;
 	
 	output << endl;
+}
+
+void Machine::dumpConstants(ostream &output)
+{
+	UInteger index = 0;
+	for (index = 0; index < _constants.size(); index++) {
+		output << "[" << index << "]  ";
+		_constants[index]->repr(output);
+		output << endl;
+	}
+}
+
+bool Machine::getBuiltinIndex(string ident, UInteger& index)
+{
+	#define BUILTIN( name, capname, expression ) \
+		if (ident == #name) { \
+			index = (UInteger) BUILTIN_##capname; \
+			return true; \
+		}
+	#include "builtins.h"
+	return false;
 }
 

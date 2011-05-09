@@ -7,6 +7,7 @@
  */
 
 #include "Parser.h"
+#include "Machine.h"
 
 SyntaxError::SyntaxError(Token token, string message) throw()
 	: Exception(), _token(token)
@@ -29,7 +30,8 @@ Token Parser::accept(Token::Type type)
 	if (peek().type != type) {
 		// TODO: Add syntax error handling here.
 		stringstream s;
-		s << "Unexpected token. Expected: " << Token::getTypeName(type);
+		s << "Unexpected token (" << Token::getTypeName(peek().type)
+		  << "). Expected: " << Token::getTypeName(type);
 		throw SyntaxError(peek(), s.str());
 	}
 	return accept();
@@ -90,11 +92,38 @@ SEMANTIC_ACTION(writeStrings)
 	}
 }
 
+// If-Else statement
+
+SEMANTIC_ACTION(ifJump)
+{
+	_writer.writeInstruction(
+		AsmScanner::TOKEN_JUMP_IF,
+		_writer.pushLabel("if")
+	);
+}
+
+SEMANTIC_ACTION(elseJump)
+{
+	string elseLabel = _writer.popLabel();
+
+	_writer.writeInstruction(
+		AsmScanner::TOKEN_JUMP,
+		_writer.pushLabel("else")
+	);
+	
+	_writer.writeLabel(elseLabel);
+}
+
+SEMANTIC_ACTION(ifEnd)
+{
+	_writer.writeLabel(_writer.popLabel());
+}
+
 // While statement
 
 SEMANTIC_ACTION(startWhile)
 {
-	_writer.pushLabel("while");
+	_writer.writeLabel(_writer.pushLabel("while"));
 }
 
 SEMANTIC_ACTION(whileJump)
@@ -153,7 +182,14 @@ SEMANTIC_ACTION(endFunction)
 
 SEMANTIC_ACTION(addConst)
 {
-	// TODO: Implement this semantic action.
+	Ref<String> ident = match[match.size() - 3];
+	Ref<Value>  value = match[match.size() - 1];
+	
+	UInteger index = Machine::BUILTIN_COUNT + _constants.size();
+	_constants[ident->getValue()] = index;
+	
+	_writer.writeInstruction(
+		AsmScanner::TOKEN_DEF_CONST);
 }
 
 SEMANTIC_ACTION(addLocal)
@@ -192,8 +228,30 @@ SEMANTIC_ACTION(pushString)
 
 SEMANTIC_ACTION(getSymbolValue)
 {
+	string ident = ((Ref<String>) match.back())->getValue();
+	
+	// Check whether the symbol is a builtin
+	UInteger index = 0;
+	if (Machine::getBuiltinIndex(ident, index)) {
+		_writer.writeInstruction(AsmScanner::TOKEN_LOAD_CONST, index);
+		return;
+	}
+	
+	// Check whether the symbol is a constant
+	if (_constants.count(ident) > 0) {
+		_writer.writeInstruction(
+			AsmScanner::TOKEN_LOAD_CONST,
+			_constants[ident]
+		);
+		return;
+	}
+	
+	// Find the symbol definition in the local context
 	Ref<Symbol> symbol =
-		_contexts->current()->getSymbol(match.back().as<String>()->getValue());
+		_contexts->current()->getSymbol(ident);
+	if (symbol.isNull())
+		throw SyntaxError("Symbol is undefined.");
+	// Write LOAD instruction for the symbol found	
 	_writer.writeInstruction(AsmScanner::TOKEN_LOAD, symbol->index);
 }
 
@@ -270,7 +328,7 @@ void Parser::unexpectedToken(Ref<Object> inherited,
 {
 	stringstream s;
 	s << "Unexpected token: " << Token::getTypeName(_lexer->peek().type);
-	throw SyntaxError(s.str());
+	throw SyntaxError(_lexer->peek(), s.str());
 }
 
 /*
@@ -288,13 +346,19 @@ bool Parser::parse(Ref<Input> input, Ref<Output> output)
 	_output = output;
 	_lexer = new Lexer(_input);
 	_contexts = new ContextTable();
+	_constants.clear();
 	_strings = new StringTable();
+	_nonterminals.clear();
 	_writer.clear();
 
 	try {
 		parseProgram(NULL, vector<Ref<Object> >());
 	} catch (SyntaxError e) {
 		e.print(cerr);
+		cerr << endl;
+		cerr << "Nonterminals: ";
+		foreach (nonterminal, _nonterminals)
+			cerr << *nonterminal << "  ";
 		cerr << endl;
 		return false;
 	}
@@ -304,6 +368,8 @@ bool Parser::parse(Ref<Input> input, Ref<Output> output)
 	_input->rewind();
 	_lexer = new Lexer(_input);
 	_contexts->reset();
+	_constants.clear();
+	_nonterminals.clear();
 	_writer.clear();
 	
 	parseProgram(NULL, vector<Ref<Object> >());

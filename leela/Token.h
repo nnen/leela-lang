@@ -24,8 +24,8 @@ struct CharLocation {
 public:
 	int line;
 	int column;
-
-	CharLocation() : line(-1), column(-1) {}
+	
+	CharLocation() : line(0), column(-1) {}
 	CharLocation(int line, int column) : line(line), column(column) {}
 	CharLocation(const CharLocation& other) : line(other.line), column(other.column) {}
 
@@ -34,7 +34,7 @@ public:
 	
 	CharLocation& newLine() { line++; column = 0; return *this; }
 
-	bool isKnown() const { return ((line >= 0) && (column >= 0)); }
+	bool isKnown() const { return ((line >= 1) && (column >= 0)); }
 };
 
 struct Token {

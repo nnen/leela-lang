@@ -1,0 +1,32 @@
+
+var test, x;
+begin
+	if true then
+		print "True (OK)"
+	else
+		print "False (ERROR)";
+	
+	if false then
+		print "True (ERROR)"
+	else
+		print "False (OK)";
+	
+	test := function (x): begin
+		print "I am not doing anything";
+	end;
+	
+	test := function (x): begin
+		if x then
+			print "" + x + " is True."
+		else
+			print "" + x + " is False.";
+	end;
+	
+	test(100);
+	test(-100);
+	test(0);
+	test("");
+	test("abc");
+	test(none);
+end
+

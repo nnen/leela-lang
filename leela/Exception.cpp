@@ -17,9 +17,16 @@ Exception::Exception() throw()
 {
 }
 
-Exception::Exception(string message) throw()
-	: exception(), _message(message)
+Exception::Exception(const Exception& e) throw()
+	: exception(e)
 {
+	setMessage(e.getMessage());
+}
+
+Exception::Exception(string message) throw()
+	: exception()
+{
+	setMessage(message);
 }
 
 /* RuntimeError ***************************************************************/

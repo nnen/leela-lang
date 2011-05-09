@@ -61,7 +61,12 @@ public:
 	virtual ~BuiltinFunction() {}
 	
 	virtual void call(Machine& machine, vector<Ref<Value> > arguments);
+
+	virtual Ref<String> toString();
 };
+
+Ref<Value> makeTable(Machine& machine, vector<Ref<Value> > arguments);
+Ref<Value> getSize(Machine& machine, vector<Ref<Value> > arguments);
 
 class ActivationFrame : public Value {
 private:

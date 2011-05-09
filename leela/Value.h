@@ -74,9 +74,9 @@ public:
 
 	static Ref<None>     getInstance();
 
-	virtual Ref<Boolean> toBoolean() const;
-	virtual Ref<Number>  toNumber() const;
-	virtual Ref<String>  toString() const;
+	virtual Ref<Boolean> toBoolean();
+	virtual Ref<Number>  toNumber();
+	virtual Ref<String>  toString();
 	
 	virtual int          getHash() const;
 	
@@ -94,9 +94,25 @@ public:
 	ScalarValue() : _value() {}
 	ScalarValue(T value) : _value(value) {}
 	virtual ~ScalarValue() {}
-
+	
 	virtual void print(ostream& output) = 0;
 	
+	virtual bool equals(Ref<Value> other)
+	{
+		Ref<ScalarValue<T> > otherValue = other.as<ScalarValue<T> >();
+		if (otherValue.isNull()) return false;
+
+		return (getValue() == otherValue->getValue());
+	}
+	
+	virtual bool lessThan(Ref<Value> other)
+	{
+		Ref<ScalarValue<T> > otherValue = other.as<ScalarValue<T> >();
+		if (otherValue.isNull()) return false;
+
+		return (getValue() < otherValue->getValue());
+	}
+
 	virtual T getValue() const { return _value; }
 };
 
@@ -109,6 +125,10 @@ public:
 	virtual ~Boolean() {}
 	
 	virtual void print(ostream& output);
+
+	virtual Ref<Boolean> toBoolean() { return this; }
+	virtual Ref<Number>  toNumber();
+	virtual Ref<String>  toString();
 };
 
 /* Number *********************************************************************/
@@ -118,13 +138,17 @@ public:
 	Number() : ScalarValue<Integer>(0) {}
 	Number(Integer value) : ScalarValue<Integer>(value) {}
 	virtual ~Number() {}
-
-	virtual Ref<Number> toNumber() { return this; }
 	
-	static Ref<Number> parse(string str);
-
 	virtual void print(ostream& output);
 	virtual void repr(ostream& output);
+	
+	virtual Ref<Boolean> toBoolean();
+	virtual Ref<Number>  toNumber() { return this; }
+	virtual Ref<String>  toString();
+
+	virtual int          getHash() const { return (int) getValue(); }
+
+	static Ref<Number> parse(string str);
 };
 
 /* String *********************************************************************/
@@ -134,9 +158,17 @@ public:
 	String() : ScalarValue<string>() {}
 	String(string value) : ScalarValue<string>(value) {}
 	virtual ~String() {}
-
-	virtual void print(ostream& output);
-	virtual void repr(ostream& output);
+	
+	virtual void        print(ostream& output);
+	virtual void        repr(ostream& output);
+	
+	virtual Ref<Boolean> toBoolean();
+	virtual Ref<Number>  toNumber();
+	virtual Ref<String>  toString() { return this; }
+	
+	virtual int          getHash() const { return (int) getValue().size(); }
+	
+	virtual Ref<Value>   add(Ref<Value> other);
 	
 	static int    hexToInt(char c);
 	static char   hexToChar(char digit1, char digit2);
@@ -148,16 +180,21 @@ public:
 
 class Table : public Value {
 private:
+	vector<Ref<Value> >           _array;
 	map<int, vector<ValuePair>* > _table;
 
 public:
 	Table() {}
 	virtual ~Table() {}
 	
+	virtual Ref<String> toString();
+	
 	bool       hasKey(Ref<Value> key);
 	
 	void       set(Ref<Value> key, Ref<Value> value);
 	Ref<Value> get(Ref<Value> key, Ref<Value> deflt);
+	
+	int        getSize() { return _table.size(); }
 };
 
 /* Variable *******************************************************************/

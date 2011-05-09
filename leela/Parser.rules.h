@@ -9,6 +9,7 @@
 enum Nonterminals {
 	VAR_DECL,
 	VAR_DECL_REST,
+	CONST_EXPR,
 	PROGRAM,
 	STATEMENT,
 	FACTOR,
@@ -44,6 +45,7 @@ private:
 
 Ref<Object> parseVarDecl(Ref<Object> inherited, vector<Ref<Object> > siblings);
 Ref<Object> parseVarDeclRest(Ref<Object> inherited, vector<Ref<Object> > siblings);
+Ref<Object> parseConstExpr(Ref<Object> inherited, vector<Ref<Object> > siblings);
 Ref<Object> parseProgram(Ref<Object> inherited, vector<Ref<Object> > siblings);
 Ref<Object> parseStatement(Ref<Object> inherited, vector<Ref<Object> > siblings);
 Ref<Object> parseFactor(Ref<Object> inherited, vector<Ref<Object> > siblings);
@@ -79,47 +81,7 @@ void allocLocals(
 	Match siblings,
 	Match& matched,
 	Ref<Object>& result);
-void startWhile(
-	Ref<Object> inherited,
-	Match siblings,
-	Match& matched,
-	Ref<Object>& result);
 void addConst(
-	Ref<Object> inherited,
-	Match siblings,
-	Match& matched,
-	Ref<Object>& result);
-void pushString(
-	Ref<Object> inherited,
-	Match siblings,
-	Match& matched,
-	Ref<Object>& result);
-void returnZero(
-	Ref<Object> inherited,
-	Match siblings,
-	Match& matched,
-	Ref<Object>& result);
-void assignVar(
-	Ref<Object> inherited,
-	Match siblings,
-	Match& matched,
-	Ref<Object>& result);
-void endFunction(
-	Ref<Object> inherited,
-	Match siblings,
-	Match& matched,
-	Ref<Object>& result);
-void writeCall(
-	Ref<Object> inherited,
-	Match siblings,
-	Match& matched,
-	Ref<Object>& result);
-void returnPlusOne(
-	Ref<Object> inherited,
-	Match siblings,
-	Match& matched,
-	Ref<Object>& result);
-void endWhile(
 	Ref<Object> inherited,
 	Match siblings,
 	Match& matched,
@@ -134,22 +96,37 @@ void startFunction(
 	Match siblings,
 	Match& matched,
 	Ref<Object>& result);
-void getValueForLookup(
+void ifJump(
 	Ref<Object> inherited,
 	Match siblings,
 	Match& matched,
 	Ref<Object>& result);
-void writeStrings(
+void getSymbolValue(
 	Ref<Object> inherited,
 	Match siblings,
 	Match& matched,
 	Ref<Object>& result);
-void whileJump(
+void ifEnd(
+	Ref<Object> inherited,
+	Match siblings,
+	Match& matched,
+	Ref<Object>& result);
+void elseJump(
 	Ref<Object> inherited,
 	Match siblings,
 	Match& matched,
 	Ref<Object>& result);
 void addArg(
+	Ref<Object> inherited,
+	Match siblings,
+	Match& matched,
+	Ref<Object>& result);
+void getValueForLookup(
+	Ref<Object> inherited,
+	Match siblings,
+	Match& matched,
+	Ref<Object>& result);
+void whileJump(
 	Ref<Object> inherited,
 	Match siblings,
 	Match& matched,
@@ -164,17 +141,57 @@ void identToString(
 	Match siblings,
 	Match& matched,
 	Ref<Object>& result);
-void writeChunks(
+void writeCall(
 	Ref<Object> inherited,
 	Match siblings,
 	Match& matched,
 	Ref<Object>& result);
-void getSymbolValue(
+void startWhile(
+	Ref<Object> inherited,
+	Match siblings,
+	Match& matched,
+	Ref<Object>& result);
+void endWhile(
+	Ref<Object> inherited,
+	Match siblings,
+	Match& matched,
+	Ref<Object>& result);
+void returnZero(
+	Ref<Object> inherited,
+	Match siblings,
+	Match& matched,
+	Ref<Object>& result);
+void assignVar(
+	Ref<Object> inherited,
+	Match siblings,
+	Match& matched,
+	Ref<Object>& result);
+void writeStrings(
 	Ref<Object> inherited,
 	Match siblings,
 	Match& matched,
 	Ref<Object>& result);
 void addLocal(
+	Ref<Object> inherited,
+	Match siblings,
+	Match& matched,
+	Ref<Object>& result);
+void endFunction(
+	Ref<Object> inherited,
+	Match siblings,
+	Match& matched,
+	Ref<Object>& result);
+void writeChunks(
+	Ref<Object> inherited,
+	Match siblings,
+	Match& matched,
+	Ref<Object>& result);
+void returnPlusOne(
+	Ref<Object> inherited,
+	Match siblings,
+	Match& matched,
+	Ref<Object>& result);
+void pushString(
 	Ref<Object> inherited,
 	Match siblings,
 	Match& matched,

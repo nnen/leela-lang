@@ -1,0 +1,7 @@
+
+var x;
+begin
+	print "str_" + false;
+	print "str_" + 13;
+	print 1 + "1";
+end

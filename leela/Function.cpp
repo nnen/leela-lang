@@ -62,6 +62,34 @@ void BuiltinFunction::call(Machine& machine, vector<Ref<Value> > arguments)
 	machine.push(_function(machine, arguments));
 }
 
+Ref<String> BuiltinFunction::toString()
+{
+	stringstream s;
+	s << "<BuiltinFunction at @" << this << ">";
+	return new String(s.str());
+}
+
+Ref<Value> makeTable(Machine& machine, vector<Ref<Value> > arguments)
+{
+	return new Table();
+}
+
+Ref<Value> getSize(Machine& machine, vector<Ref<Value> > arguments)
+{
+	if (arguments.size() < 1)
+		throw RuntimeError("Not enough arguments.");
+	
+	Ref<String> str = arguments.front().as<String>();
+	if (!str.isNull())
+		return new Number(str->getValue().size());
+	
+	Ref<Table> tbl = arguments.front().as<Table>();
+	if (!tbl.isNull())
+		return new Number(tbl->getSize());
+	
+	throw RuntimeError("Invalid argument(s).");
+}
+
 /* ActivationFrame ************************************************************/
 
 ActivationFrame::ActivationFrame(Ref<Function> function)

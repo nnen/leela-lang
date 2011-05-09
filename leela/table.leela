@@ -1,0 +1,15 @@
+
+var t;
+begin
+	t := table();
+	t[0] := 0;
+	t[1] := 1;
+	t[2] := 2;
+	
+	print t;
+	print size(t);
+
+	t[3] := 3;
+	print "Table size: " + size(t);
+end
+

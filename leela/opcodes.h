@@ -45,8 +45,11 @@ OC(  DIV                                 )
 OC(  PRINT                               )
 OC(  DUMP                                )
 OC1( DUMP_STACK,     uinteger, UInteger  )
+OC(  DUMP_CONSTS                         )
 
 // Variable operations
+OC1( LOAD_CONST,     uinteger, UInteger  )
+OC(  DEF_CONST                           )
 OC1( LOAD,           uinteger, UInteger  )
 OC1( STORE,          uinteger, UInteger  )
 OC1( PULL,           uinteger, UInteger  )

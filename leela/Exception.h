@@ -22,20 +22,23 @@ using namespace std;
 
 class Exception : public exception {
 private:
-	string _message;
+	stringstream _message;
 
 protected:
-	void setMessage(string message) { _message = message; }
+	void setMessage(string message) { _message.str(message); }
 
 public:
 	Exception() throw();
+	Exception(const Exception& e) throw();
 	Exception(string message) throw();
 	virtual ~Exception() throw() {}
 		
-	virtual const char* what() const throw() { return _message.c_str(); }
+	virtual const char* what() const throw() { return _message.str().c_str(); }
 	
-	virtual string getMessage() { return _message; }
-
+	virtual ostream& getStream() { return _message; }
+	virtual string getMessage() { return _message.str(); }
+	virtual string getMessage() const { return _message.str(); }
+	
 	virtual void print(ostream& output) { output << getMessage(); }
 };
 

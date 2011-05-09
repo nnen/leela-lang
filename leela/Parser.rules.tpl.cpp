@@ -14,6 +14,8 @@ Ref<Object> Parser::parse{{ nonterminal.name }}(Ref<Object> inherited, vector<Re
 	vector<Ref<Object> > match;
 	Ref<Object> result;
 
+	_nonterminals.push_back("{{ nonterminal }}");
+
 	switch (peek().type) {
 {%- for rule, terminals in nonterminal.rules.items() -%}
 {%- for terminal in terminals %}
@@ -28,6 +30,8 @@ Ref<Object> Parser::parse{{ nonterminal.name }}(Ref<Object> inherited, vector<Re
 		break;
 		{% endfor %}
 	}
+
+	_nonterminals.pop_back();
 	
 	return result;
 }

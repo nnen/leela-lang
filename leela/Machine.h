@@ -24,10 +24,21 @@ using namespace std;
 class Machine {
 public:
 	typedef vector<Ref<ActivationFrame> > CallStack;
+	typedef vector<Ref<Value> >           Constants;
+
+	enum {
+		#define BUILTIN( name, capname, expression ) \
+			BUILTIN_##capname,
+		#include "builtins.h"
+
+		BUILTIN_COUNT
+	};
 
 private:
 	Ref<Bytecode>                _code;
 	CallStack                    _callStack;
+	
+	Constants                    _constants;
 	
 	Instruction                  _instr;
 	bool                         _stop;
@@ -35,6 +46,8 @@ private:
 	#define OC(name) void do_##name();
 	#define OC1(name, argname, type) void do_##name(type argument);
 	#include "opcodes.h"
+
+	void        initBuiltins();
 	
 	Instruction loadInstr();
 	void        execute(Instruction instr);
@@ -54,13 +67,20 @@ public:
 	
 	CallStack&           getCallStack() { return _callStack; }
 	
+	bool                 hasConstant(UInteger index);
+	void                 setConstant(UInteger index, Ref<Value> value);
+	Ref<Value>           getConstant(UInteger index);
+	
 	bool step();
 	void reset();
 	void run();
 	
 	void loadBytecode(Ref<Input> input);
-
+	
 	void dumpStack(ostream &output, int limit = 10);
+	void dumpConstants(ostream &output);
+	
+	static bool getBuiltinIndex(string ident, UInteger& index);
 };
 
 #endif /* end of include guard: MACHINE_H_FVZAS0983YUA2VFDV6 */

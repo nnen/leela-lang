@@ -159,7 +159,7 @@ Lexer::Lexer(Ref<Input> input)
 	
 	_input = input;
 	_state = STATE_INIT;
-	_location = CharLocation(0, 0);
+	_location = CharLocation(1, 0);
 	
 	_token = getToken();
 }

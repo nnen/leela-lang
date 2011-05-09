@@ -4,9 +4,12 @@ Preamble           -> ConstDecl Preamble
                     | VarDecl Preamble
                     | .
 
-ConstDecl          -> const ident equals number !addConst ConstDeclRest semicolon .
-ConstDeclRest      -> comma ident equals number !addConst ConstDeclRest
+ConstDecl          -> const ident equals ConstExpr !addConst ConstDeclRest semicolon .
+ConstDeclRest      -> comma ident equals ConstExpr !addConst ConstDeclRest
                     | .
+ConstExpr          -> number !pushNumber 
+                    | string !pushString .
+
 VarDecl            -> var ident !addLocal VarDeclRest semicolon .
 VarDeclRest        -> comma ident !addLocal VarDeclRest
                     | .
@@ -14,15 +17,15 @@ VarDeclRest        -> comma ident !addLocal VarDeclRest
 Statement          -> CompoundStmt
                     | Assignment
                     | print RValue :PRINT
-                    | if Expression then Statement ElseStmt
+                    | if Expression :NOT !ifJump then Statement ElseStmt
                     | while !startWhile Expression :NOT !whileJump do Statement !endWhile
                     | return RValue :RETURN
                     | .
 CompoundStmt       -> begin Statement StatementRest end .
 StatementRest      -> semicolon Statement StatementRest
                     | .
-ElseStmt           -> else Statement
-                    | .
+ElseStmt           -> else !elseJump Statement !ifEnd
+                    | !ifEnd .
 
 Assignment         -> ident AssignVar .
 AssignVar          -> assign RValue !assignVar
@@ -51,8 +54,7 @@ TermRest           -> asterix Factor :MUL TermRest
                     | slash Factor :DIV TermRest
                     | .
 Factor             -> PrimaryExpr
-                    | number !pushNumber
-                    | string !pushString
+				| ConstExpr
                     | left_par Expression right_par .
 PrimaryExpr        -> ident !getSymbolValue PostfixOp .
 PostfixOp          -> left_bra Expression :LOAD right_bra PostfixOp

@@ -1,0 +1,16 @@
+
+var bind, add, add5;
+begin
+	bind := lambda (fn, val): lambda (x): fn(x, val);
+	add := lambda (a, b): a + b;
+	add5 := bind(add, 5);
+	
+	print add5(0);
+	print add5(1);
+	print add5(13);
+
+	print 7 * 8;
+	
+	print "end"
+end
+

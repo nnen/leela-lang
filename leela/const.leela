@@ -1,0 +1,29 @@
+const C = 100;
+var t;
+begin
+	print C;
+	print none;
+	print true;
+	print false;
+	print table;
+	
+	t := table();
+
+	t[13] := 1337;
+	print t[13];
+	
+	t["attr"] := 13;
+	print t["attr"];
+
+	t["xxxx"] := 0;
+	print "Table stored.";
+	t["xxxx"] := table();
+	print "Table stored.";
+	print t["xxxx"];
+	
+	print t;
+	
+	t.attr2 := 1234;
+	print t;
+end
+

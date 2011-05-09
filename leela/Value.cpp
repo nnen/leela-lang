@@ -52,9 +52,8 @@ Ref<Value> Value::add(Ref<Value> other)
 	Ref<Number> a = this->toNumber();
 	Ref<Number> b = other->toNumber();
 	
-	if (a.isNull() || b.isNull()) {
-		// TODO: Do some error handling here.
-	}
+	if (a.isNull() || b.isNull())
+		throw new InvalidOperationError(this, other, "adding");
 	
 	return new Number(a->getValue() + b->getValue());
 }
@@ -64,9 +63,8 @@ Ref<Value> Value::subtract(Ref<Value> other)
 	Ref<Number> a = this->toNumber();
 	Ref<Number> b = other->toNumber();
 	
-	if (a.isNull() || b.isNull()) {
-		// TODO: Do some error handling here.
-	}
+	if (a.isNull() || b.isNull())
+		throw new InvalidOperationError(this, other, "subtracting");
 	
 	return new Number(a->getValue() - b->getValue());
 }
@@ -76,9 +74,8 @@ Ref<Value> Value::multiply(Ref<Value> other)
 	Ref<Number> a = this->toNumber();
 	Ref<Number> b = other->toNumber();
 	
-	if (a.isNull() || b.isNull()) {
-		// TODO: Do some error handling here.
-	}
+	if (a.isNull() || b.isNull())
+		throw new InvalidOperationError(this, other, "multiplying");
 	
 	return new Number(a->getValue() * b->getValue());
 }
@@ -88,9 +85,8 @@ Ref<Value> Value::divide(Ref<Value> other)
 	Ref<Number> a = this->toNumber();
 	Ref<Number> b = other->toNumber();
 	
-	if (a.isNull() || b.isNull()) {
-		// TODO: Do some error handling here.
-	}
+	if (a.isNull() || b.isNull())
+		throw new InvalidOperationError(this, other, "dividing");
 	
 	return new Number(a->getValue() / b->getValue());
 }
@@ -145,19 +141,19 @@ Ref<None> None::getInstance()
 	return _instance;
 }
 
-Ref<Boolean> None::toBoolean() const
+Ref<Boolean> None::toBoolean()
 {
 	return new Boolean(false);
 }
 
-Ref<Number> None::toNumber() const
+Ref<Number> None::toNumber()
 {
 	return new Number(0);
 }
 
-Ref<String> None::toString() const
+Ref<String> None::toString()
 {
-	return new String("");
+	return new String("None");
 }
 
 int None::getHash() const
@@ -182,6 +178,21 @@ void Boolean::print(ostream& output)
 		output << "false";
 }
 
+Ref<Number> Boolean::toNumber()
+{
+	if (getValue())
+		return new Number(1);
+	return new Number(0);
+}
+
+Ref<String> Boolean::toString()
+{
+	if (getValue())
+		return new String("true");
+	else
+		return new String("false");
+}
+
 /* Number *********************************************************************/
 
 void Number::print(ostream& output)
@@ -192,6 +203,18 @@ void Number::print(ostream& output)
 void Number::repr(ostream& output)
 {
 	output << _value;
+}
+
+Ref<Boolean> Number::toBoolean()
+{
+	return new Boolean(getValue() != 0);
+}
+
+Ref<String> Number::toString()
+{
+	stringstream s;
+	s << getValue();
+	return new String(s.str());
 }
 
 Ref<Number> Number::parse(string str)
@@ -223,6 +246,47 @@ void String::repr(ostream& output)
 			output << "\\x" << charToHex(_value[i]);
 	}
 	output << '"';
+}
+
+Ref<Boolean> String::toBoolean()
+{
+	return new Boolean(getValue().size() > 0);
+}
+
+Ref<Number> String::toNumber()
+{
+	string str = getValue();
+	Integer value = 0;
+	unsigned int i = 0;
+	bool negative = false;
+
+	while ((i < str.size()) && isspace(str[i]))
+		i++;
+	
+	if ((i < str.size()) && (str[i] == '-')) {
+		negative = true;
+		i++;
+	}
+	
+	while ((i < str.size()) && isdigit(str[i])) {
+		value *= 10;
+		value += str[i++] - '0';
+	}
+	
+	if (negative) value *= -1;
+	
+	return new Number(value);
+}
+
+Ref<Value> String::add(Ref<Value> other)
+{
+	stringstream s;
+	try {
+		s << getValue() << other->toString()->getValue();
+	} catch (Exception e) {
+		throw InvalidOperationError(this, other, "adding");
+	}
+	return new String(s.str());
 }
 
 int String::hexToInt(char c)
@@ -264,10 +328,36 @@ string String::charToHex(char c)
 
 /* Table **********************************************************************/
 
+Ref<String> Table::toString()
+{
+	stringstream s;
+	s << "table(";
+	// foreach (item, _array) {
+	// 	item->repr(s);
+	// 	s << ", ";
+	// }
+	foreach (hash, _table) {
+		foreach (pair, *(hash->second)) {
+			pair->first->repr(s);
+			s << ": ";
+			pair->second->repr(s);
+			s << ", ";
+		}
+	}
+	s << ")";
+	return new String(s.str());
+}
+
 bool Table::hasKey(Ref<Value> key)
 {
+	Ref<Number> intIndex = key.as<Number>();
+	if (!intIndex.isNull() &&
+	    (intIndex->getValue() >= 0) &&
+	    (intIndex->getValue() < _array.size()))
+		return true;
+	
 	int hash = key->getHash();
-
+	
 	if (_table.count(hash) < 1) return false;
 	
 	vector<ValuePair> * list = _table[hash];
@@ -279,6 +369,20 @@ bool Table::hasKey(Ref<Value> key)
 
 void Table::set(Ref<Value> key, Ref<Value> value)
 {
+	Ref<Number> intIndex = key.as<Number>();
+	if (!intIndex.isNull()) {
+		Integer i = intIndex->getValue();
+		if (i < _array.size()) {
+			_array[i] = value;
+		} else if (i == _array.size()) {
+			_array.push_back(value);
+			Ref<Value> next;
+			while (!(next = get(new Number(_array.size()), NULL)).isNull()) {
+				_array.push_back(next);
+			}
+		}
+	}
+	
 	int hash = key->getHash();
 	vector<ValuePair> * list = NULL;
 
@@ -291,7 +395,7 @@ void Table::set(Ref<Value> key, Ref<Value> value)
 	
 	list = _table[hash];
 	
-	for (unsigned int i = 0; i < list->size(); ) {
+	for (unsigned int i = 0; i < list->size(); i++) {
 		if (Value::equals((*list)[i].first, key)) {
 			(*list)[i].second = value;
 			return;
