@@ -58,7 +58,7 @@ TD( ASTERIX,       '*',        "*"        )
 T2( ASSIGN,        ':', '=',   ":="       )
 T2( NOT_EQUALS,    '<', '>',   "<>"       )
 T2( LESS_OR_EQ,    '<', '=',   "<="       )
-T2( GRATER_OR_EQ,  '>', '=',   ">="       )
+T2( GREATER_OR_EQ, '>', '=',   ">="       )
 
 #undef T
 #undef TK

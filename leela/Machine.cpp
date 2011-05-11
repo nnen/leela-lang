@@ -46,11 +46,6 @@ void Machine::do_CALL(UInteger count)
 	callable->call(*this, arguments);
 }
 
-void Machine::do_BUILTIN(UInteger id)
-{
-	// FIXME: Implement the BUILTIN instruction.
-}
-
 void Machine::do_JUMP(Address address)
 {
 	getFrame()->instrCounter = address;
@@ -125,6 +120,46 @@ void Machine::do_DIV()
 	Ref<Value> second = pop();
 	Ref<Value> first  = pop();
 	push(first->divide(second));
+}
+
+void Machine::do_EQUALS()
+{
+	Ref<Value> b = pop();
+	Ref<Value> a = pop();
+	
+	push(new Boolean(Value::equals(a, b)));
+}
+
+void Machine::do_LESS()
+{
+	Ref<Value> b = pop();
+	Ref<Value> a = pop();
+
+	push(new Boolean(a->lessThan(b)));
+}
+
+void Machine::do_GREATER()
+{
+	Ref<Value> b = pop();
+	Ref<Value> a = pop();
+	
+	push(new Boolean(b->lessThan(a)));
+}
+
+void Machine::do_LESS_OR_EQ()
+{
+	Ref<Value> b = pop();
+	Ref<Value> a = pop();
+	
+	push(new Boolean(a->lessThan(b) || a->equals(b)));
+}
+
+void Machine::do_GREATER_OR_EQ()
+{
+	Ref<Value> b = pop();
+	Ref<Value> a = pop();
+	
+	push(new Boolean(b->lessThan(a) || b->equals(a)));
 }
 
 /* IO operations **************************************************************/

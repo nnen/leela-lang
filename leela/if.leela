@@ -17,16 +17,26 @@ begin
 	
 	test := function (x): begin
 		if x then
-			print "" + x + " is True."
+			return "" + x + " is True."
 		else
-			print "" + x + " is False.";
+			return "" + x + " is False.";
 	end;
 	
-	test(100);
-	test(-100);
-	test(0);
-	test("");
-	test("abc");
-	test(none);
+	print test(100);
+	print test(-100);
+	print test(0);
+	print test("");
+	print test("abc");
+	print test(none);
+	
+	test := function (x): begin
+		if x then
+			print "" + x + " is True"
+		else
+			print "" + x + " is False";
+	end;
+	
+	test(true);
+	test(false);
 end
 

@@ -21,7 +21,6 @@ OC(  STOP                                )
 OC(  NOOP                                )
 OC(  RETURN                              )
 OC1( CALL,           uinteger, UInteger  )
-OC1( BUILTIN,        uinteger, UInteger  )
 OC1( JUMP,           address,  Address   )
 OC1( JUMP_IF,        address,  Address   )
 
@@ -40,6 +39,12 @@ OC(  ADD                                 )
 OC(  SUB                                 )
 OC(  MUL                                 )
 OC(  DIV                                 )
+
+OC(  EQUALS                              )
+OC(  LESS                                )
+OC(  GREATER                             )
+OC(  LESS_OR_EQ                          )
+OC(  GREATER_OR_EQ                       )
 
 // IO operations
 OC(  PRINT                               )

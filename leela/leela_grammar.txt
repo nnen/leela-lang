@@ -30,7 +30,8 @@ ElseStmt           -> else !elseJump Statement !ifEnd
 Assignment         -> ident AssignVar .
 AssignVar          -> assign RValue !assignVar
                     | !getValueForLookup period ident !identToString AssignIndex
-                    | !getValueForLookup left_bra RValue right_bra AssignIndex .
+						  | !getValueForLookup left_bra RValue right_bra AssignIndex
+                    | !getValueForLookup left_par ParamList !writeCall right_par .
 AssignIndex        -> assign RValue :STORE
                     | :LOAD period ident !identToString AssignIndex
                     | :LOAD left_bra RValue right_bra AssignIndex .
@@ -44,18 +45,26 @@ RValue             -> Expression
 FunctionPreamble   -> VarDecl FunctionPreamble
                     | .
 
-Expression         -> Term ExpressionRest
-                    | minus Term ExpressionRest .
-ExpressionRest     -> plus Term :ADD ExpressionRest
-                    | minus Term :SUB ExpressionRest
+Expression         -> Mult ExpressionRest .
+ExpressionRest     -> equals Mult :EQUALS ExpressionRest
+                    | not_equals Mult :EQUALS :NOT ExpressionRest
+                    | left_angle Mult :LESS ExpressionRest
+                    | right_angle Mult :GREATER ExpressionRest
+                    | less_or_eq Mult :LESS_OR_EQ ExpressionRest
+                    | greater_or_eq Mult :GREATER_OR_EQ ExpressionRest
+                    | .
+Mult               -> Term MultRest
+                    | minus Term MultRest .
+MultRest           -> plus Term :ADD MultRest
+                    | minus Term :SUB MultRest
                     | .
 Term               -> Factor TermRest .
 TermRest           -> asterix Factor :MUL TermRest
                     | slash Factor :DIV TermRest
                     | .
 Factor             -> PrimaryExpr
-				| ConstExpr
-                    | left_par Expression right_par .
+                    | ConstExpr
+                    | left_par RValue right_par PostfixOp .
 PrimaryExpr        -> ident !getSymbolValue PostfixOp .
 PostfixOp          -> left_bra Expression :LOAD right_bra PostfixOp
                     | left_par ParamList !writeCall right_par PostfixOp

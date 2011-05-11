@@ -1,0 +1,25 @@
+
+var makeCounter, counter;
+begin
+	makeCounter := function ():
+	var i;
+	begin
+		i := 0;
+		return function (): begin
+			i := i + 1;
+			return i;
+		end
+	end;
+	
+	print "Counting from 1...";
+	counter := makeCounter();
+	print counter();
+	print counter();
+	print counter();
+	
+	print "Counting from 1 again...";
+	counter := makeCounter();
+	print counter();
+	print counter();
+end
+

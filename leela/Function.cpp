@@ -35,6 +35,9 @@ Ref<String> Function::toString()
 
 void Function::call(Machine& machine, vector<Ref<Value> > arguments)
 {
+	if (_paramCount != arguments.size())
+		throw RuntimeError("Invalid number function of arguments.");
+	
 	Ref<ActivationFrame> frame = new ActivationFrame(this);
 
 	// Push the free variables to the

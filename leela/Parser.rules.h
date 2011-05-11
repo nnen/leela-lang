@@ -21,6 +21,7 @@ enum Nonterminals {
 	STATEMENT_REST,
 	PREAMBLE,
 	ELSE_STMT,
+	MULT,
 	TERM,
 	ASSIGN_INDEX,
 	R_VALUE,
@@ -30,11 +31,12 @@ enum Nonterminals {
 	EXPRESSION_REST,
 	POSTFIX_OP,
 	ASSIGN_VAR,
+	CONST_DECL,
 	FUNCTION_PREAMBLE,
 	L_VALUE_REST,
 	ASSIGNMENT,
 	PRIMARY_EXPR,
-	CONST_DECL,
+	MULT_REST,
 	COMPOUND_STMT,
 	NONTEMRINAL_COUNT
 };
@@ -57,6 +59,7 @@ Ref<Object> parseArgNameListRest(Ref<Object> inherited, vector<Ref<Object> > sib
 Ref<Object> parseStatementRest(Ref<Object> inherited, vector<Ref<Object> > siblings);
 Ref<Object> parsePreamble(Ref<Object> inherited, vector<Ref<Object> > siblings);
 Ref<Object> parseElseStmt(Ref<Object> inherited, vector<Ref<Object> > siblings);
+Ref<Object> parseMult(Ref<Object> inherited, vector<Ref<Object> > siblings);
 Ref<Object> parseTerm(Ref<Object> inherited, vector<Ref<Object> > siblings);
 Ref<Object> parseAssignIndex(Ref<Object> inherited, vector<Ref<Object> > siblings);
 Ref<Object> parseRValue(Ref<Object> inherited, vector<Ref<Object> > siblings);
@@ -66,11 +69,12 @@ Ref<Object> parseExpression(Ref<Object> inherited, vector<Ref<Object> > siblings
 Ref<Object> parseExpressionRest(Ref<Object> inherited, vector<Ref<Object> > siblings);
 Ref<Object> parsePostfixOp(Ref<Object> inherited, vector<Ref<Object> > siblings);
 Ref<Object> parseAssignVar(Ref<Object> inherited, vector<Ref<Object> > siblings);
+Ref<Object> parseConstDecl(Ref<Object> inherited, vector<Ref<Object> > siblings);
 Ref<Object> parseFunctionPreamble(Ref<Object> inherited, vector<Ref<Object> > siblings);
 Ref<Object> parseLValueRest(Ref<Object> inherited, vector<Ref<Object> > siblings);
 Ref<Object> parseAssignment(Ref<Object> inherited, vector<Ref<Object> > siblings);
 Ref<Object> parsePrimaryExpr(Ref<Object> inherited, vector<Ref<Object> > siblings);
-Ref<Object> parseConstDecl(Ref<Object> inherited, vector<Ref<Object> > siblings);
+Ref<Object> parseMultRest(Ref<Object> inherited, vector<Ref<Object> > siblings);
 Ref<Object> parseCompoundStmt(Ref<Object> inherited, vector<Ref<Object> > siblings);
 
 

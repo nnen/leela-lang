@@ -1,0 +1,29 @@
+var fact, Y;
+begin
+	fact := function (x): begin
+		if x <= 1 then return 1;
+		return x * fact(x - 1);
+	end;
+	
+	print fact(5);
+	
+	fact := function (x, fn): begin
+		if x <= 1 then return 1;
+		return x * fn(x - 1, fn);
+	end;
+	
+	print fact(5, lambda (x, f): x);
+	print fact(5, fact);
+	
+	print "{Y := lambda (f): lambda(x): (lambda (x): f(lambda (arg): x(x(arg))))(lambda (x): f(lambda (arg): x(x(arg))));}";
+	
+	Y := lambda (f): lambda (xx): (lambda (x): f(lambda (arg): x(x(arg))))((lambda (x): f(lambda (arg): x(x(arg))))(xx));
+	
+	fact := Y(lambda (f): function (n): begin
+		if n <= 0 then return 1;
+		return n * f(n - 1);
+	end);
+	
+	print fact(5);
+end
+

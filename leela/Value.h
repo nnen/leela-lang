@@ -109,7 +109,7 @@ public:
 	{
 		Ref<ScalarValue<T> > otherValue = other.as<ScalarValue<T> >();
 		if (otherValue.isNull()) return false;
-
+		
 		return (getValue() < otherValue->getValue());
 	}
 
