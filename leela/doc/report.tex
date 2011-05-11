@@ -1,0 +1,102 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% PREAMBLE
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\documentclass[10pt,a4paper]{article}
+
+\usepackage[czech]{babel}
+\usepackage[utf8]{inputenc}
+%\usepackage{amsmath,amsfonts,amsthm,amssymb}
+%\usepackage{fullpage} % 1 inch okraje
+\usepackage{hyperref} % hypertextové odkazy
+%\usepackage{graphicx} % vkládání grafiky
+%\usepackage{float,wrapfig}
+\usepackage{fancyhdr}
+%\usepackage{lastpage}
+\usepackage{listings}
+
+\newcommand{\paperTitle}{Implementace programovacího jazyka Leela}
+\newcommand{\paperType}{Semestrální práce}
+\newcommand{\paperClass}{BI-PJP}
+\newcommand{\paperDueDate}{}
+\newcommand{\paperAuthorName}{Jan Milík}
+\newcommand{\paperAuthorEmail}{milikjan@fit.cvut.cz}
+
+\newenvironment{codedoc}[1]
+	{ \vspace{4pt} \noindent \texttt{#1} \par \addtolength{\leftskip}{\parindent} }
+	{ \addtolength{\leftskip}{-1.0\parindent} }
+
+%\topmargin=-0.45in      %
+\evensidemargin=0in     %
+\oddsidemargin=0in      %
+\textwidth=6.5in        %
+%\textheight=9.0in       %
+%\headsep=0.25in         %
+
+\pagestyle{fancy}
+\lhead{\paperAuthorName}
+\rhead{\paperClass: \paperTitle}
+\cfoot{Strana \thepage{}}
+\renewcommand\headrulewidth{0.4pt}                                      %
+\renewcommand\footrulewidth{0.4pt}                                      %
+
+\title{\vspace{1in}\paperTitle\\
+\small{\paperClass -- \paperType}\vspace{0.5in}}
+\author{\paperAuthorName\\
+\small\texttt{{\href{mailto:\paperAuthorEmail}{\paperAuthorEmail}}}}
+
+% Settings for the listings package
+\lstset{
+	breaklines=true
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% DOKUMENT
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{document}
+% Titulní strana
+\maketitle
+\newpage
+
+% Obsah
+\tableofcontents
+\newpage
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% ÚVOD
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Úvod}
+\label{sec:uvod}
+
+Jazyk Leela vychází, a měl by být nadmnožinou, jazyka Míla, jehož autorem
+je prof. Muller. Jeho název byl zvolen tak, aby se vyslovoval ``Líla''
+(Míla + Lambda = Líla), ale zároveň je kulturní referencí. Její odhalení
+ponechávám jako cvičení čtenáři.
+
+\section{EBNF jazyka Leela}
+\label{sec:ebnf}
+
+\begin{lstlisting}
+program = preamble compound-statement
+
+preamble = { var-declaration | const-declaration }
+var-declaration = `var' identifier { `,' identifier } `;'
+const-declaration = `const' identifier `=' const-expression { `,' identifier `=' const-expression } `;'
+
+compound-statement = `begin' statement { `;' statement } `end'
+statement = compound-statement
+          | assignment-or-call
+          | `if' expression `then' statement [ `else' statement ]
+          | `while' expression `do' statement
+          | 'print' right-value
+          | e
+
+assignment-or-call = identifier { `.' identifier | `[' right-value `]' } ( `:=' right-value | `(' expression-list `)' )
+
+table-literal = `{' table-item { ',' table-item } `}'
+table-item    = right-value [ ':' right-value ]
+              | e
+
+\end{lstlisting}
+
+\end{document}
+
