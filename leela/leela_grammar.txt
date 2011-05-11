@@ -30,7 +30,7 @@ ElseStmt           -> else !elseJump Statement !ifEnd
 Assignment         -> ident AssignVar .
 AssignVar          -> assign RValue !assignVar
                     | !getValueForLookup period ident !identToString AssignIndex
-						  | !getValueForLookup left_bra RValue right_bra AssignIndex
+                    | !getValueForLookup left_bra RValue right_bra AssignIndex
                     | !getValueForLookup left_par ParamList !writeCall right_par .
 AssignIndex        -> assign RValue :STORE
                     | :LOAD period ident !identToString AssignIndex

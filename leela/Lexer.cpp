@@ -53,6 +53,9 @@ Token Lexer::getToken()
 			
 			if (current().isWhitespace()) {
 				advance();
+			} else if (current() == '{') {
+				_state = STATE_COMMENT;
+				advance();
 			} else if (current().isDoubleDelimiter()) {
 				Token::Type type = Token::getDelimiter(current(), next());
 				if (type != Token::UNKNOWN) {
@@ -75,6 +78,11 @@ Token Lexer::getToken()
 			} else {
 				_state = STATE_UNKNOWN;
 			}
+			break;
+		case STATE_COMMENT:
+			if (current() == '}')
+				_state = STATE_INIT;
+			advance();
 			break;
 		case STATE_IDENT:
 			if (current().isLetter() || current().isDigit()) {

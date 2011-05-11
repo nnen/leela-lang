@@ -20,6 +20,7 @@
 
 #define LEXER_STATES \
 	S( INIT )        \
+	S( COMMENT )     \
 	S( IDENT )       \
 	S( NUMBER )      \
 	S( STRING )      \
