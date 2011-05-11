@@ -28,17 +28,23 @@
 
 using namespace std;
 
+class Parser;
+
 class SyntaxError : public Exception {
 protected:
 	Token  _token;
 
 public:
+	SyntaxError(const Parser& parser) throw();
 	SyntaxError(string message) throw();
 	SyntaxError(Token token, string message) throw();
 	virtual ~SyntaxError() throw() {}
+
+	virtual void print(ostream& output);
 };
 
 class Parser {
+friend class SyntaxError;
 public:
 	typedef vector<Ref<Object> > Match;
 	
@@ -82,6 +88,8 @@ private:
 	                     Match siblings,
 	                     Match& match,
 					 Ref<Object>& result);
+
+	void onUndefinedSymbol(string name);
 
 public:
 	Parser() {}

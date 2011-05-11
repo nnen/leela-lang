@@ -10,6 +10,22 @@
 
 #include "Context.h"
 
+Ref<Symbol> Context::getBoundVar(string name)
+{
+	Ref<Context> context = this;
+	
+	while (!context.isNull()) {
+		if (context->_symbols.count(name) > 0) {
+			Ref<Symbol> var = context->_symbols[name];
+			if (var->type != Symbol::FREE_VAR)
+				return var;
+		}
+		context = context->_parent;
+	}
+	
+	return NULL;
+}
+
 Symbol::Symbol(string name, Type type)
 	: Object(), name(name), type(type), index(0), indexInvalid(true)
 {
@@ -91,10 +107,9 @@ Ref<Symbol> Context::addFreeVar(string name)
 		freeVar = _symbols[name];
 		if (freeVar->type != Symbol::FREE_VAR) return NULL;
 	} else {
-		if (_parent.isNull()) return NULL;
-		Ref<Symbol> var  = _parent->getSymbol(name);
-		if (var.isNull())
-			cerr << "Syntax error: Symbol " << name << " is undefined." << endl;
+		Ref<Symbol> var = getBoundVar(name);
+		if (var.isNull()) return NULL;
+		
 		freeVar          = new Symbol(name, Symbol::FREE_VAR);
 		freeVar->freeVar = var;
 		_symbols[name]   = freeVar;

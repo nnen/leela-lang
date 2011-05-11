@@ -9,6 +9,12 @@
 #include "Parser.h"
 #include "Machine.h"
 
+SyntaxError::SyntaxError(const Parser& parser) throw()
+	: Exception()
+{
+	_token = parser._lexer->peek();
+}
+
 SyntaxError::SyntaxError(Token token, string message) throw()
 	: Exception(), _token(token)
 {
@@ -25,14 +31,22 @@ SyntaxError::SyntaxError(string message) throw()
 	setMessage(s.str());
 }
 
+void SyntaxError::print(ostream& output)
+{
+	if (_token.location.isKnown())
+		output << "Syntax error at line " << _token.location.line << ": ";
+	else
+		output << "Syntax error: ";
+	output << _message.str();
+}
+
 Token Parser::accept(Token::Type type)
 {
 	if (peek().type != type) {
-		// TODO: Add syntax error handling here.
-		stringstream s;
-		s << "Unexpected token (" << Token::getTypeName(peek().type)
-		  << "). Expected: " << Token::getTypeName(type);
-		throw SyntaxError(peek(), s.str());
+		SyntaxError e(*this);
+		e.getStream() << "Unexpected token (" << Token::getTypeName(peek().type)
+		              << "). Expected: " << Token::getTypeName(type);
+		throw e;
 	}
 	return accept();
 }
@@ -250,7 +264,7 @@ SEMANTIC_ACTION(getSymbolValue)
 	Ref<Symbol> symbol =
 		_contexts->current()->getSymbol(ident);
 	if (symbol.isNull())
-		throw SyntaxError("Symbol is undefined.");
+		onUndefinedSymbol(ident);
 	// Write LOAD instruction for the symbol found	
 	_writer.writeInstruction(AsmScanner::TOKEN_LOAD, symbol->index);
 }
@@ -278,8 +292,10 @@ SEMANTIC_ACTION(returnPlusOne)
 SEMANTIC_ACTION(assignVar)
 {
 	Ref<String> ident = (Ref<String>) siblings[0];
-	//Ref<String> ident = siblings[0].as<String>();
-	//if (ident.isNull()) throw Exception("Parsing error.");
+	
+	Ref<Symbol> symbol = _contexts->current()->getSymbol(ident->getValue());
+	if (symbol.isNull())
+		onUndefinedSymbol(ident->getValue());
 	
 	_writer.writeInstruction(
 		AsmScanner::TOKEN_STORE,
@@ -306,8 +322,6 @@ SEMANTIC_ACTION(assignIndex)
 
 SEMANTIC_ACTION(identToString)
 {
-	//Ref<String> ident = match.back().as<String>();
-	//if (ident.isNull()) throw Exception("Parsing error.");
 	Ref<String> ident = (Ref<String>) match.back();
 	
 	_writer.writeInstruction(
@@ -315,11 +329,6 @@ SEMANTIC_ACTION(identToString)
 		_strings->getLabel(ident)
 	);
 }
-
-//SEMANTIC_ACTION(syntaxError)
-//{
-//	throw SyntaxError("Syntax error!");
-//}
 
 void Parser::unexpectedToken(Ref<Object> inherited,
                              Match siblings,
@@ -337,6 +346,13 @@ void Parser::syntaxError(int line, string message)
 	cerr << "Syntax error at line " << line << ": " << message << endl;
 }
 */
+
+void Parser::onUndefinedSymbol(string name)
+{
+	SyntaxError e(*this);
+	e.getStream() << "Undefined symbol: " << name << ".";
+	throw e;
+}
 
 bool Parser::parse(Ref<Input> input, Ref<Output> output)
 {

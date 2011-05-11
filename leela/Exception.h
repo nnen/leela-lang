@@ -21,10 +21,9 @@ using namespace std;
 /* Exception ******************************************************************/
 
 class Exception : public exception {
-private:
-	stringstream _message;
-
 protected:
+	stringstream _message;
+	
 	void setMessage(string message) { _message.str(message); }
 
 public:

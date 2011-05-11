@@ -53,6 +53,8 @@ private:
 	int                       _nextParam;
 	int                       _nextLocal;
 
+	Ref<Symbol>               getBoundVar(string name);
+
 public:
 	Context();
 	Context(Ref<Context> parent);
