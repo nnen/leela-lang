@@ -9,9 +9,6 @@
 #ifndef INTRUCTION_H_23GDFVFG7JBQA
 #define INTRUCTION_H_23GDFVFG7JBQA
 
-#define INSTRUCTION_WIDTH 4
-
-#include <stdint.h>
 #include <ostream>
 
 #include "leela.h"
@@ -36,14 +33,6 @@ public:
 	
 	OpCode  opcode;
 	Payload payload;
-	
-	/*
-	union {
-		Integer  integer;
-		UInteger uinteger;
-		Address  address;
-	} payload
-	*/
 	
 	Instruction();
 	Instruction(OpCode opcode);

@@ -22,9 +22,9 @@ enum Nonterminals {
 	PREAMBLE,
 	VAR_DECL_REST,
 	TERM,
-	ASSIGN_INDEX,
 	R_VALUE,
 	PARAM_LIST_REST,
+	ASSIGN_ITEM,
 	PARAM_LIST,
 	EXPRESSION,
 	EXPRESSION_REST,
@@ -58,9 +58,9 @@ Ref<Object> parseStatementRest(Ref<Object> inherited, vector<Ref<Object> > sibli
 Ref<Object> parsePreamble(Ref<Object> inherited, vector<Ref<Object> > siblings);
 Ref<Object> parseVarDeclRest(Ref<Object> inherited, vector<Ref<Object> > siblings);
 Ref<Object> parseTerm(Ref<Object> inherited, vector<Ref<Object> > siblings);
-Ref<Object> parseAssignIndex(Ref<Object> inherited, vector<Ref<Object> > siblings);
 Ref<Object> parseRValue(Ref<Object> inherited, vector<Ref<Object> > siblings);
 Ref<Object> parseParamListRest(Ref<Object> inherited, vector<Ref<Object> > siblings);
+Ref<Object> parseAssignItem(Ref<Object> inherited, vector<Ref<Object> > siblings);
 Ref<Object> parseParamList(Ref<Object> inherited, vector<Ref<Object> > siblings);
 Ref<Object> parseExpression(Ref<Object> inherited, vector<Ref<Object> > siblings);
 Ref<Object> parseExpressionRest(Ref<Object> inherited, vector<Ref<Object> > siblings);
@@ -101,6 +101,11 @@ void ifJump(
 	Match siblings,
 	Match& matched,
 	Ref<Object>& result);
+void pushSibling(
+	Ref<Object> inherited,
+	Match siblings,
+	Match& matched,
+	Ref<Object>& result);
 void ifEnd(
 	Ref<Object> inherited,
 	Match siblings,
@@ -112,11 +117,6 @@ void elseJump(
 	Match& matched,
 	Ref<Object>& result);
 void addArg(
-	Ref<Object> inherited,
-	Match siblings,
-	Match& matched,
-	Ref<Object>& result);
-void getValueForLookup(
 	Ref<Object> inherited,
 	Match siblings,
 	Match& matched,

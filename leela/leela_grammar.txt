@@ -29,12 +29,13 @@ ElseStmt           -> else !elseJump Statement !ifEnd
 
 Assignment         -> ident AssignVar .
 AssignVar          -> assign RValue !assignVar
-                    | !getValueForLookup period ident !identToString AssignIndex
-                    | !getValueForLookup left_bra RValue right_bra AssignIndex
-                    | !getValueForLookup left_par ParamList !writeCall right_par .
-AssignIndex        -> assign RValue :STORE
-                    | :LOAD period ident !identToString AssignIndex
-                    | :LOAD left_bra RValue right_bra AssignIndex .
+                    | !pushSibling period ident !identToString AssignItem
+                    | !pushSibling left_bra RValue right_bra AssignItem
+                    | !pushSibling left_par ParamList !writeCall right_par .
+AssignItem         -> assign RValue :STORE
+                    | :LOAD period ident !identToString AssignItem
+                    | :LOAD left_bra RValue right_bra AssignItem
+				| :LOAD left_par ParamList !writeCall right_par .
 
 RValue             -> Expression
                     | function !startFunction left_par ArgNameList right_par colon FunctionPreamble !allocLocals Statement :PUSH :RETURN !endFunction

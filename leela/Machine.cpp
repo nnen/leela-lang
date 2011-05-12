@@ -218,15 +218,6 @@ void Machine::do_STORE(UInteger variable)
 	_callStack.back()->getVar(variable)->setValue(value);
 }
 
-void Machine::do_PULL(UInteger count)
-{
-	if (_callStack.size() < 2)
-		throw RuntimeError("There's no activation frame to pull from.");
-	
-	for (UInteger i = 0; i < count; i++)
-		getFrame()->pushVariable(_callStack[_callStack.size() - 2]->pop());
-}
-
 void Machine::do_ALLOC(UInteger count)
 {
 	for (UInteger i = 0; i < count; i++)

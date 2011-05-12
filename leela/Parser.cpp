@@ -58,29 +58,12 @@ Token Parser::accept(Token::Type type)
 	Match& match, \
 	Ref<Object>& result)
 
+// Bytecode structure
+
 SEMANTIC_ACTION(startContext)
 {
 	_contexts->next();
 }
-
-/*
-SEMANTIC_ACTION(endContext)
-{
-	_contexts->close();
-}
-
-SEMANTIC_ACTION(startChunk)
-{
-	_writer.startChunk();
-}
-*/
-
-/*
-SEMANTIC_ACTION(endChunk)
-{
-	_writer.endChunk();
-}
-*/
 
 SEMANTIC_ACTION(writeChunks)
 {
@@ -162,6 +145,8 @@ SEMANTIC_ACTION(endWhile)
 	_writer.writeLabel(endLabel);
 }
 
+// Functions 
+
 SEMANTIC_ACTION(startFunction)
 {
 	_writer.startChunk();
@@ -218,7 +203,8 @@ SEMANTIC_ACTION(addConst)
 
 SEMANTIC_ACTION(addLocal)
 {
-	if (_pass > 1) return;
+	// FIXME: Parser doesn't check for local var redefinition.
+	// if (_pass > 1) return;
 	_contexts->current()->addLocal(match.back().as<String>()->getValue());
 }
 
@@ -232,9 +218,12 @@ SEMANTIC_ACTION(allocLocals)
 
 SEMANTIC_ACTION(addArg)
 {
-	if (_pass > 1) return;
+	// FIXME: Parser doesn't check for function argument redefinition.
+	// if (_pass > 1) return;
 	_contexts->current()->addParam(match.back().as<String>()->getValue());
 }
+
+// Misc  
 
 SEMANTIC_ACTION(pushNumber)
 {
@@ -325,7 +314,7 @@ SEMANTIC_ACTION(assignVar)
 	);
 }
 
-SEMANTIC_ACTION(getValueForLookup)
+SEMANTIC_ACTION(pushSibling)
 {
 	Ref<String> ident = (Ref<String>) siblings[0];
 	

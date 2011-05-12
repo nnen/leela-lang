@@ -6,13 +6,14 @@
 \usepackage[czech]{babel}
 \usepackage[utf8]{inputenc}
 %\usepackage{amsmath,amsfonts,amsthm,amssymb}
-%\usepackage{fullpage} % 1 inch okraje
+\usepackage{fullpage} % 1 inch okraje
 \usepackage{hyperref} % hypertextové odkazy
 %\usepackage{graphicx} % vkládání grafiky
 %\usepackage{float,wrapfig}
 \usepackage{fancyhdr}
 %\usepackage{lastpage}
 \usepackage{listings}
+\usepackage{longtable}
 
 \newcommand{\paperTitle}{Implementace programovacího jazyka Leela}
 \newcommand{\paperType}{Semestrální práce}
@@ -26,9 +27,9 @@
 	{ \addtolength{\leftskip}{-1.0\parindent} }
 
 %\topmargin=-0.45in      %
-\evensidemargin=0in     %
-\oddsidemargin=0in      %
-\textwidth=6.5in        %
+%\evensidemargin=0in     %
+%\oddsidemargin=0in      %
+%\textwidth=6.5in        %
 %\textheight=9.0in       %
 %\headsep=0.25in         %
 
@@ -36,8 +37,8 @@
 \lhead{\paperAuthorName}
 \rhead{\paperClass: \paperTitle}
 \cfoot{Strana \thepage{}}
-\renewcommand\headrulewidth{0.4pt}                                      %
-\renewcommand\footrulewidth{0.4pt}                                      %
+\renewcommand\headrulewidth{0.4pt} %
+\renewcommand\footrulewidth{0.4pt} %
 
 \title{\vspace{1in}\paperTitle\\
 \small{\paperClass -- \paperType}\vspace{0.5in}}
@@ -46,7 +47,9 @@
 
 % Settings for the listings package
 \lstset{
-	breaklines=true
+	breaklines=true,
+	extendedchars=\true,
+	%inputencoding=utf8x
 }
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -72,13 +75,66 @@ je prof. Muller. Jeho název byl zvolen tak, aby se vyslovoval ``Líla''
 (Míla + Lambda = Líla), ale zároveň je kulturní referencí. Její odhalení
 ponechávám jako cvičení čtenáři.
 
+\section{Zásobníkový počítač}
+\label{sec:pocitac}
+
+\subsection{Zásobník}
+
+Zásobníkový počítač má oddělený zásobník pro aktivační rámce (dále `call
+stack') a zásobník pro výpočty. Aktivační rámce jsou reprezentovány
+objekty (typu \texttt{ActivationFrame}), a každý obsahuhe tato data:
+
+\begin{itemize}
+\item Svůj vlastní datový zásobník - instrukce operující nad zásobníkem
+      implicitně používají datový zásobník aktivačního rámce na vrcholu call stacku,
+\item referenci na funkční objekt, jehož zavoláním daný rámec vznikl (pro debugování),
+\item pole referencí na objekty typu \texttt{Variable}, které reprezentují
+      proměnné; v tomto poli se nacházejí všechny proměnné dostupné z dané funkce
+	 (kromě konstant a věstavených symbolů, které jsou zvláštní případ) a jsou trojího
+	 druhu:
+	 \begin{enumerate}
+	 \item Volné proměnné - toto jsou proměnné, které pocházejí z kontextu, ve kterém
+	       byla funkce vytvořena. Referenci na tyto proměnné (uzávěru) si s sebou nese
+		  funkční objekt, dokud není zavolán. Při zavolání, ještě před předáním parametrů
+		  a naalokováním lokálních proměnných funkční objekt předá reference na volné
+		  proměnné aktivačnímu rámci.
+	 \item Parametry funkce - jsou předávány hodnotou z aktivačního rámce, který
+	       byl na vrcholu call stacku v momentě, kdy byl vytvářen nový rámec.
+		  Instrukce \texttt{CALL} má argument, který říká, kolik hodnot má být ze
+		  stacku vyzvednuto a předáno funkčnímu objektu při volání. Funkční objekt
+		  má informaci o tom, kolik argumentů přijímá a pokud je mu předán jiný počet,
+		  vyvolá runtime chybu. Tuto kontrolu by bylo jen velice těžké provádět při
+		  překladu, protože funkce jsou v Leele objekty první třídy a tak libovolný
+		  symbol může být v libovolnou chvíli svázán s libovolnou funkcí.
+	 \item Lokální proměnné funkce - jsou alokovány pomocí instrukce \texttt{ALLOC} a
+	       jsou to nově vytvořené proměnné, které jsou inicializovány na hodnotu typu
+		  \texttt{None}.
+	 \end{enumerate}
+\item adresu intrukce, která bude vykonaná v dalším kroku (instruction pointer).
+\end{itemize}
+
+\subsection{Bytekód}
+
+Bytekód je v paměti reprezentován jako jednoduché pole bytů a třída
+\texttt{Bytecode} udržuje ukazatel na aktuální pozici v tomto poli a pomáhá
+interpretovat byty na aktuální pozici jako instrukce, nebo textové řetězce.
+Intrukce mají žádný, nebo jeden argument. Kód instrukce má šířku 8 bitů a
+argument 32 bitů. Argument může být interpretován jako celé číslo se znaménkem,
+nebo bez znaménka v závislosti na dané instrukci. Pokud daná instrukce
+argument nemá, argument se do bytekódu vůbec neukládá, což má za
+následek složitější načítání instruckí a práci s adresami, ale na
+druhou stranu to redukuje velikost bytekód.
+
+\subsection{Instrukce}
+
+
+
 \section{EBNF jazyka Leela}
 \label{sec:ebnf}
 
-\begin{lstlisting}
-program = preamble compound-statement
+\begin{lstlisting}[identifierstyle=\textbf]
+program = { var-declaration | const-declaration } compound-statement
 
-preamble = { var-declaration | const-declaration }
 var-declaration = `var' identifier { `,' identifier } `;'
 const-declaration = `const' identifier `=' const-expression { `,' identifier `=' const-expression } `;'
 
@@ -87,16 +143,162 @@ statement = compound-statement
           | assignment-or-call
           | `if' expression `then' statement [ `else' statement ]
           | `while' expression `do' statement
-          | 'print' right-value
+          | `print' right-value
           | e
 
 assignment-or-call = identifier { `.' identifier | `[' right-value `]' } ( `:=' right-value | `(' expression-list `)' )
 
-table-literal = `{' table-item { ',' table-item } `}'
-table-item    = right-value [ ':' right-value ]
-              | e
+right-value = `function' `(' [ identifier { `,' identifier } ] `)' `:' { var-declaration } statement
+            | `lambda' `(' [ identifier { `,' identifier } ] `)' `:' right-value
+            | expression
+
+expression = sum { ( `=' | `<>' | `<' | `>' | `<=' | `>=' ) sum }
+sum = [ `-' ] term { ( `-' | `+' ) term }
+term = factor { ( `*' | `/' ) factor }
+factor = primary-expression { `[' right-value `]' | `.' identifier | `(' param-list `)' }
+primary-expression = identifier | const-expression | `(' right-value `)'
+
+param-list = [ right-value { `,' right-value } ]
 
 \end{lstlisting}
+
+\section{LL(1) (téměř) gramatika}
+
+Podobně jako vzorový jazyk Míla, i v této gramatice existuje FIRST-FOLLOW
+konflikt u neterminálního symbolu \textit{ElseStmt}. Překladač tento problém
+řeší tak, že terminální symbol \textit{else} je jednoduše přijatý tím
+``nejhlubším'', nebo, chcete-li, nejbližší neterminálním symbolem
+\textit{ElseStmt}. Výsledek je takový, že jazyk přijímá věty, u kterých si
+programátor nemusí být jistý, jak budou překladačem interpretovány. Nicméně
+překlad je deterministický.
+
+\begin{longtable}{ l c l }
+	Program          & $\rightarrow$ & Preamble CompoundStmt \\
+	
+	Preamble         & $\rightarrow$ & ConstDecl Preamble \\
+	Preamble         & $\rightarrow$ & VarDecl Preamble \\
+	Preamble         & $\rightarrow$ & $\epsilon$ \\
+	
+	ConstDecl        & $\rightarrow$ & const ident = ConstExpr ConstDeclRest ; \\
+	
+	ConstDeclRest    & $\rightarrow$ & , ident = ConstExpr ConstDeclRest \\
+	ConstDeclRest    & $\rightarrow$ & $\epsilon$ \\
+	
+	ConstExpr        & $\rightarrow$ & number \\
+	ConstExpr        & $\rightarrow$ & string \\
+
+	VarDecl          & $\rightarrow$ & var ident VarDeclRest ; \\
+	
+	VarDeclRest      & $\rightarrow$ & , ident VarDeclRest \\
+	VarDeclRest      & $\rightarrow$ & $\epsilon$ \\
+
+	Statement        & $\rightarrow$ & CompoundStmt \\
+	Statement        & $\rightarrow$ & Assignment \\
+	Statement        & $\rightarrow$ & print RValue \\
+	Statement        & $\rightarrow$ & if Expression then Statement ElseStmt \\
+	Statement        & $\rightarrow$ & while Expression do Statement \\
+	Statement        & $\rightarrow$ & return RValue \\ 
+	Statement        & $\rightarrow$ & $\epsilon$ \\
+
+	CompoundStmt     & $\rightarrow$ & begin Statement StatementRest end \\
+	
+	StatementRest    & $\rightarrow$ & ; Statement StatementRest \\
+	StatementRest    & $\rightarrow$ & $\epsilon$ \\
+
+	ElseStmt         & $\rightarrow$ & else Statement \\
+	ElseStmt         & $\rightarrow$ & $\epsilon$ \\
+
+	Assignment       & $\rightarrow$ & ident AssignVar \\
+	
+	AssignVar        & $\rightarrow$ & := RValue \\
+	AssignVar        & $\rightarrow$ & . ident AssignItem \\
+	AssignVar        & $\rightarrow$ & [ RValue ] AssignItem \\
+	AssignVar        & $\rightarrow$ & ( ParamList ) \\
+
+	AssignItem       & $\rightarrow$ & := RValue \\
+	AssignItem       & $\rightarrow$ & . ident AssignItem \\
+	AssignItem       & $\rightarrow$ & [ RValue ] AssignItem \\
+	AssignItem       & $\rightarrow$ & ( ParamList ) \\
+
+	RValue           & $\rightarrow$ & Expression \\
+	RValue           & $\rightarrow$ & function ( ArgNameList ) : FunctionPreamble Statement \\
+	RValue           & $\rightarrow$ & lambda ( ArgNameList) : RValue \\
+	
+	FunctionPreamble & $\rightarrow$ & VarDecl FunctionPreamble \\
+	FunctionPreamble & $\rightarrow$ & $\epsilon$ \\
+
+	Expression       & $\rightarrow$ & Sum ExpressionRest \\
+	
+	ExpressionRest   & $\rightarrow$ & = Sum ExpressionRest \\
+	ExpressionRest   & $\rightarrow$ & <> Sum ExpressionRest \\
+	ExpressionRest   & $\rightarrow$ & < Sum ExpressionRest \\
+	ExpressionRest   & $\rightarrow$ & > Sum ExpressionRest \\
+	ExpressionRest   & $\rightarrow$ & <= Sum ExpressionRest \\
+	ExpressionRest   & $\rightarrow$ & >= Sum ExpressionRest \\
+	ExpressionRest   & $\rightarrow$ & $\epsilon$ \\
+
+	Sum              & $\rightarrow$ & Term SumRest \\
+	Sum              & $\rightarrow$ & - Term SumRest \\
+
+	SumRest          & $\rightarrow$ & + Term SumRest \\
+	SumRest          & $\rightarrow$ & - Term SumRest \\
+	SumRest          & $\rightarrow$ & $\epsilon$ \\
+	
+	Term             & $\rightarrow$ & Factor TermRest \\
+	
+	TermRest         & $\rightarrow$ & * Factor TermRest \\
+	TermRest         & $\rightarrow$ & / Factor TermRest \\
+	TermRest         & $\rightarrow$ & $\epsilon$ \\
+
+	Factor           & $\rightarrow$ & PrimaryExpr PortfixOp \\
+	
+	PrimaryExpr      & $\rightarrow$ & ident \\
+	PrimaryExpr      & $\rightarrow$ & ConstExpr \\
+	PrimaryExpr      & $\rightarrow$ & ( RValue ) \\
+
+	PostfixOp        & $\rightarrow$ & [ Expression ] PostfixOp \\
+	PostfixOp        & $\rightarrow$ & ( ParamList ) PostfixOp \\
+	PostfixOp        & $\rightarrow$ & $\epsilon$ \\
+
+	ParamList        & $\rightarrow$ & RValue ParamListRest \\
+	ParamList        & $\rightarrow$ & $\epsilon$ \\
+
+	ParamListRest    & $\rightarrow$ & , RValue ParamListRest \\
+	ParamListRest    & $\rightarrow$ & $\epsilon$ \\
+	
+	ArgNameList      & $\rightarrow$ & ident ArgNameListRest \\
+	ArgNameList      & $\rightarrow$ & $\epsilon$ \\
+	
+	ArgNameListRest  & $\rightarrow$ & , ident ArgNameListRest \\
+	ArgNameListRest  & $\rightarrow$ & $\epsilon$ \\
+\end{longtable}
+
+\section{Překladač}
+\label{sec:prekladac}
+
+Překladač je implementován pomocí motedy rekurzivního sestupu. Je reprezentován
+třídou \texttt{Parser} a jeho instanční metody implementují jednotlivá pravidla
+gramatiky a sémantické akce.
+
+Metoda pro přijetí neterminálního symbolu má signaturu
+\begin{lstlisting}
+Ref<Object> Parser::methodName(Ref<Object> inherited, vector<Ref<Object> > siblings);
+\end{lstlisting}
+kde návratová hodnota reprezentuje syntetizovaný atribut neterminálního
+symbolu, argument \texttt{inherited} je syntetizovaný symbol rodičovského symbolu
+a atribut \texttt{siblings} je pole syntetizovaných atributů předcházejících
+symbolů (terminálních a neterminálních) uvnitř rodičovského neterminálního
+symbolu. Toto schéma pro zjednodušení předpokládá, že zděděné atributy symbolu
+jsou jednoduše syntetizované atributy jeho rodiče a předcházejících sourozenců
+v syntaktickém stromu.
+
+Tyto metody jsou automaticky generované z textového souboru
+(\verb"leela_grammar.txt"), který obsahuje definici gramatiky v jednoduchém
+formátu. Generátorem je skript napsaný v jazyce Python, který pomocí knihovny
+\texttt{ply} (yacc + flex pro Python) přečte definici gramatiky a přeloží do
+jednoduchého AST a poté z těchto dat za pomocí knihovny \texttt{jinja2}
+vygeneruje část hlavičkového souboru pro třídu \texttt{Parser} a C++ soubor s
+implementacemi výše zmíněných metod.
 
 \end{document}
 

@@ -137,26 +137,17 @@ Ref<Object> Parser::parseStatement(Ref<Object> inherited, vector<Ref<Object> > s
 	_nonterminals.push_back("Statement");
 
 	switch (peek().type) {
+	default:
+		break;
+		
 	case Token::IDENT:
 		match.push_back(parseAssignment(result, match));
 		break;
 		
-	default:
-		break;
-		
-	case Token::WHILE:
-		match.push_back(accept(Token::WHILE).value);
-		startWhile(inherited, siblings, match, result);
-		match.push_back(parseExpression(result, match));
-		_writer.writeInstruction(AsmScanner::TOKEN_NOT);
-		whileJump(inherited, siblings, match, result);
-		match.push_back(accept(Token::DO).value);
-		match.push_back(parseStatement(result, match));
-		endWhile(inherited, siblings, match, result);
-		break;
-		
-	case Token::BEGIN:
-		match.push_back(parseCompoundStmt(result, match));
+	case Token::PRINT:
+		match.push_back(accept(Token::PRINT).value);
+		match.push_back(parseRValue(result, match));
+		_writer.writeInstruction(AsmScanner::TOKEN_PRINT);
 		break;
 		
 	case Token::IF:
@@ -175,10 +166,19 @@ Ref<Object> Parser::parseStatement(Ref<Object> inherited, vector<Ref<Object> > s
 		_writer.writeInstruction(AsmScanner::TOKEN_RETURN);
 		break;
 		
-	case Token::PRINT:
-		match.push_back(accept(Token::PRINT).value);
-		match.push_back(parseRValue(result, match));
-		_writer.writeInstruction(AsmScanner::TOKEN_PRINT);
+	case Token::BEGIN:
+		match.push_back(parseCompoundStmt(result, match));
+		break;
+		
+	case Token::WHILE:
+		match.push_back(accept(Token::WHILE).value);
+		startWhile(inherited, siblings, match, result);
+		match.push_back(parseExpression(result, match));
+		_writer.writeInstruction(AsmScanner::TOKEN_NOT);
+		whileJump(inherited, siblings, match, result);
+		match.push_back(accept(Token::DO).value);
+		match.push_back(parseStatement(result, match));
+		endWhile(inherited, siblings, match, result);
 		break;
 		
 	}
@@ -384,12 +384,12 @@ Ref<Object> Parser::parsePreamble(Ref<Object> inherited, vector<Ref<Object> > si
 		match.push_back(parsePreamble(result, match));
 		break;
 		
-	default:
-		break;
-		
 	case Token::CONST:
 		match.push_back(parseConstDecl(result, match));
 		match.push_back(parsePreamble(result, match));
+		break;
+		
+	default:
 		break;
 		
 	}
@@ -451,47 +451,6 @@ Ref<Object> Parser::parseTerm(Ref<Object> inherited, vector<Ref<Object> > siblin
 	return result;
 }
 
-Ref<Object> Parser::parseAssignIndex(Ref<Object> inherited, vector<Ref<Object> > siblings)
-{
-	vector<Ref<Object> > match;
-	Ref<Object>          result;
-	
-	_nonterminals.push_back("AssignIndex");
-
-	switch (peek().type) {
-	case Token::PERIOD:
-		_writer.writeInstruction(AsmScanner::TOKEN_LOAD);
-		match.push_back(accept(Token::PERIOD).value);
-		match.push_back(accept(Token::IDENT).value);
-		identToString(inherited, siblings, match, result);
-		match.push_back(parseAssignIndex(result, match));
-		break;
-		
-	default:
-		unexpectedToken(inherited, siblings, match, result);
-		break;
-		
-	case Token::ASSIGN:
-		match.push_back(accept(Token::ASSIGN).value);
-		match.push_back(parseRValue(result, match));
-		_writer.writeInstruction(AsmScanner::TOKEN_STORE);
-		break;
-		
-	case Token::LEFT_BRA:
-		_writer.writeInstruction(AsmScanner::TOKEN_LOAD);
-		match.push_back(accept(Token::LEFT_BRA).value);
-		match.push_back(parseRValue(result, match));
-		match.push_back(accept(Token::RIGHT_BRA).value);
-		match.push_back(parseAssignIndex(result, match));
-		break;
-		
-	}
-
-	_nonterminals.pop_back();
-	
-	return result;
-}
-
 Ref<Object> Parser::parseRValue(Ref<Object> inherited, vector<Ref<Object> > siblings)
 {
 	vector<Ref<Object> > match;
@@ -500,10 +459,6 @@ Ref<Object> Parser::parseRValue(Ref<Object> inherited, vector<Ref<Object> > sibl
 	_nonterminals.push_back("RValue");
 
 	switch (peek().type) {
-	default:
-		unexpectedToken(inherited, siblings, match, result);
-		break;
-		
 	case Token::FUNCTION:
 		match.push_back(accept(Token::FUNCTION).value);
 		startFunction(inherited, siblings, match, result);
@@ -539,6 +494,10 @@ Ref<Object> Parser::parseRValue(Ref<Object> inherited, vector<Ref<Object> > sibl
 		match.push_back(parseExpression(result, match));
 		break;
 		
+	default:
+		unexpectedToken(inherited, siblings, match, result);
+		break;
+		
 	}
 
 	_nonterminals.pop_back();
@@ -563,6 +522,55 @@ Ref<Object> Parser::parseParamListRest(Ref<Object> inherited, vector<Ref<Object>
 		match.push_back(parseRValue(result, match));
 		match.push_back(parseParamListRest(result, match));
 		returnPlusOne(inherited, siblings, match, result);
+		break;
+		
+	}
+
+	_nonterminals.pop_back();
+	
+	return result;
+}
+
+Ref<Object> Parser::parseAssignItem(Ref<Object> inherited, vector<Ref<Object> > siblings)
+{
+	vector<Ref<Object> > match;
+	Ref<Object>          result;
+	
+	_nonterminals.push_back("AssignItem");
+
+	switch (peek().type) {
+	case Token::PERIOD:
+		_writer.writeInstruction(AsmScanner::TOKEN_LOAD);
+		match.push_back(accept(Token::PERIOD).value);
+		match.push_back(accept(Token::IDENT).value);
+		identToString(inherited, siblings, match, result);
+		match.push_back(parseAssignItem(result, match));
+		break;
+		
+	default:
+		unexpectedToken(inherited, siblings, match, result);
+		break;
+		
+	case Token::LEFT_BRA:
+		_writer.writeInstruction(AsmScanner::TOKEN_LOAD);
+		match.push_back(accept(Token::LEFT_BRA).value);
+		match.push_back(parseRValue(result, match));
+		match.push_back(accept(Token::RIGHT_BRA).value);
+		match.push_back(parseAssignItem(result, match));
+		break;
+		
+	case Token::ASSIGN:
+		match.push_back(accept(Token::ASSIGN).value);
+		match.push_back(parseRValue(result, match));
+		_writer.writeInstruction(AsmScanner::TOKEN_STORE);
+		break;
+		
+	case Token::LEFT_PAR:
+		_writer.writeInstruction(AsmScanner::TOKEN_LOAD);
+		match.push_back(accept(Token::LEFT_PAR).value);
+		match.push_back(parseParamList(result, match));
+		writeCall(inherited, siblings, match, result);
+		match.push_back(accept(Token::RIGHT_PAR).value);
 		break;
 		
 	}
@@ -639,29 +647,19 @@ Ref<Object> Parser::parseExpressionRest(Ref<Object> inherited, vector<Ref<Object
 	_nonterminals.push_back("ExpressionRest");
 
 	switch (peek().type) {
+	case Token::GREATER_OR_EQ:
+		match.push_back(accept(Token::GREATER_OR_EQ).value);
+		match.push_back(parseSum(result, match));
+		_writer.writeInstruction(AsmScanner::TOKEN_GREATER_OR_EQ);
+		match.push_back(parseExpressionRest(result, match));
+		break;
+		
 	case Token::NOT_EQUALS:
 		match.push_back(accept(Token::NOT_EQUALS).value);
 		match.push_back(parseSum(result, match));
 		_writer.writeInstruction(AsmScanner::TOKEN_EQUALS);
 		_writer.writeInstruction(AsmScanner::TOKEN_NOT);
 		match.push_back(parseExpressionRest(result, match));
-		break;
-		
-	case Token::LESS_OR_EQ:
-		match.push_back(accept(Token::LESS_OR_EQ).value);
-		match.push_back(parseSum(result, match));
-		_writer.writeInstruction(AsmScanner::TOKEN_LESS_OR_EQ);
-		match.push_back(parseExpressionRest(result, match));
-		break;
-		
-	case Token::RIGHT_ANGLE:
-		match.push_back(accept(Token::RIGHT_ANGLE).value);
-		match.push_back(parseSum(result, match));
-		_writer.writeInstruction(AsmScanner::TOKEN_GREATER);
-		match.push_back(parseExpressionRest(result, match));
-		break;
-		
-	default:
 		break;
 		
 	case Token::LEFT_ANGLE:
@@ -678,11 +676,21 @@ Ref<Object> Parser::parseExpressionRest(Ref<Object> inherited, vector<Ref<Object
 		match.push_back(parseExpressionRest(result, match));
 		break;
 		
-	case Token::GREATER_OR_EQ:
-		match.push_back(accept(Token::GREATER_OR_EQ).value);
+	case Token::RIGHT_ANGLE:
+		match.push_back(accept(Token::RIGHT_ANGLE).value);
 		match.push_back(parseSum(result, match));
-		_writer.writeInstruction(AsmScanner::TOKEN_GREATER_OR_EQ);
+		_writer.writeInstruction(AsmScanner::TOKEN_GREATER);
 		match.push_back(parseExpressionRest(result, match));
+		break;
+		
+	case Token::LESS_OR_EQ:
+		match.push_back(accept(Token::LESS_OR_EQ).value);
+		match.push_back(parseSum(result, match));
+		_writer.writeInstruction(AsmScanner::TOKEN_LESS_OR_EQ);
+		match.push_back(parseExpressionRest(result, match));
+		break;
+		
+	default:
 		break;
 		
 	}
@@ -708,15 +716,15 @@ Ref<Object> Parser::parsePostfixOp(Ref<Object> inherited, vector<Ref<Object> > s
 		match.push_back(parsePostfixOp(result, match));
 		break;
 		
+	default:
+		break;
+		
 	case Token::LEFT_BRA:
 		match.push_back(accept(Token::LEFT_BRA).value);
 		match.push_back(parseExpression(result, match));
 		_writer.writeInstruction(AsmScanner::TOKEN_LOAD);
 		match.push_back(accept(Token::RIGHT_BRA).value);
 		match.push_back(parsePostfixOp(result, match));
-		break;
-		
-	default:
 		break;
 		
 	}
@@ -739,11 +747,19 @@ Ref<Object> Parser::parseAssignVar(Ref<Object> inherited, vector<Ref<Object> > s
 		break;
 		
 	case Token::PERIOD:
-		getValueForLookup(inherited, siblings, match, result);
+		pushSibling(inherited, siblings, match, result);
 		match.push_back(accept(Token::PERIOD).value);
 		match.push_back(accept(Token::IDENT).value);
 		identToString(inherited, siblings, match, result);
-		match.push_back(parseAssignIndex(result, match));
+		match.push_back(parseAssignItem(result, match));
+		break;
+		
+	case Token::LEFT_BRA:
+		pushSibling(inherited, siblings, match, result);
+		match.push_back(accept(Token::LEFT_BRA).value);
+		match.push_back(parseRValue(result, match));
+		match.push_back(accept(Token::RIGHT_BRA).value);
+		match.push_back(parseAssignItem(result, match));
 		break;
 		
 	case Token::ASSIGN:
@@ -753,19 +769,11 @@ Ref<Object> Parser::parseAssignVar(Ref<Object> inherited, vector<Ref<Object> > s
 		break;
 		
 	case Token::LEFT_PAR:
-		getValueForLookup(inherited, siblings, match, result);
+		pushSibling(inherited, siblings, match, result);
 		match.push_back(accept(Token::LEFT_PAR).value);
 		match.push_back(parseParamList(result, match));
 		writeCall(inherited, siblings, match, result);
 		match.push_back(accept(Token::RIGHT_PAR).value);
-		break;
-		
-	case Token::LEFT_BRA:
-		getValueForLookup(inherited, siblings, match, result);
-		match.push_back(accept(Token::LEFT_BRA).value);
-		match.push_back(parseRValue(result, match));
-		match.push_back(accept(Token::RIGHT_BRA).value);
-		match.push_back(parseAssignIndex(result, match));
 		break;
 		
 	}
@@ -783,6 +791,9 @@ Ref<Object> Parser::parseSumRest(Ref<Object> inherited, vector<Ref<Object> > sib
 	_nonterminals.push_back("SumRest");
 
 	switch (peek().type) {
+	default:
+		break;
+		
 	case Token::MINUS:
 		match.push_back(accept(Token::MINUS).value);
 		match.push_back(parseTerm(result, match));
@@ -795,9 +806,6 @@ Ref<Object> Parser::parseSumRest(Ref<Object> inherited, vector<Ref<Object> > sib
 		match.push_back(parseTerm(result, match));
 		_writer.writeInstruction(AsmScanner::TOKEN_ADD);
 		match.push_back(parseSumRest(result, match));
-		break;
-		
-	default:
 		break;
 		
 	}
@@ -869,12 +877,6 @@ Ref<Object> Parser::parsePrimaryExpr(Ref<Object> inherited, vector<Ref<Object> >
 		match.push_back(parseConstExpr(result, match));
 		break;
 		
-	case Token::LEFT_PAR:
-		match.push_back(accept(Token::LEFT_PAR).value);
-		match.push_back(parseRValue(result, match));
-		match.push_back(accept(Token::RIGHT_PAR).value);
-		break;
-		
 	case Token::IDENT:
 		match.push_back(accept(Token::IDENT).value);
 		pushSymbolValue(inherited, siblings, match, result);
@@ -882,6 +884,12 @@ Ref<Object> Parser::parsePrimaryExpr(Ref<Object> inherited, vector<Ref<Object> >
 		
 	default:
 		unexpectedToken(inherited, siblings, match, result);
+		break;
+		
+	case Token::LEFT_PAR:
+		match.push_back(accept(Token::LEFT_PAR).value);
+		match.push_back(parseRValue(result, match));
+		match.push_back(accept(Token::RIGHT_PAR).value);
 		break;
 		
 	}

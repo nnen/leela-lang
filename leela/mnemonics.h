@@ -44,7 +44,6 @@ M( LOAD_CONST,    NOOP,          LOAD_CONST,   NOOP,          NOOP,          NOO
 M( DEF_CONST,     DEF_CONST,     NOOP,         NOOP,          NOOP,          NOOP           )
 M( LOAD,          GET_ITEM,      LOAD,         NOOP,          NOOP,          NOOP           )
 M( STORE,         SET_ITEM,      STORE,        NOOP,          NOOP,          NOOP           )
-M( PULL,          NOOP,          PULL,         NOOP,          NOOP,          NOOP           )
 M( ALLOC,         NOOP,          ALLOC,        NOOP,          NOOP,          NOOP           )
 
 M( MAKE,          MAKE_TABLE,    NOOP,         MAKE_FUNCTION, MAKE_FUNCTION, NOOP           )

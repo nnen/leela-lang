@@ -57,7 +57,6 @@ OC1( LOAD_CONST,     uinteger, UInteger  )
 OC(  DEF_CONST                           )
 OC1( LOAD,           uinteger, UInteger  )
 OC1( STORE,          uinteger, UInteger  )
-OC1( PULL,           uinteger, UInteger  )
 OC1( ALLOC,          uinteger, UInteger  )
 
 // Function operations
