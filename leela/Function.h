@@ -89,6 +89,7 @@ public:
 	void pushVariable(Ref<Value> value);
 	void pushVariable();
 	
+	int        getStackSize() { return _stack.size(); }
 	void       push(Ref<Value> value);
 	Ref<Value> peek();
 	Ref<Value> pop();

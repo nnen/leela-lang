@@ -393,7 +393,9 @@ void Machine::execute(Instruction instr)
 
 void Machine::push(Ref<Value> value)
 {
-	_callStack.back()->push(value);
+	if (getFrame()->getStackSize() >= DATA_STACK_LIMIT)
+		throw RuntimeError("Data stack overflow.");
+	getFrame()->push(value);
 }
 
 Ref<Value> Machine::pop()
@@ -421,6 +423,8 @@ Ref<ActivationFrame> Machine::getFrame()
 
 void Machine::pushFrame(Ref<ActivationFrame> frame)
 {
+	if (_callStack.size() >= CALL_STACK_LIMIT)
+		throw RuntimeError("Maximal recursion depth (call stack overflow) reached.");
 	_callStack.push_back(frame);
 }
 

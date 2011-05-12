@@ -19,6 +19,9 @@
 #include "Bytecode.h"
 #include "Input.h"
 
+#define CALL_STACK_LIMIT 1000
+#define DATA_STACK_LIMIT 100
+
 using namespace std;
 
 class Machine {
@@ -33,7 +36,7 @@ public:
 
 		BUILTIN_COUNT
 	};
-
+	
 private:
 	Ref<Bytecode>                _code;
 	CallStack                    _callStack;
