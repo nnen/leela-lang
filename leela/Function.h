@@ -29,19 +29,21 @@ public:
 class Function : public Callable {
 private:
 	Address                _code;
+	Address                _staticLink;
 	int                    _paramCount;
 	vector<Ref<Variable> > _closure;
 
 public:
-	Function(Address code, int paramCount);
+	Function(Address code, Address staticLink, int paramCount);
 	virtual ~Function() {}
-
+	
 	virtual void        repr(ostream& output);
 	
 	virtual Ref<String> toString();
 	virtual void        call(Machine& machine, vector<Ref<Value> > arguments);
 	
 	Address getCode() const { return _code; }
+	Address getStaticLink() const { return _staticLink; }
 	
 	int getParamCount() const { return _paramCount; }
 	
@@ -82,6 +84,7 @@ public:
 	
 	virtual Ref<String>  toString();
 	
+	Ref<Function>        getFunction() { return _function; }
 	Ref<Variable>        getVar(int index);
 	vector<Ref<Value> >& getStack() { return _stack; }
 	

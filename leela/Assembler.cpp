@@ -98,29 +98,42 @@ void Assembler::readInstruction()
 		cerr << "Warning: Mnemonic translated as NOOP at line "
 		     << _scanner.line << "." << endl;
 	
-	#define M(m, nothing, int_op, ref_op, addr_op, reg_op)                                         \
-		case AsmScanner::TOKEN_##m:                                                               \
-			switch (_scanner.peekToken()) {                                                      \
-				case AsmScanner::TOKEN_INTEGER:                                                 \
-					instr.payload.integer = _scanner.integer;                                  \
-					_scanner.getToken();                                                       \
-					break;                                                                     \
-				case AsmScanner::TOKEN_REFERENCE:                                               \
-					instr.payload.address = getLabelAddr(_scanner.reference);                  \
-					_scanner.getToken();                                                       \
-					break;                                                                     \
-				case AsmScanner::TOKEN_ADDRESS:                                                 \
-					instr.payload.address = _scanner.address;                                \
-					_scanner.getToken();                                                     \
-					break;                                                                   \
-				case AsmScanner::TOKEN_REGISTER:                                              \
-					instr.payload.uinteger = _scanner.reg;                                   \
-					_scanner.getToken();                                                     \
-					break;                                                                   \
-				default:                                                                      \
-					break;                                                                   \
-			}                                                                                  \
-			_bytecode->writeInstr(instr);                                                       \
+	#define M(m, nothing, int_op, ref_op, addr_op, reg_op)                                 \
+		case AsmScanner::TOKEN_##m:                                                       \
+			switch (_scanner.peekToken()) {                                              \
+				case AsmScanner::TOKEN_INTEGER:                                         \
+					instr.payload.integer = _scanner.integer;                          \
+					_scanner.getToken();                                               \
+					break;                                                             \
+				case AsmScanner::TOKEN_REFERENCE:                                       \
+					instr.payload.address = getLabelAddr(_scanner.reference);          \
+					_scanner.getToken();                                               \
+					break;                                                             \
+				case AsmScanner::TOKEN_ADDRESS:                                         \
+					instr.payload.address = _scanner.address;                          \
+					_scanner.getToken();                                               \
+					break;                                                             \
+				case AsmScanner::TOKEN_REGISTER:                                        \
+					instr.opcode = (Instruction::OpCode)                               \
+						((int)instr.opcode + (int)_scanner.reg);                      \
+					_scanner.getToken();                                               \
+					switch (_scanner.peekToken()) {                                    \
+					case AsmScanner::TOKEN_REFERENCE:                                  \
+						instr.payload.address = getLabelAddr(_scanner.reference);     \
+						_scanner.getToken();                                          \
+						break;                                                        \
+					case AsmScanner::TOKEN_ADDRESS:                                    \
+						instr.payload.address = _scanner.address;                     \
+						_scanner.getToken();                                          \
+						break;                                                        \
+					default:                                                           \
+						break;                                                        \
+					}                                                                  \
+					break;                                                             \
+				default:                                                                \
+					break;                                                             \
+			}                                                                            \
+			_bytecode->writeInstr(instr);                                                \
 			break;
 	
 	switch (mnemonic) {

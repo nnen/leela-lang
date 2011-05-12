@@ -16,8 +16,8 @@
 
 /* Function *******************************************************************/
 
-Function::Function(Address code, int paramCount)
-	: _code(code), _paramCount(paramCount)
+Function::Function(Address code, Address staticLink, int paramCount)
+	: _code(code), _staticLink(staticLink), _paramCount(paramCount)
 {
 }
 
@@ -35,7 +35,7 @@ Ref<String> Function::toString()
 
 void Function::call(Machine& machine, vector<Ref<Value> > arguments)
 {
-	if (_paramCount != arguments.size())
+	if ((unsigned int) _paramCount != arguments.size())
 		throw RuntimeError("Invalid number function of arguments.");
 	
 	Ref<ActivationFrame> frame = new ActivationFrame(this);

@@ -47,6 +47,13 @@ void AsmWriter::writeLabel(string label)
 	_labels.push(label);
 }
 
+void AsmWriter::writeLabel(string label, int number)
+{
+	stringstream s;
+	s << label << "_" << number;
+	writeLabel(s.str());
+}
+
 void AsmWriter::writeMnemonic(AsmScanner::Tokens mnemonic)
 {
 	currentChunk()
@@ -66,21 +73,28 @@ void AsmWriter::writeInstruction(AsmScanner::Tokens mnemonic, Integer integer)
 {
 	writeLabels();
 	writeMnemonic(mnemonic);
-	currentChunk() << integer << endl;
+	currentChunk() << "   " << integer << endl;
 }
 
 void AsmWriter::writeInstruction(AsmScanner::Tokens mnemonic, UInteger uinteger)
 {
 	writeLabels();
 	writeMnemonic(mnemonic);
-	currentChunk() << uinteger << endl;
+	currentChunk() << "   " << uinteger << endl;
 }
 
 void AsmWriter::writeInstruction(AsmScanner::Tokens mnemonic, string reference)
 {
 	writeLabels();
 	writeMnemonic(mnemonic);
-	currentChunk() << reference << endl;
+	currentChunk() << "   " << reference << endl;
+}
+
+void AsmWriter::writeInstruction(AsmScanner::Tokens mnemonic, UInteger reg, string reference)
+{
+	writeLabels();
+	writeMnemonic(mnemonic);
+	currentChunk() << "#" << (char)('0' + reg) << " " << reference << endl;
 }
 
 void AsmWriter::write(Ref<String> string)

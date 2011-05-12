@@ -41,10 +41,12 @@ public:
 	void clear();
 	
 	void writeLabel(string label);
+	void writeLabel(string label, int number);
 	void writeInstruction(AsmScanner::Tokens mnemonic);
 	void writeInstruction(AsmScanner::Tokens mnemonic, Integer integer);
 	void writeInstruction(AsmScanner::Tokens mnemonic, UInteger uinteger);
 	void writeInstruction(AsmScanner::Tokens mnemonic, string reference);
+	void writeInstruction(AsmScanner::Tokens mnemonic, UInteger reg, string reference);
 	void write(Ref<String> string);
 	void writeComment(string comment);
 	

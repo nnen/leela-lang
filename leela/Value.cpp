@@ -353,7 +353,7 @@ bool Table::hasKey(Ref<Value> key)
 	Ref<Number> intIndex = key.as<Number>();
 	if (!intIndex.isNull() &&
 	    (intIndex->getValue() >= 0) &&
-	    (intIndex->getValue() < _array.size()))
+	    ((unsigned int) intIndex->getValue() < _array.size()))
 		return true;
 	
 	int hash = key->getHash();
@@ -372,7 +372,7 @@ void Table::set(Ref<Value> key, Ref<Value> value)
 	Ref<Number> intIndex = key.as<Number>();
 	if (!intIndex.isNull()) {
 		Integer i = intIndex->getValue();
-		if (i < _array.size()) {
+		if ((i >= 0) && ((unsigned int) i < _array.size())) {
 			_array[i] = value;
 		} else if (i == _array.size()) {
 			_array.push_back(value);

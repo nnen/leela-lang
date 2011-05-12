@@ -224,12 +224,30 @@ void Machine::do_ALLOC(UInteger count)
 		getFrame()->pushVariable();
 }
 
+#define STORE_REGISTER(number) \
+	void Machine::do_STORE_R##number(Address address) \
+	{ \
+		_registers[number] = address; \
+	} 
+
+STORE_REGISTER(0)
+STORE_REGISTER(1)
+STORE_REGISTER(2)
+STORE_REGISTER(3)
+STORE_REGISTER(4)
+STORE_REGISTER(5)
+STORE_REGISTER(6)
+STORE_REGISTER(7)
+STORE_REGISTER(8)
+STORE_REGISTER(9)
+
 /* Function operations ********************************************************/
 
 void Machine::do_MAKE_FUNCTION(Address address)
 {
 	Ref<Number> argCount = pop()->toNumber();
-	push(new Function(address, argCount->getValue()));
+	Address staticLink = getFrame()->getFunction()->getCode();
+	push(new Function(address, staticLink, argCount->getValue()));
 }
 
 void Machine::do_LOAD_CLOSURE(UInteger variable)
@@ -238,8 +256,25 @@ void Machine::do_LOAD_CLOSURE(UInteger variable)
 	
 	if (function.isNull())
 		throw RuntimeError("Expected a function on stack.");
+
+	Address contextAddress = _registers[0];
 	
-	function->pushClosure(getFrame()->getVar(variable));
+	for (CallStack::reverse_iterator i = _callStack.rbegin();
+		i != _callStack.rend();
+		i++) {
+		if ((*i)->getFunction()->getCode() == contextAddress) {
+			Ref<Variable> var = (*i)->getVar(variable);
+			if (var.isNull())
+				throw RuntimeError("Failed to load a closure");
+			function->pushClosure(var);
+			return;
+		}
+	}
+	
+	RuntimeError e;
+	e.getStream() << "Could not load a closure, because no context with the address "
+	              << contextAddress << " could be found on the stack.";
+	throw e;
 }
 
 /* Table operations ***********************************************************/
@@ -379,6 +414,22 @@ Ref<Value> Machine::getConstant(UInteger index)
 	return _constants[index];
 }
 
+/*
+Ref<Value> Machine::getRegister(UInteger reg)
+{
+	switch (reg) {
+	case REG_CA:
+		
+	case REG_FA:
+	default:
+		RuntimeError e;
+		e.getStream() << "Program attempted to access undefined register.";
+		throw e;
+		break;
+	}
+}
+*/
+
 bool Machine::step()
 {
 	if (_stop) return false;
@@ -406,7 +457,7 @@ void Machine::reset()
 
 	initBuiltins();
 	
-	Ref<Function> bootLoader = new Function(0, 0);
+	Ref<Function> bootLoader = new Function(0, 0, 0);
 	bootLoader->call(*this, vector<Ref<Value> >());
 	// _callStack.push_back(bootLoader->activate());
 	

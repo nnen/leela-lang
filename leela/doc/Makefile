@@ -1,7 +1,7 @@
 report.pdf: report.tex
-	pdflatex report.tex
-	pdflatex report.tex
-	pdflatex report.tex
+	pdflatex -draftmode -interaction errorstop report.tex
+	pdflatex -draftmode -interaction batchmode report.tex
+	pdflatex -interaction batchmode report.tex
 
 rebuild:
 	make clean

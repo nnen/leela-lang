@@ -19,6 +19,8 @@
 
 using namespace std;
 
+class Context;
+
 class Symbol : public Object {
 public:
 	enum Type {
@@ -33,17 +35,19 @@ public:
 	UInteger     index;
 	bool         indexInvalid;
 	
-	Ref<Symbol> freeVar;
+	Ref<Symbol>  freeVar;
+	int          contextId;
 	
-	Symbol(string name, Type type, Ref<Symbol> freeVar);
-	Symbol(string name, Type type);
-	Symbol(string name, Type type, int index);
+	Symbol(Ref<Context> context, string name, Type type, Ref<Symbol> freeVar);
+	Symbol(Ref<Context> context, string name, Type type);
+	Symbol(Ref<Context> context, string name, Type type, int index);
 	virtual ~Symbol() {}
 };
 
 class Context : public Object {
 private:
 	Ref<Context>              _parent;
+	int                       _id;
 	
 	map<string, Ref<Symbol> > _symbols;
 	vector<Ref<Symbol> >      _constants;
@@ -61,10 +65,13 @@ private:
 	Ref<Symbol>               getBoundVar(string name);
 	
 public:
-	Context();
-	Context(Ref<Context> parent);
+	Context(int id);
+	Context(int id, Ref<Context> parent);
 	virtual ~Context() {}
 
+	int getId() const { return _id; }
+	string getLabel() const;
+	
 	int getLocalCount() { return _symbols.size() - _paramCount - _freeVarCount; }
 	int getParamCount() { return _paramCount; }
 	int getFreeVarCount() { return _freeVarCount; }
@@ -102,6 +109,9 @@ public:
 	Ref<Context> current();
 	void         next();
 	void         close();
+
+	Ref<Context> get(int id);
+	Ref<Context> get(Ref<Symbol> symbol);
 };
 
 #endif /* end of include guard: CONTEXT_H_ZXCZC098098123BC */

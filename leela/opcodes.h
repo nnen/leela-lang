@@ -59,6 +59,19 @@ OC1( LOAD,           uinteger, UInteger  )
 OC1( STORE,          uinteger, UInteger  )
 OC1( ALLOC,          uinteger, UInteger  )
 
+#define STORE_REG( number ) \
+	OC1( STORE_R##number, address, Address )
+STORE_REG(0)
+STORE_REG(1)
+STORE_REG(2)
+STORE_REG(3)
+STORE_REG(4)
+STORE_REG(5)
+STORE_REG(6)
+STORE_REG(7)
+STORE_REG(8)
+STORE_REG(9)
+
 // Function operations
 OC1( MAKE_FUNCTION,  address,  Address   )
 OC1( LOAD_CLOSURE,   uinteger, UInteger  )

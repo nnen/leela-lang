@@ -43,7 +43,7 @@ M( DUMP_CONSTS,   DUMP_CONSTS,   NOOP,         NOOP,          NOOP,          NOO
 M( LOAD_CONST,    NOOP,          LOAD_CONST,   NOOP,          NOOP,          NOOP           )
 M( DEF_CONST,     DEF_CONST,     NOOP,         NOOP,          NOOP,          NOOP           )
 M( LOAD,          GET_ITEM,      LOAD,         NOOP,          NOOP,          NOOP           )
-M( STORE,         SET_ITEM,      STORE,        NOOP,          NOOP,          NOOP           )
+M( STORE,         SET_ITEM,      STORE,        NOOP,          NOOP,          STORE_R0       )
 M( ALLOC,         NOOP,          ALLOC,        NOOP,          NOOP,          NOOP           )
 
 M( MAKE,          MAKE_TABLE,    NOOP,         MAKE_FUNCTION, MAKE_FUNCTION, NOOP           )

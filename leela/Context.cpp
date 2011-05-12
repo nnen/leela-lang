@@ -7,6 +7,7 @@
  */
 
 #include <iostream>
+#include <sstream>
 
 #include "Context.h"
 #include "Machine.h"
@@ -31,41 +32,45 @@ Ref<Symbol> Context::getBoundVar(string name)
 	// symbol is a builtin.
 	UInteger builtinIndex;
 	if (Machine::getBuiltinIndex(name, builtinIndex))
-		return new Symbol(name, Symbol::CONSTANT, builtinIndex);
+		return new Symbol(this, name, Symbol::CONSTANT, builtinIndex);
 	
 	return NULL;
 }
 
-Symbol::Symbol(string name, Type type, Ref<Symbol> freeVar)
+Symbol::Symbol(Ref<Context> context, string name, Type type, Ref<Symbol> freeVar)
 	: Object(),
 	  name(name),
 	  type(type),
 	  index(0),
 	  indexInvalid(true),
-	  freeVar(freeVar)
+	  freeVar(freeVar),
+	  contextId(context->getId())
 {
 }
 
-Symbol::Symbol(string name, Type type)
+Symbol::Symbol(Ref<Context> context, string name, Type type)
 	: Object(),
 	  name(name),
 	  type(type),
 	  index(0),
-	  indexInvalid(true)
+	  indexInvalid(true),
+	  contextId(context->getId())
 {
 }
 
-Symbol::Symbol(string name, Type type, int index)
+Symbol::Symbol(Ref<Context> context, string name, Type type, int index)
 	: Object(),
 	  name(name),
 	  type(type),
 	  index(index),
-	  indexInvalid(false)
+	  indexInvalid(false),
+	  contextId(context->getId())
 {
 }
 
-Context::Context()
+Context::Context(int id)
 	: Object(),
+	  _id(id),
 	  _constantCount(Machine::BUILTIN_COUNT),
 	  _freeVarCount(0),
 	  _paramCount(0),
@@ -76,9 +81,10 @@ Context::Context()
 	reset();
 }
 
-Context::Context(Ref<Context> parent)
+Context::Context(int id, Ref<Context> parent)
 	: Object(),
 	  _parent(parent),
+	  _id(id),
 	  _constantCount(Machine::BUILTIN_COUNT),
 	  _freeVarCount(0),
 	  _paramCount(0),
@@ -86,6 +92,13 @@ Context::Context(Ref<Context> parent)
 	  _nextParam(0),
 	  _nextLocal(0)
 {
+}
+
+string Context::getLabel() const
+{
+	stringstream s;
+	s << "function_" << getId();
+	return s.str();
 }
 
 void Context::reset()
@@ -113,7 +126,7 @@ bool Context::addConstant(string name)
 	if (Machine::getBuiltinIndex(name, index))
 		return false;
 	
-	Ref<Symbol> constant = new Symbol(name, Symbol::CONSTANT, _constantCount++);
+	Ref<Symbol> constant = new Symbol(this, name, Symbol::CONSTANT, _constantCount++);
 	_constants.push_back(constant);
 	_symbols[name] = constant;
 	
@@ -128,7 +141,7 @@ bool Context::addParam(string name)
 		param = _symbols[name];
 		if (param->type != Symbol::PARAM) return false;
 	} else {
-		param = new Symbol(name, Symbol::PARAM);
+		param = new Symbol(this, name, Symbol::PARAM);
 		_symbols[name] = param;
 		_params.push_back(param);
 	}
@@ -147,7 +160,7 @@ bool Context::addLocal(string name)
 		local = _symbols[name];
 		if (local->type != Symbol::LOCAL) return false;
 	} else {
-		local = new Symbol(name, Symbol::LOCAL);
+		local = new Symbol(this, name, Symbol::LOCAL);
 		_symbols[name] = local;
 	}
 	
@@ -168,7 +181,7 @@ Ref<Symbol> Context::addFreeVar(string name)
 		if (var.isNull()) return NULL;
 		if (var->type == Symbol::CONSTANT) return var;
 		
-		freeVar          = new Symbol(name, Symbol::FREE_VAR, var);
+		freeVar          = new Symbol(this, name, Symbol::FREE_VAR, var);
 		_symbols[name]   = freeVar;
 		_freeVars.push_back(freeVar);
 	}
@@ -223,9 +236,9 @@ void ContextTable::next()
 	
 	Ref<Context> context;
 	if (_openContexts.size() > 0)
-		context = new Context(_openContexts.top());
+		context = new Context(_contexts.size(), _openContexts.top());
 	else
-		context = new Context();
+		context = new Context(_contexts.size());
 	
 	_contexts.push_back(context);
 	_openContexts.push(context);
@@ -236,5 +249,17 @@ void ContextTable::close()
 {
 	if (_openContexts.size() > 0)
 		_openContexts.pop();
+}
+
+Ref<Context> ContextTable::get(int id)
+{
+	if (id < 0 || id >= (int)_contexts.size())
+		return NULL;
+	return _contexts[id];
+}
+
+Ref<Context> ContextTable::get(Ref<Symbol> symbol)
+{
+	return get(symbol->contextId);
 }
 

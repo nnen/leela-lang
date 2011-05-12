@@ -123,11 +123,44 @@ argument 32 bitů. Argument může být interpretován jako celé číslo se zna
 nebo bez znaménka v závislosti na dané instrukci. Pokud daná instrukce
 argument nemá, argument se do bytekódu vůbec neukládá, což má za
 následek složitější načítání instruckí a práci s adresami, ale na
-druhou stranu to redukuje velikost bytekód.
+druhou stranu to redukuje velikost bytekódu.
 
 \subsection{Instrukce}
 
+\begin{center}
+\begin{tabular}{ l l }
+Datový typ & \verb"stdint.h" ekvivalent \\
+\hline
+\texttt{Integer}  & \verb"int32_t"  \\
+\texttt{UInteger} & \verb"uint32_t" \\
+\texttt{Address}  & \verb"uint32_t" \\
+\end{tabular}
+\end{center}
 
+Seznam není kompletní; vynechal jsem některé instrukce jako např. aritmetické
+operace nebo operace pro porovnávání v zájmu ochrany našich lesů.
+
+\begin{longtable}{ l l l p{0.5\textwidth} }
+\hline
+Opcode & Argument & Typ argumentu & Význam \\
+\hline
+\texttt{STOP} & & & Ukončuje okamžitě běh programu nezávisle na stavu zásobníkového počítače. \\
+\texttt{RETURN} & & & Vyzvedne hodnotu z dat. zásobníku aktuálního rámce, vyhodí aktuální rámec z call stacku a vrátí vyzvednutou hodnotu na dat. zásobník akt. rámce na vrchu call stacku. \\
+\texttt{CALL} & & & Vyzvedne hodnotu z vrchu dat. zásobníku, pokusí se jí konvertovat na hodnotu typu \texttt{Callable} a zavolá její metodu \texttt{Value::call}. \\
+\texttt{JUMP} & adresa & \texttt{Address} & Nastaví instruction counter aktuálního rámce na danou adresu. \\
+\verb"JUMP_IF" & adresa & \texttt{Address} & Vyzvedne hodnotu ze stacku, konvertuje ji na typ \texttt{Boolean} a pokud má hodnotu \texttt{true}, nastaví instruction counter na danou adresu. \\
+\texttt{PUSH} & number & \texttt{Integer} & Vloží na zásobník hodnotu typu \texttt{Number}. \\
+\verb"PUSH_STRING" & adresa & \texttt{Address} & Přečte z dané adresy z bytekódu textový řetězec, vytvoří nový objekt typu \texttt{String} a vloží ho na vrch dat. zásobníku. \\
+\texttt{POP} & & & Vyhodí hodnotu z vrcholu dat. zásobníku a zapomene ji. Použité pro "zapomínání" návratových hodnot funkcí, pokud nejsou ničemu přiřazované a nejsou použité v nějakém výpočtu. \\
+\verb"LOAD_CONST" & index & UInteger & Najde v poli konstant hodnotu s daným indexem a vloží ji na vrchol dat. zásobníku. \\
+\verb"DEF_CONST" & & & Zvedne hodnotu z vrcholu dat. zásobníku a vloží ji na konec pole konstant, a definuje tak vlastně novou konstantu. \\
+\texttt{LOAD} & index & UInteger & Vloží na vrchol dat. zásobníku hodnotu proměnné, která má v aktuálním kontextu daný index. \\
+\texttt{STORE} & index & UInteger & Vyzvedne ze zásobníku hodnotu a přiřadí ji proměnné s daným indexem. \\
+\texttt{ALLOC} & počet & UInteger & Přidá na konec pole proměnných aktuálního akt. rámce daný počet nových proměnných. Proměnné jsou inicializované na hodnotu typu \texttt{None}. \\ 
+\verb"MAKE_FUNCTION" & adresa & Address & Vyzvedne ze zásobníku hodnotu, pokusí se ji konvertovat na typ \texttt{Number}, vytvoří nový funkční objekt, nastaví jeho adresu kódu na hodnotu atributu instrukce a jeho počet argumentů na hodnotu vyzvednutou ze zásobníku. \\
+\verb"LOAD_CLOSURE" &
+\hline
+\end{longtable}
 
 \section{EBNF jazyka Leela}
 \label{sec:ebnf}
@@ -276,9 +309,23 @@ překlad je deterministický.
 \section{Překladač}
 \label{sec:prekladac}
 
-Překladač je implementován pomocí motedy rekurzivního sestupu. Je reprezentován
-třídou \texttt{Parser} a jeho instanční metody implementují jednotlivá pravidla
-gramatiky a sémantické akce.
+\subsection{Architektura}
+
+Leela se skládá ze tří částí:
+\begin{enumerate}
+\item Leela překladač, který přeloží zdrojový kód jazyka Leela do textového mezijazyka, Lasm,
+\item Leela assembler, který zkompiluje mezijazyk Lasm do bytekódu, Leelac
+\item a Leela machine, zásobníkový počítač, který umí přečíst bytekód a vykonat ho.
+\end{enumerate}
+
+\subsection{Implementace}
+
+Překladač je implementován pomocí motedy rekurzivního sestupu. Překladač
+nevytváří žádný AST a neprovádí žádné optimalizace. Jako pomocné struktury
+používá tabulku kontextů (každý kontext má svojí vlastní tabulku symbolů),
+tabulku řetězců a tabulku věstavených symbolů. Je reprezentován třídou
+\texttt{Parser} a jeho instanční metody implementují jednotlivá pravidla
+gramatiky a sémantické akce. 
 
 Metoda pro přijetí neterminálního symbolu má signaturu
 \begin{lstlisting}
@@ -299,6 +346,8 @@ formátu. Generátorem je skript napsaný v jazyce Python, který pomocí knihov
 jednoduchého AST a poté z těchto dat za pomocí knihovny \texttt{jinja2}
 vygeneruje část hlavičkového souboru pro třídu \texttt{Parser} a C++ soubor s
 implementacemi výše zmíněných metod.
+
+Sémantické 
 
 \end{document}
 

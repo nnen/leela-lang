@@ -152,7 +152,8 @@ SEMANTIC_ACTION(startFunction)
 	_writer.startChunk();
 	_contexts->next();
 	// _writer.pushLabel("function");
-	_writer.writeLabel(_writer.pushLabel("function"));
+	// _writer.writeLabel(_writer.pushLabel("function"));
+	_writer.writeLabel(_contexts->current()->getLabel());
 }
 
 SEMANTIC_ACTION(endFunction)
@@ -168,10 +169,15 @@ SEMANTIC_ACTION(endFunction)
 	);
 	_writer.writeInstruction(
 		AsmScanner::TOKEN_MAKE,
-		_writer.popLabel()
+		context->getLabel()
 	);
 	
 	foreach (freeVar, context->getFreeVars()) {
+		_writer.writeInstruction(
+			AsmScanner::TOKEN_STORE,
+			0, // register
+			_contexts->get((*freeVar)->freeVar)->getLabel()
+		);
 		_writer.writeInstruction(
 			AsmScanner::TOKEN_LOAD_CLOSURE,
 			(*freeVar)->freeVar->index

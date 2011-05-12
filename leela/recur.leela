@@ -1,0 +1,12 @@
+
+var fn;
+begin
+	fn := function(): begin
+		return 1 + (1 + (1 + (1 + (1 + (1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + fn())))));
+	end;
+	fn();
+	
+	fn := lambda (): fn();
+	fn();
+end
+

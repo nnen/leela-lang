@@ -85,11 +85,7 @@ AsmScanner::Tokens AsmScanner::readToken()
 	// Read register number
 	if (peek() == '#') {
 		get();
-		reg = 0;
-		while (isdigit(peek())) {
-			reg *= 10;
-			reg += get() - '0';
-		}
+		reg = get() - '0';
 		return TOKEN_REGISTER;
 	}
 	

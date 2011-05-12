@@ -21,6 +21,7 @@
 
 #define CALL_STACK_LIMIT 1000
 #define DATA_STACK_LIMIT 100
+#define REGISTER_COUNT 10
 
 using namespace std;
 
@@ -38,18 +39,19 @@ public:
 	};
 	
 private:
-	Ref<Bytecode>                _code;
-	CallStack                    _callStack;
+	Ref<Bytecode>        _code;
+	CallStack            _callStack;
 	
-	Constants                    _constants;
+	Constants            _constants;
 	
-	Instruction                  _instr;
-	bool                         _stop;
+	Instruction          _instr;
+	Address              _registers[REGISTER_COUNT];
+	bool                 _stop;
 	
 	#define OC(name) void do_##name();
 	#define OC1(name, argname, type) void do_##name(type argument);
 	#include "opcodes.h"
-
+	
 	void        initBuiltins();
 	
 	Instruction loadInstr();
@@ -73,6 +75,9 @@ public:
 	bool                 hasConstant(UInteger index);
 	void                 setConstant(UInteger index, Ref<Value> value);
 	Ref<Value>           getConstant(UInteger index);
+
+	Ref<Value>           getRegister(UInteger reg);
+	void                 setRegister(UInteger reg, Ref<Value> value);
 	
 	bool step();
 	void reset();
