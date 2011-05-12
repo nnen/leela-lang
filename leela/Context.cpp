@@ -9,11 +9,15 @@
 #include <iostream>
 
 #include "Context.h"
+#include "Machine.h"
 
 Ref<Symbol> Context::getBoundVar(string name)
 {
 	Ref<Context> context = this;
 	
+	// Iterate through all contexts between this
+	// one and the root context and return the first
+	// non-free-var symbol wih the given name.
 	while (!context.isNull()) {
 		if (context->_symbols.count(name) > 0) {
 			Ref<Symbol> var = context->_symbols[name];
@@ -22,17 +26,47 @@ Ref<Symbol> Context::getBoundVar(string name)
 		}
 		context = context->_parent;
 	}
+
+	// If we're in the root context, check whether the
+	// symbol is a builtin.
+	UInteger builtinIndex;
+	if (Machine::getBuiltinIndex(name, builtinIndex))
+		return new Symbol(name, Symbol::CONSTANT, builtinIndex);
 	
 	return NULL;
 }
 
+Symbol::Symbol(string name, Type type, Ref<Symbol> freeVar)
+	: Object(),
+	  name(name),
+	  type(type),
+	  index(0),
+	  indexInvalid(true),
+	  freeVar(freeVar)
+{
+}
+
 Symbol::Symbol(string name, Type type)
-	: Object(), name(name), type(type), index(0), indexInvalid(true)
+	: Object(),
+	  name(name),
+	  type(type),
+	  index(0),
+	  indexInvalid(true)
+{
+}
+
+Symbol::Symbol(string name, Type type, int index)
+	: Object(),
+	  name(name),
+	  type(type),
+	  index(index),
+	  indexInvalid(false)
 {
 }
 
 Context::Context()
 	: Object(),
+	  _constantCount(Machine::BUILTIN_COUNT),
 	  _freeVarCount(0),
 	  _paramCount(0),
 	  _nextFreeVar(0),
@@ -45,6 +79,7 @@ Context::Context()
 Context::Context(Ref<Context> parent)
 	: Object(),
 	  _parent(parent),
+	  _constantCount(Machine::BUILTIN_COUNT),
 	  _freeVarCount(0),
 	  _paramCount(0),
 	  _nextFreeVar(0),
@@ -60,7 +95,29 @@ void Context::reset()
 	_nextLocal   = 0;
 	
 	foreach(pair, _symbols)
-		(*pair).second->indexInvalid = true;
+		if (pair->second->type != Symbol::CONSTANT)
+			pair->second->indexInvalid = true;
+
+	_constants.clear();
+}
+
+bool Context::addConstant(string name)
+{
+	if (!_parent.isNull())
+		return _parent->addConstant(name);
+	
+	// if (_symbols.count(name) > 0) return false;
+	if (_symbols.count(name) > 0) return true;
+	
+	UInteger index = 0;
+	if (Machine::getBuiltinIndex(name, index))
+		return false;
+	
+	Ref<Symbol> constant = new Symbol(name, Symbol::CONSTANT, _constantCount++);
+	_constants.push_back(constant);
+	_symbols[name] = constant;
+	
+	return true;
 }
 
 bool Context::addParam(string name)
@@ -109,9 +166,9 @@ Ref<Symbol> Context::addFreeVar(string name)
 	} else {
 		Ref<Symbol> var = getBoundVar(name);
 		if (var.isNull()) return NULL;
+		if (var->type == Symbol::CONSTANT) return var;
 		
-		freeVar          = new Symbol(name, Symbol::FREE_VAR);
-		freeVar->freeVar = var;
+		freeVar          = new Symbol(name, Symbol::FREE_VAR, var);
 		_symbols[name]   = freeVar;
 		_freeVars.push_back(freeVar);
 	}
@@ -133,7 +190,7 @@ Ref<Symbol> Context::getSymbol(string name)
 		symbol = _symbols[name];
 	else
 		symbol = addFreeVar(name);
-	
+
 	if (!symbol.isNull() && (symbol->type == Symbol::FREE_VAR) && symbol->indexInvalid) {
 		symbol->index        = _nextFreeVar++;
 		symbol->indexInvalid = false;

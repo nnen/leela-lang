@@ -314,10 +314,6 @@ Instruction Machine::loadInstr()
 void Machine::execute(Instruction instr)
 {
 	_instr = instr;
-
-	//cout << "Executing: ";
-	//instr.print(cout);
-	//cout << endl;
 	
 	switch (instr.opcode) {
 	#define OC(name) case Instruction::name: do_##name(); break;
@@ -327,68 +323,6 @@ void Machine::execute(Instruction instr)
 		throw RuntimeError("Unknown instruction.");
 		break;
 	}
-	
-	/*
-	switch (instr.opcode) {
-	case Instruction::STOP:
-		_stop = true;
-		break;
-	case Instruction::NOOP:
-		break;
-	case Instruction::POP:
-		pop();
-		break;
-	case Instruction::CALL: {
-		Ref<Function> fn = pop().as<Function>();
-		pushFrame(fn->activate());
-		} break;
-	case Instruction::RETURN: {
-		Ref<Value> val = pop();
-		popFrame();
-		push(val);
-		} break;
-	case Instruction::PRINT:
-		cout << *pop() << endl;
-		break;
-	
-	case Instruction::DUMP_STACK:
-		dumpStack(cout);
-		break;
-	
-	case Instruction::PUSH:
-		push(new Number(instr.payload.integer));
-		break;
-	case Instruction::LOAD:
-		push(getFrame()->getVar(instr.payload.uinteger)->getValue());
-		break;
-	case Instruction::STORE:
-		getFrame()->getVar(instr.payload.uinteger)->setValue(pop());
-		break;
-	
-	case Instruction::MAKE_FUNCTION:
-		// TODO: Figure out how to pass number of arguments to a function constructor.
-		push(new Function(instr.payload.address, 0));
-		break;
-	case Instruction::LOAD_CLOSURE: {
-		Ref<Function> function = pop().as<Function>();
-		if (function.isNull())
-			throw RuntimeError(*this, "Expected function on top of the stack.");
-		function->pushClosure(getFrame()->getVar(instr.payload.uinteger));
-		push(function);
-		} break;
-	case Instruction::PULL:
-		do_PULL(instr);
-		break;
-	case Instruction::ALLOC: {
-		for (int i = 0; i < (int) instr.payload.uinteger; i++)
-			getFrame()->pushVariable();
-		} break;
-	
-	default:
-		throw RuntimeError(*this, "Unknown or unimplemented instruction code.");
-		break;
-	}
-	*/
 }
 
 void Machine::push(Ref<Value> value)

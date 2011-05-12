@@ -36,8 +36,6 @@ AssignIndex        -> assign RValue :STORE
                     | :LOAD period ident !identToString AssignIndex
                     | :LOAD left_bra RValue right_bra AssignIndex .
 
-LValue             -> ident LValueRest .
-LValueRest         -> Index LValueRest | .
 RValue             -> Expression
                     | function !startFunction left_par ArgNameList right_par colon FunctionPreamble !allocLocals Statement :PUSH :RETURN !endFunction
                     | lambda !startFunction left_par ArgNameList right_par colon RValue :RETURN !endFunction .
@@ -45,27 +43,27 @@ RValue             -> Expression
 FunctionPreamble   -> VarDecl FunctionPreamble
                     | .
 
-Expression         -> Mult ExpressionRest .
-ExpressionRest     -> equals Mult :EQUALS ExpressionRest
-                    | not_equals Mult :EQUALS :NOT ExpressionRest
-                    | left_angle Mult :LESS ExpressionRest
-                    | right_angle Mult :GREATER ExpressionRest
-                    | less_or_eq Mult :LESS_OR_EQ ExpressionRest
-                    | greater_or_eq Mult :GREATER_OR_EQ ExpressionRest
+Expression         -> Sum ExpressionRest .
+ExpressionRest     -> equals Sum :EQUALS ExpressionRest
+                    | not_equals Sum :EQUALS :NOT ExpressionRest
+                    | left_angle Sum :LESS ExpressionRest
+                    | right_angle Sum :GREATER ExpressionRest
+                    | less_or_eq Sum :LESS_OR_EQ ExpressionRest
+                    | greater_or_eq Sum :GREATER_OR_EQ ExpressionRest
                     | .
-Mult               -> Term MultRest
-                    | minus Term MultRest .
-MultRest           -> plus Term :ADD MultRest
-                    | minus Term :SUB MultRest
+Sum                -> Term SumRest
+                    | minus Term SumRest .
+SumRest            -> plus Term :ADD SumRest
+                    | minus Term :SUB SumRest
                     | .
 Term               -> Factor TermRest .
 TermRest           -> asterix Factor :MUL TermRest
                     | slash Factor :DIV TermRest
                     | .
-Factor             -> PrimaryExpr
+Factor             -> PrimaryExpr PostfixOp .
+PrimaryExpr        -> ident !pushSymbolValue
                     | ConstExpr
-                    | left_par RValue right_par PostfixOp .
-PrimaryExpr        -> ident !getSymbolValue PostfixOp .
+				| left_par RValue right_par .
 PostfixOp          -> left_bra Expression :LOAD right_bra PostfixOp
                     | left_par ParamList !writeCall right_par PostfixOp
                     | .

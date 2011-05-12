@@ -12,8 +12,8 @@
 Ref<Object> Parser::parse{{ nonterminal.name }}(Ref<Object> inherited, vector<Ref<Object> > siblings)
 {
 	vector<Ref<Object> > match;
-	Ref<Object> result;
-
+	Ref<Object>          result;
+	
 	_nonterminals.push_back("{{ nonterminal }}");
 
 	switch (peek().type) {

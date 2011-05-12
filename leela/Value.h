@@ -179,6 +179,12 @@ public:
 /* Table **********************************************************************/
 
 class Table : public Value {
+public:
+	class Iterator;
+	friend class Iterator;
+
+	typedef vector<Ref<Value> >           Array;
+	typedef map<int, vector<ValuePair>* > Map;
 private:
 	vector<Ref<Value> >           _array;
 	map<int, vector<ValuePair>* > _table;
@@ -195,6 +201,33 @@ public:
 	Ref<Value> get(Ref<Value> key, Ref<Value> deflt);
 	
 	int        getSize() { return _table.size(); }
+
+	/*
+	Iterator   begin();
+	Iterator   end();
+	
+	class Iterator {
+	private:
+		Table&          _table;           
+		Array::iterator _arrayIterator;
+		Map::iteraotr   _mapIterator;
+		int             _index;
+
+		bool isInArray();
+	
+	public:
+		Iterator(const Table& table);
+		Iterator(const Iterator& other);
+		
+		Iterator& operator++(int i);
+		Iterator& operator+=(int i);
+		
+		bool      operator==(const Iterator& other);
+		
+		ValuePair& operator*();
+		ValuePair* operator->();
+	}
+	*/
 };
 
 /* Variable *******************************************************************/

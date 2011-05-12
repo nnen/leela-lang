@@ -55,17 +55,17 @@ private:
 	Ref<Output>        _output;
 	Ref<Lexer>         _lexer;
 	
-	Ref<ContextTable>     _contexts;
-	map<string, UInteger> _constants;
-	Ref<StringTable>      _strings;
-	AsmWriter             _writer;
-
-	vector<string>        _nonterminals;
+	int                _pass;
+	Ref<ContextTable>  _contexts;
+	Ref<StringTable>   _strings;
+	AsmWriter          _writer;
+	
+	vector<string>     _nonterminals;
 	
 	Token peek() { return _lexer->peek(); }
 	Token accept() { return _lexer->get(); }
 	Token accept(Token::Type type);
-	
+
 	/*
 	void startContext(vector<Ref<Object> >& match, Ref<Object>& result);
 	void endContext(vector<Ref<Object> >& match, Ref<Object>& result);

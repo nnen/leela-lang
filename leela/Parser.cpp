@@ -196,11 +196,21 @@ SEMANTIC_ACTION(endFunction)
 
 SEMANTIC_ACTION(addConst)
 {
-	Ref<String> ident = match[match.size() - 3];
-	Ref<Value>  value = match[match.size() - 1];
+	if (_pass < 2) {
+		Ref<String> ident = match[match.size() - 3];
+		Ref<Value>  value = match[match.size() - 1];
+		
+		if (!_contexts->current()->addConstant(ident->getValue())) {
+			SyntaxError e(*this);
+			e.getStream() << "Symbol \"" << ident->getValue()
+				<< "\" has already been defined or is a builtin.";
+			throw e;
+		}
+	}
 	
-	UInteger index = Machine::BUILTIN_COUNT + _constants.size();
-	_constants[ident->getValue()] = index;
+	// Instruction to push constant value on stack has been
+	// already outputted by the rule for ConstExpr nonterminal
+	// symbol.
 	
 	_writer.writeInstruction(
 		AsmScanner::TOKEN_DEF_CONST);
@@ -208,6 +218,7 @@ SEMANTIC_ACTION(addConst)
 
 SEMANTIC_ACTION(addLocal)
 {
+	if (_pass > 1) return;
 	_contexts->current()->addLocal(match.back().as<String>()->getValue());
 }
 
@@ -221,6 +232,7 @@ SEMANTIC_ACTION(allocLocals)
 
 SEMANTIC_ACTION(addArg)
 {
+	if (_pass > 1) return;
 	_contexts->current()->addParam(match.back().as<String>()->getValue());
 }
 
@@ -240,18 +252,21 @@ SEMANTIC_ACTION(pushString)
 	);
 }
 
-SEMANTIC_ACTION(getSymbolValue)
+SEMANTIC_ACTION(pushSymbolValue)
 {
 	string ident = ((Ref<String>) match.back())->getValue();
 	
 	// Check whether the symbol is a builtin
+	/*
 	UInteger index = 0;
 	if (Machine::getBuiltinIndex(ident, index)) {
 		_writer.writeInstruction(AsmScanner::TOKEN_LOAD_CONST, index);
 		return;
 	}
+	*/
 	
 	// Check whether the symbol is a constant
+	/*
 	if (_constants.count(ident) > 0) {
 		_writer.writeInstruction(
 			AsmScanner::TOKEN_LOAD_CONST,
@@ -259,14 +274,21 @@ SEMANTIC_ACTION(getSymbolValue)
 		);
 		return;
 	}
+	*/
 	
 	// Find the symbol definition in the local context
 	Ref<Symbol> symbol =
 		_contexts->current()->getSymbol(ident);
 	if (symbol.isNull())
 		onUndefinedSymbol(ident);
-	// Write LOAD instruction for the symbol found	
-	_writer.writeInstruction(AsmScanner::TOKEN_LOAD, symbol->index);
+	
+	if (symbol->type == Symbol::CONSTANT) {
+		// Write LOAD_CONST instruction for the symbol found
+		_writer.writeInstruction(AsmScanner::TOKEN_LOAD_CONST, symbol->index);
+	} else {
+		// Write LOAD instruction for the symbol found	
+		_writer.writeInstruction(AsmScanner::TOKEN_LOAD, symbol->index);
+	}
 }
 
 SEMANTIC_ACTION(writeCall)
@@ -313,13 +335,6 @@ SEMANTIC_ACTION(getValueForLookup)
 	);
 }
 
-/*
-SEMANTIC_ACTION(assignIndex)
-{
-	// TODO: Implement the "assignIndex" semantic actions.
-}
-*/
-
 SEMANTIC_ACTION(identToString)
 {
 	Ref<String> ident = (Ref<String>) match.back();
@@ -340,13 +355,6 @@ void Parser::unexpectedToken(Ref<Object> inherited,
 	throw SyntaxError(_lexer->peek(), s.str());
 }
 
-/*
-void Parser::syntaxError(int line, string message)
-{
-	cerr << "Syntax error at line " << line << ": " << message << endl;
-}
-*/
-
 void Parser::onUndefinedSymbol(string name)
 {
 	SyntaxError e(*this);
@@ -358,11 +366,12 @@ bool Parser::parse(Ref<Input> input, Ref<Output> output)
 {
 	// 1. pass
 	
+	_pass = 1;
 	_input = new BufferedInput(*input);
 	_output = output;
 	_lexer = new Lexer(_input);
 	_contexts = new ContextTable();
-	_constants.clear();
+	// _constants.clear();
 	_strings = new StringTable();
 	_nonterminals.clear();
 	_writer.clear();
@@ -381,10 +390,11 @@ bool Parser::parse(Ref<Input> input, Ref<Output> output)
 	
 	// 2. pass
 	
+	_pass = 2;
 	_input->rewind();
 	_lexer = new Lexer(_input);
 	_contexts->reset();
-	_constants.clear();
+	// _constants.clear();
 	_nonterminals.clear();
 	_writer.clear();
 	

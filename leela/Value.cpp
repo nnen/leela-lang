@@ -418,6 +418,41 @@ Ref<Value> Table::get(Ref<Value> key, Ref<Value> dflt)
 	return dflt;
 }
 
+/*
+bool Table::Iterator::isInArray()
+{
+	return (_arrayIteraotr != _table._array.end());
+}
+
+Table::Iterator::Iterator(const Table& table)
+	: _table(table);
+{
+	_arrayIterator = table._array.begin();
+	_mapIterator   = table._table.end();
+}
+
+Table::Iterator::Iterator(const Iterator& other)
+	: _table(other._table)
+{
+	_arrayIterator = other._arrayIterator;
+	_mapIterator   = other._mapIterator;
+}
+
+Iterator& Table::Iterator::operator++(int i)
+{
+	if (_arrayIterator != _table._array.end()) {
+		_arrayIterator++;
+		if (_arrayIterator == _table._array.end())
+			_mapIterator = _table._table.begin();
+	}
+
+	if (_mapIterator != _table._table.end())
+		_mapIterator++;
+	
+	return *this;
+}
+*/
+
 /* Variable *******************************************************************/
 
 void Variable::repr(ostream& output)

@@ -22,19 +22,22 @@ using namespace std;
 class Symbol : public Object {
 public:
 	enum Type {
+		CONSTANT,
 		FREE_VAR,
 		PARAM,
 		LOCAL
 	};
 	
-	string      name;
-	Type        type;
-	UInteger    index;
-	bool        indexInvalid;
+	string       name;
+	Type         type;
+	UInteger     index;
+	bool         indexInvalid;
 	
 	Ref<Symbol> freeVar;
 	
+	Symbol(string name, Type type, Ref<Symbol> freeVar);
 	Symbol(string name, Type type);
+	Symbol(string name, Type type, int index);
 	virtual ~Symbol() {}
 };
 
@@ -43,18 +46,20 @@ private:
 	Ref<Context>              _parent;
 	
 	map<string, Ref<Symbol> > _symbols;
+	vector<Ref<Symbol> >      _constants;
 	vector<Ref<Symbol> >      _params;
 	vector<Ref<Symbol> >      _freeVars;
 	
+	int                       _constantCount;
 	int                       _freeVarCount;
 	int                       _paramCount;
 	
 	int                       _nextFreeVar;
 	int                       _nextParam;
 	int                       _nextLocal;
-
+	
 	Ref<Symbol>               getBoundVar(string name);
-
+	
 public:
 	Context();
 	Context(Ref<Context> parent);
@@ -63,7 +68,7 @@ public:
 	int getLocalCount() { return _symbols.size() - _paramCount - _freeVarCount; }
 	int getParamCount() { return _paramCount; }
 	int getFreeVarCount() { return _freeVarCount; }
-
+	
 	vector<Ref<Symbol> >& getFreeVars() { return _freeVars; }
 	
 	/**
@@ -71,12 +76,11 @@ public:
 	 */
 	void reset();
 	
+	bool addConstant(string name);
 	bool addParam(string name);
 	bool addLocal(string name);
 	Ref<Symbol> addFreeVar(string name);
 	Ref<Symbol> getSymbol(string name);
-	
-	// Ref<Symbol> getSymbol(string name);
 };
 
 class ContextTable : public Object {

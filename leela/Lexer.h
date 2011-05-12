@@ -18,7 +18,7 @@
 #include "Input.h"
 #include "Output.h"
 
-#define LEXER_STATES \
+#define LEXER_STATES  \
 	S( INIT )        \
 	S( COMMENT )     \
 	S( IDENT )       \

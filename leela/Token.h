@@ -28,7 +28,7 @@ public:
 	CharLocation() : line(0), column(-1) {}
 	CharLocation(int line, int column) : line(line), column(column) {}
 	CharLocation(const CharLocation& other) : line(other.line), column(other.column) {}
-
+	
 	CharLocation& operator ++ (int dummy) { column++; return *this; }
 	CharLocation& operator += (int width) { column += width; return *this; }
 	

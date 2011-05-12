@@ -8,20 +8,19 @@
 
 enum Nonterminals {
 	VAR_DECL,
-	VAR_DECL_REST,
+	SUM,
 	CONST_EXPR,
 	PROGRAM,
 	STATEMENT,
 	FACTOR,
 	CONST_DECL_REST,
 	TERM_REST,
-	L_VALUE,
+	ASSIGNMENT,
 	ARG_NAME_LIST,
 	ARG_NAME_LIST_REST,
 	STATEMENT_REST,
 	PREAMBLE,
-	ELSE_STMT,
-	MULT,
+	VAR_DECL_REST,
 	TERM,
 	ASSIGN_INDEX,
 	R_VALUE,
@@ -31,12 +30,11 @@ enum Nonterminals {
 	EXPRESSION_REST,
 	POSTFIX_OP,
 	ASSIGN_VAR,
-	CONST_DECL,
+	SUM_REST,
 	FUNCTION_PREAMBLE,
-	L_VALUE_REST,
-	ASSIGNMENT,
+	ELSE_STMT,
 	PRIMARY_EXPR,
-	MULT_REST,
+	CONST_DECL,
 	COMPOUND_STMT,
 	NONTEMRINAL_COUNT
 };
@@ -46,20 +44,19 @@ private:
 /* Nonterminals ****************************************/
 
 Ref<Object> parseVarDecl(Ref<Object> inherited, vector<Ref<Object> > siblings);
-Ref<Object> parseVarDeclRest(Ref<Object> inherited, vector<Ref<Object> > siblings);
+Ref<Object> parseSum(Ref<Object> inherited, vector<Ref<Object> > siblings);
 Ref<Object> parseConstExpr(Ref<Object> inherited, vector<Ref<Object> > siblings);
 Ref<Object> parseProgram(Ref<Object> inherited, vector<Ref<Object> > siblings);
 Ref<Object> parseStatement(Ref<Object> inherited, vector<Ref<Object> > siblings);
 Ref<Object> parseFactor(Ref<Object> inherited, vector<Ref<Object> > siblings);
 Ref<Object> parseConstDeclRest(Ref<Object> inherited, vector<Ref<Object> > siblings);
 Ref<Object> parseTermRest(Ref<Object> inherited, vector<Ref<Object> > siblings);
-Ref<Object> parseLValue(Ref<Object> inherited, vector<Ref<Object> > siblings);
+Ref<Object> parseAssignment(Ref<Object> inherited, vector<Ref<Object> > siblings);
 Ref<Object> parseArgNameList(Ref<Object> inherited, vector<Ref<Object> > siblings);
 Ref<Object> parseArgNameListRest(Ref<Object> inherited, vector<Ref<Object> > siblings);
 Ref<Object> parseStatementRest(Ref<Object> inherited, vector<Ref<Object> > siblings);
 Ref<Object> parsePreamble(Ref<Object> inherited, vector<Ref<Object> > siblings);
-Ref<Object> parseElseStmt(Ref<Object> inherited, vector<Ref<Object> > siblings);
-Ref<Object> parseMult(Ref<Object> inherited, vector<Ref<Object> > siblings);
+Ref<Object> parseVarDeclRest(Ref<Object> inherited, vector<Ref<Object> > siblings);
 Ref<Object> parseTerm(Ref<Object> inherited, vector<Ref<Object> > siblings);
 Ref<Object> parseAssignIndex(Ref<Object> inherited, vector<Ref<Object> > siblings);
 Ref<Object> parseRValue(Ref<Object> inherited, vector<Ref<Object> > siblings);
@@ -69,12 +66,11 @@ Ref<Object> parseExpression(Ref<Object> inherited, vector<Ref<Object> > siblings
 Ref<Object> parseExpressionRest(Ref<Object> inherited, vector<Ref<Object> > siblings);
 Ref<Object> parsePostfixOp(Ref<Object> inherited, vector<Ref<Object> > siblings);
 Ref<Object> parseAssignVar(Ref<Object> inherited, vector<Ref<Object> > siblings);
-Ref<Object> parseConstDecl(Ref<Object> inherited, vector<Ref<Object> > siblings);
+Ref<Object> parseSumRest(Ref<Object> inherited, vector<Ref<Object> > siblings);
 Ref<Object> parseFunctionPreamble(Ref<Object> inherited, vector<Ref<Object> > siblings);
-Ref<Object> parseLValueRest(Ref<Object> inherited, vector<Ref<Object> > siblings);
-Ref<Object> parseAssignment(Ref<Object> inherited, vector<Ref<Object> > siblings);
+Ref<Object> parseElseStmt(Ref<Object> inherited, vector<Ref<Object> > siblings);
 Ref<Object> parsePrimaryExpr(Ref<Object> inherited, vector<Ref<Object> > siblings);
-Ref<Object> parseMultRest(Ref<Object> inherited, vector<Ref<Object> > siblings);
+Ref<Object> parseConstDecl(Ref<Object> inherited, vector<Ref<Object> > siblings);
 Ref<Object> parseCompoundStmt(Ref<Object> inherited, vector<Ref<Object> > siblings);
 
 
@@ -101,11 +97,6 @@ void startFunction(
 	Match& matched,
 	Ref<Object>& result);
 void ifJump(
-	Ref<Object> inherited,
-	Match siblings,
-	Match& matched,
-	Ref<Object>& result);
-void getSymbolValue(
 	Ref<Object> inherited,
 	Match siblings,
 	Match& matched,
@@ -176,6 +167,11 @@ void writeStrings(
 	Match& matched,
 	Ref<Object>& result);
 void addLocal(
+	Ref<Object> inherited,
+	Match siblings,
+	Match& matched,
+	Ref<Object>& result);
+void pushSymbolValue(
 	Ref<Object> inherited,
 	Match siblings,
 	Match& matched,
