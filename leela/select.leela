@@ -1,0 +1,42 @@
+
+var selectSort, findMin, swap, array;
+begin
+	swap := function (array, a, b):
+	var temp;
+	begin
+		if a = b then return none;
+		temp := array[a];
+		array[a] := array[b];
+		array[b] := temp;
+	end;
+	
+	findMin := function (array, start):
+	var result, i;
+	begin
+		result := start;
+		i := start + 1;
+		while i < size(array) do begin
+			if array[i] < array[result] then
+				result := i;
+			i := i + 1;
+		end;
+		return result;
+	end;
+	
+	selectSort := function (array, start): begin
+		if start >= (size(array) - 1) then return none;
+		swap(array, start, findMin(array, start));
+		selectSort(array, start + 1);
+	end;
+	
+	array := table();
+	array[0] := 3;
+	array[1] := 1;
+	array[2] := 5;
+	array[3] := 6;
+	array[4] := 0;
+	print array;
+	selectSort(array, 0);
+	print array;
+end
+

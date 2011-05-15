@@ -128,12 +128,12 @@ druhou stranu to redukuje velikost bytekódu.
 \subsection{Instrukce}
 
 \begin{center}
-\begin{tabular}{ l l }
-Datový typ & \verb"stdint.h" ekvivalent \\
+\begin{tabular}{ l l l }
+Datový typ & \verb"stdint.h" ekvivalent & Popis \\
 \hline
-\texttt{Integer}  & \verb"int32_t"  \\
-\texttt{UInteger} & \verb"uint32_t" \\
-\texttt{Address}  & \verb"uint32_t" \\
+\texttt{Integer}  & \verb"int32_t" & signed 32 bit integer \\
+\texttt{UInteger} & \verb"uint32_t" & unsigned 32 bit integer \\
+\texttt{Address}  & \verb"uint32_t" & unsigned 32 bit integer \\
 \end{tabular}
 \end{center}
 
@@ -144,6 +144,7 @@ operace nebo operace pro porovnávání v zájmu ochrany našich lesů.
 \hline
 Opcode & Argument & Typ argumentu & Význam \\
 \hline
+\endhead
 \texttt{STOP} & & & Ukončuje okamžitě běh programu nezávisle na stavu zásobníkového počítače. \\
 \texttt{RETURN} & & & Vyzvedne hodnotu z dat. zásobníku aktuálního rámce, vyhodí aktuální rámec z call stacku a vrátí vyzvednutou hodnotu na dat. zásobník akt. rámce na vrchu call stacku. \\
 \texttt{CALL} & & & Vyzvedne hodnotu z vrchu dat. zásobníku, pokusí se jí konvertovat na hodnotu typu \texttt{Callable} a zavolá její metodu \texttt{Value::call}. \\
@@ -152,13 +153,14 @@ Opcode & Argument & Typ argumentu & Význam \\
 \texttt{PUSH} & number & \texttt{Integer} & Vloží na zásobník hodnotu typu \texttt{Number}. \\
 \verb"PUSH_STRING" & adresa & \texttt{Address} & Přečte z dané adresy z bytekódu textový řetězec, vytvoří nový objekt typu \texttt{String} a vloží ho na vrch dat. zásobníku. \\
 \texttt{POP} & & & Vyhodí hodnotu z vrcholu dat. zásobníku a zapomene ji. Použité pro "zapomínání" návratových hodnot funkcí, pokud nejsou ničemu přiřazované a nejsou použité v nějakém výpočtu. \\
-\verb"LOAD_CONST" & index & UInteger & Najde v poli konstant hodnotu s daným indexem a vloží ji na vrchol dat. zásobníku. \\
+\verb"LOAD_CONST" & index & \texttt{UInteger} & Najde v poli konstant hodnotu s daným indexem a vloží ji na vrchol dat. zásobníku. \\
 \verb"DEF_CONST" & & & Zvedne hodnotu z vrcholu dat. zásobníku a vloží ji na konec pole konstant, a definuje tak vlastně novou konstantu. \\
-\texttt{LOAD} & index & UInteger & Vloží na vrchol dat. zásobníku hodnotu proměnné, která má v aktuálním kontextu daný index. \\
-\texttt{STORE} & index & UInteger & Vyzvedne ze zásobníku hodnotu a přiřadí ji proměnné s daným indexem. \\
-\texttt{ALLOC} & počet & UInteger & Přidá na konec pole proměnných aktuálního akt. rámce daný počet nových proměnných. Proměnné jsou inicializované na hodnotu typu \texttt{None}. \\ 
-\verb"MAKE_FUNCTION" & adresa & Address & Vyzvedne ze zásobníku hodnotu, pokusí se ji konvertovat na typ \texttt{Number}, vytvoří nový funkční objekt, nastaví jeho adresu kódu na hodnotu atributu instrukce a jeho počet argumentů na hodnotu vyzvednutou ze zásobníku. \\
-\verb"LOAD_CLOSURE" &
+\texttt{LOAD} & index & \texttt{UInteger} & Vloží na vrchol dat. zásobníku hodnotu proměnné, která má v aktuálním kontextu daný index. \\
+\texttt{STORE} & index & \texttt{UInteger} & Vyzvedne ze zásobníku hodnotu a přiřadí ji proměnné s daným indexem. \\
+\texttt{ALLOC} & počet & \texttt{UInteger} & Přidá na konec pole proměnných aktuálního akt. rámce daný počet nových proměnných. Proměnné jsou inicializované na hodnotu typu \texttt{None}. \\ 
+\verb"STORE_R[0-9]" & adresa & \texttt{Address} & Uloží hodnotu svého argumentu do registru 0-9. \\
+\verb"MAKE_FUNCTION" & adresa & \texttt{Address} & Vyzvedne ze zásobníku hodnotu, pokusí se ji konvertovat na typ \texttt{Number}, vytvoří nový funkční objekt, nastaví jeho adresu kódu na hodnotu atributu instrukce a jeho počet argumentů na hodnotu vyzvednutou ze zásobníku. \\
+\verb"LOAD_CLOSURE" & index & \texttt{UInteger} & Vyhledá na zasobníku nejbližší rámec, jehož funkce má stejnou adresu jako adresa uložená v registru 0 a z tohoto rámce zkopíruje referenci na proměnnou s daným indexem do uzávěry funkčního objektu na vrchu dat. zásobníku. \\
 \hline
 \end{longtable}
 
@@ -322,10 +324,18 @@ Leela se skládá ze tří částí:
 
 Překladač je implementován pomocí motedy rekurzivního sestupu. Překladač
 nevytváří žádný AST a neprovádí žádné optimalizace. Jako pomocné struktury
-používá tabulku kontextů (každý kontext má svojí vlastní tabulku symbolů),
-tabulku řetězců a tabulku věstavených symbolů. Je reprezentován třídou
-\texttt{Parser} a jeho instanční metody implementují jednotlivá pravidla
-gramatiky a sémantické akce. 
+používá
+\begin{itemize}
+\item tabulku kontextů (každý kontext má svojí vlastní tabulku symbolů),
+\item tabulku textových řetězců,
+\item tabulku věstavených symbolů (hardcoded)
+\item a zapisovač mezijazyka (obsahuje tabulku bloků výstupu, které odpovídají
+      jednotlivým zanořeným lambda výrazům a anonymním metodám - v kódu jsou
+      do sebe jednotlivé kontexty zanořené, ale na výstupu jsou seřazené linárně
+      za sebou).
+\end{itemize}
+Je reprezentován třídou \texttt{Parser} a jeho instanční metody implementují
+jednotlivá pravidla gramatiky a sémantické akce. 
 
 Metoda pro přijetí neterminálního symbolu má signaturu
 \begin{lstlisting}
@@ -347,7 +357,19 @@ jednoduchého AST a poté z těchto dat za pomocí knihovny \texttt{jinja2}
 vygeneruje část hlavičkového souboru pro třídu \texttt{Parser} a C++ soubor s
 implementacemi výše zmíněných metod.
 
-Sémantické 
+Sémantické akce jsou implementovány ručně. Jejich signature je
+\begin{lstlisting}
+void Parser::name(Ref<Object> inherited,
+                  vector<Ref<Object> > siblings, 
+                  vector<Ref<Object> >& match,
+                  Ref<Object>& result);
+\end{lstlisting}
+kde \texttt{match} je seznam syntetizovaných atributů symbolů, které v daném
+neterminálu předcházely volané sémantické akci. Parametr \texttt{result} je
+reference na proměnnou, která drží syntetizovaný atribut neterminálu, který
+sémantickou akci vyvolal. Pomocí tohoto parametru může sémantická akce změnit
+hodnotu syntetizováného atributu svého neterminálu. Parametry \texttt{inherited}
+a \texttt{siblings} jsou obdobné jako u metod pro neterminální symboly.
 
 \end{document}
 

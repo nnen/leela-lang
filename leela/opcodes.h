@@ -46,6 +46,9 @@ OC(  GREATER                             )
 OC(  LESS_OR_EQ                          )
 OC(  GREATER_OR_EQ                       )
 
+OC(  AND                                 )
+OC(  OR                                  )
+
 // IO operations
 OC(  PRINT                               )
 OC(  DUMP                                )

@@ -44,16 +44,20 @@ RValue             -> Expression
 FunctionPreamble   -> VarDecl FunctionPreamble
                     | .
 
-Expression         -> Sum ExpressionRest .
-ExpressionRest     -> equals Sum :EQUALS ExpressionRest
-                    | not_equals Sum :EQUALS :NOT ExpressionRest
-                    | left_angle Sum :LESS ExpressionRest
-                    | right_angle Sum :GREATER ExpressionRest
-                    | less_or_eq Sum :LESS_OR_EQ ExpressionRest
-                    | greater_or_eq Sum :GREATER_OR_EQ ExpressionRest
+Expression         -> Comparsion ExpressionRest .
+ExpressionRest     -> and Comparsion :AND ExpressionRest
+                    | or Comparsion :OR ExpressionRest
+                    | .
+Comparsion         -> Sum ComparsionRest .
+ComparsionRest     -> equals Sum :EQUALS ComparsionRest
+                    | not_equals Sum :EQUALS :NOT ComparsionRest
+                    | left_angle Sum :LESS ComparsionRest
+                    | right_angle Sum :GREATER ComparsionRest
+                    | less_or_eq Sum :LESS_OR_EQ ComparsionRest
+                    | greater_or_eq Sum :GREATER_OR_EQ ComparsionRest
                     | .
 Sum                -> Term SumRest
-                    | minus Term SumRest .
+                    | minus Term !negate SumRest .
 SumRest            -> plus Term :ADD SumRest
                     | minus Term :SUB SumRest
                     | .
@@ -64,7 +68,7 @@ TermRest           -> asterix Factor :MUL TermRest
 Factor             -> PrimaryExpr PostfixOp .
 PrimaryExpr        -> ident !pushSymbolValue
                     | ConstExpr
-				| left_par RValue right_par .
+                    | left_par RValue right_par .
 PostfixOp          -> left_bra Expression :LOAD right_bra PostfixOp
                     | left_par ParamList !writeCall right_par PostfixOp
                     | .

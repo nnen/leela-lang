@@ -231,6 +231,15 @@ SEMANTIC_ACTION(addArg)
 
 // Misc  
 
+SEMANTIC_ACTION(negate)
+{
+	_writer.writeInstruction(
+		AsmScanner::TOKEN_PUSH,
+		-1
+	);
+	_writer.writeInstruction(AsmScanner::TOKEN_MUL);
+}
+
 SEMANTIC_ACTION(pushNumber)
 {
 	_writer.writeInstruction(

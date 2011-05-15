@@ -162,6 +162,22 @@ void Machine::do_GREATER_OR_EQ()
 	push(new Boolean(b->lessThan(a) || b->equals(a)));
 }
 
+void Machine::do_AND()
+{
+	Ref<Boolean> b = pop()->toBoolean();
+	Ref<Boolean> a = pop()->toBoolean();
+	
+	push(new Boolean(a->getValue() && b->getValue()));
+}
+
+void Machine::do_OR()
+{
+	Ref<Boolean> b = pop()->toBoolean();
+	Ref<Boolean> a = pop()->toBoolean();
+	
+	push(new Boolean(a->getValue() || b->getValue()));
+}
+
 /* IO operations **************************************************************/
 
 void Machine::do_PRINT()

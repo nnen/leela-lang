@@ -13,6 +13,7 @@ enum Nonterminals {
 	PROGRAM,
 	STATEMENT,
 	FACTOR,
+	COMPARSION,
 	CONST_DECL_REST,
 	TERM_REST,
 	ASSIGNMENT,
@@ -29,8 +30,9 @@ enum Nonterminals {
 	EXPRESSION,
 	EXPRESSION_REST,
 	POSTFIX_OP,
-	ASSIGN_VAR,
+	COMPARSION_REST,
 	SUM_REST,
+	ASSIGN_VAR,
 	FUNCTION_PREAMBLE,
 	ELSE_STMT,
 	PRIMARY_EXPR,
@@ -49,6 +51,7 @@ Ref<Object> parseConstExpr(Ref<Object> inherited, vector<Ref<Object> > siblings)
 Ref<Object> parseProgram(Ref<Object> inherited, vector<Ref<Object> > siblings);
 Ref<Object> parseStatement(Ref<Object> inherited, vector<Ref<Object> > siblings);
 Ref<Object> parseFactor(Ref<Object> inherited, vector<Ref<Object> > siblings);
+Ref<Object> parseComparsion(Ref<Object> inherited, vector<Ref<Object> > siblings);
 Ref<Object> parseConstDeclRest(Ref<Object> inherited, vector<Ref<Object> > siblings);
 Ref<Object> parseTermRest(Ref<Object> inherited, vector<Ref<Object> > siblings);
 Ref<Object> parseAssignment(Ref<Object> inherited, vector<Ref<Object> > siblings);
@@ -65,8 +68,9 @@ Ref<Object> parseParamList(Ref<Object> inherited, vector<Ref<Object> > siblings)
 Ref<Object> parseExpression(Ref<Object> inherited, vector<Ref<Object> > siblings);
 Ref<Object> parseExpressionRest(Ref<Object> inherited, vector<Ref<Object> > siblings);
 Ref<Object> parsePostfixOp(Ref<Object> inherited, vector<Ref<Object> > siblings);
-Ref<Object> parseAssignVar(Ref<Object> inherited, vector<Ref<Object> > siblings);
+Ref<Object> parseComparsionRest(Ref<Object> inherited, vector<Ref<Object> > siblings);
 Ref<Object> parseSumRest(Ref<Object> inherited, vector<Ref<Object> > siblings);
+Ref<Object> parseAssignVar(Ref<Object> inherited, vector<Ref<Object> > siblings);
 Ref<Object> parseFunctionPreamble(Ref<Object> inherited, vector<Ref<Object> > siblings);
 Ref<Object> parseElseStmt(Ref<Object> inherited, vector<Ref<Object> > siblings);
 Ref<Object> parsePrimaryExpr(Ref<Object> inherited, vector<Ref<Object> > siblings);
@@ -97,6 +101,11 @@ void startFunction(
 	Match& matched,
 	Ref<Object>& result);
 void ifJump(
+	Ref<Object> inherited,
+	Match siblings,
+	Match& matched,
+	Ref<Object>& result);
+void negate(
 	Ref<Object> inherited,
 	Match siblings,
 	Match& matched,

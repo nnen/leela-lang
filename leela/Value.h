@@ -180,15 +180,24 @@ public:
 
 class Table : public Value {
 public:
-	class Iterator;
-	friend class Iterator;
-
-	typedef vector<Ref<Value> >           Array;
-	typedef map<int, vector<ValuePair>* > Map;
+	// class Iterator;
+	// friend class Iterator;
+	
+	typedef vector<Ref<Value> >      Array;
+	typedef multimap<int, ValuePair> Map;
+	// typedef map<int, vector<ValuePair>* > Map;
+	
 private:
-	vector<Ref<Value> >           _array;
-	map<int, vector<ValuePair>* > _table;
-
+	Array _array;
+	Map   _table;
+	
+	//vector<Ref<Value> >           _array;
+	//map<int, vector<ValuePair>* > _table;
+	
+	int getIntIndex(Ref<Value> key);
+	Map::iterator findInMap(Ref<Value> key);
+	bool removeFromMap(Ref<Value> key, Ref<Value>& value);
+	
 public:
 	Table() {}
 	virtual ~Table() {}
@@ -200,7 +209,7 @@ public:
 	void       set(Ref<Value> key, Ref<Value> value);
 	Ref<Value> get(Ref<Value> key, Ref<Value> deflt);
 	
-	int        getSize() { return _table.size(); }
+	int        getSize() { return _array.size() + _table.size(); }
 
 	/*
 	Iterator   begin();

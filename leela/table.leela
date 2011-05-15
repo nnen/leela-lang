@@ -18,5 +18,14 @@ begin
 	t.member := 4;
 	t["member"] := 4;
 	print t;
+	
+	t := table();
+	print t;
+	t[0] := 0;
+	print t;
+	print t[0];
+	t[0] := 1;
+	print t;
+	print t[0];
 end
 

@@ -23,7 +23,7 @@ begin
 	print "2! = " + fact(2, fact);
 	print "5! = " + fact(5, fact);
 	print "10! = " + fact(10, fact);
-
+	
 	fact := (lambda (inner): lambda (n): inner(n, inner))(fact);
 	
 	print "Simple combinator:";

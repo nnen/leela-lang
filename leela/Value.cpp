@@ -328,21 +328,48 @@ string String::charToHex(char c)
 
 /* Table **********************************************************************/
 
+int Table::getIntIndex(Ref<Value> key)
+{
+	Ref<Number> number = key.as<Number>();
+	if (number.isNull()) return -1;
+	return number->getValue();
+}
+
+Table::Map::iterator Table::findInMap(Ref<Value> key)
+{
+	int hash = key->getHash();
+	pair<Map::iterator, Map::iterator> range = _table.equal_range(hash);
+	
+	for (Map::iterator i = range.first; i != range.second; i++)
+		if (i->second.first->equals(key)) return i;
+	
+	return _table.end();
+}
+
+bool Table::removeFromMap(Ref<Value> key, Ref<Value>& value)
+{
+	Map::iterator item = findInMap(key);
+	if (item == _table.end()) return false;
+	
+	value = item->second.second;
+	_table.erase(item);
+	
+	return true;
+}
+
 Ref<String> Table::toString()
 {
 	stringstream s;
 	s << "table(";
-	// foreach (item, _array) {
-	// 	item->repr(s);
-	// 	s << ", ";
-	// }
-	foreach (hash, _table) {
-		foreach (pair, *(hash->second)) {
-			pair->first->repr(s);
-			s << ": ";
-			pair->second->repr(s);
-			s << ", ";
-		}
+	foreach (item, _array) {
+		(*item)->repr(s);
+		s << ", ";
+	}
+	foreach (pair, _table) {
+		pair->second.first->repr(s);
+		s << ": ";
+		pair->second.second->repr(s);
+		s << ", ";
 	}
 	s << ")";
 	return new String(s.str());
@@ -350,70 +377,55 @@ Ref<String> Table::toString()
 
 bool Table::hasKey(Ref<Value> key)
 {
-	Ref<Number> intIndex = key.as<Number>();
-	if (!intIndex.isNull() &&
-	    (intIndex->getValue() >= 0) &&
-	    ((unsigned int) intIndex->getValue() < _array.size()))
-		return true;
+	int index = getIntIndex(key);
+	if ((index >= 0) && ((unsigned int)index < _array.size())) return true;
 	
 	int hash = key->getHash();
 	
-	if (_table.count(hash) < 1) return false;
+	pair<Map::iterator, Map::iterator> range = _table.equal_range(hash);
 	
-	vector<ValuePair> * list = _table[hash];
-
-	foreach (pair, *list)
-		if (Value::equals(pair->first, key)) return true;
+	for (Map::iterator i = range.first; i != range.second; i++)
+		if (i->second.first->equals(key)) return true;
 	return false;
 }
 
 void Table::set(Ref<Value> key, Ref<Value> value)
 {
-	Ref<Number> intIndex = key.as<Number>();
-	if (!intIndex.isNull()) {
-		Integer i = intIndex->getValue();
-		if ((i >= 0) && ((unsigned int) i < _array.size())) {
-			_array[i] = value;
-		} else if (i == _array.size()) {
-			_array.push_back(value);
-			Ref<Value> next;
-			while (!(next = get(new Number(_array.size()), NULL)).isNull()) {
-				_array.push_back(next);
-			}
-		}
-	}
-	
-	int hash = key->getHash();
-	vector<ValuePair> * list = NULL;
-
-	if (_table.count(hash) < 1) {
-		list = new vector<ValuePair>();
-		list->push_back(make_pair(key, value));
-		_table[hash] = list;
+	int index = getIntIndex(key);
+	if ((index >= 0) && ((unsigned int)index < _array.size())) {
+		_array[index] = value;
 		return;
 	}
 	
-	list = _table[hash];
-	
-	for (unsigned int i = 0; i < list->size(); i++) {
-		if (Value::equals((*list)[i].first, key)) {
-			(*list)[i].second = value;
-			return;
-		}
+	if (index == (int)_array.size()) {
+		_array.push_back(value);
+		return;
 	}
-
-	list->push_back(make_pair(key, value));
+	
+	int hash = key->getHash();
+	
+	Map::iterator item = findInMap(key);
+	
+	if (item == _table.end()) {
+		_table.insert(make_pair(hash, make_pair(key, value)));
+	} else {
+		item->second.second = value;
+	}
 }
 
 Ref<Value> Table::get(Ref<Value> key, Ref<Value> dflt)
 {
+	int index = getIntIndex(key);
+	if ((index >= 0) && ((unsigned int)index < _array.size()))
+		return _array[index];
+	
 	int hash = key->getHash();
 	if (_table.count(hash) < 1) return dflt;
 	
-	vector<ValuePair> * list = _table[hash];
+	pair<Map::iterator, Map::iterator> range = _table.equal_range(hash);
 	
-	foreach (pair, *list)
-		if (Value::equals(pair->first, key)) return pair->second;
+	for (Map::iterator i = range.first; i != range.second; i++)
+		if (i->second.first->equals(key)) return i->second.second;
 	
 	return dflt;
 }

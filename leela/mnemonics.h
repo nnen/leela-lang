@@ -35,6 +35,9 @@ M( GREATER,       GREATER,       NOOP,         NOOP,          NOOP,          NOO
 M( LESS_OR_EQ,    LESS_OR_EQ,    NOOP,         NOOP,          NOOP,          NOOP           )
 M( GREATER_OR_EQ, GREATER_OR_EQ, NOOP,         NOOP,          NOOP,          NOOP           )
 
+M( AND,           AND,           NOOP,         NOOP,          NOOP,          NOOP           )
+M( OR,            OR,            NOOP,         NOOP,          NOOP,          NOOP           )
+
 M( PRINT,         PRINT,         PRINT,        PRINT,         PRINT,         PRINT          )
 M( DUMP,          DUMP,          NOOP,         NOOP,          NOOP,          NOOP           )
 M( DUMP_STACK,    NOOP,          DUMP_STACK,   NOOP,          NOOP,          NOOP           )

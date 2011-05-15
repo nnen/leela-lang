@@ -1,0 +1,40 @@
+
+var bubbleSort, swap, array;
+begin
+	swap := function (array, a, b):
+	var temp;
+	begin
+		temp := array[a];
+		array[a] := array[b];
+		array[b] := temp;
+	end;
+	
+	bubbleSort := function(array):
+	var continue, i;
+	begin
+		continue := true;
+		while continue do begin
+			i := 0;
+			continue := false;
+			while i < (size(array) - 1) do begin
+				if array[i] > array[i + 1] then begin
+					continue := true;
+					swap(array, i, i + 1);
+				end;
+				i := i + 1;
+			end;
+		end;
+	end;
+	
+	array := table();
+	array[0] := 8;
+	array[1] := 3;
+	array[2] := 1;
+	array[3] := 6;
+	array[4] := 2;
+	
+	print "Array: " + array;
+	bubbleSort(array);
+	print "Sorted array: " + array;
+end
+
