@@ -69,6 +69,7 @@ public:
 
 Ref<Value> makeTable(Machine& machine, vector<Ref<Value> > arguments);
 Ref<Value> getSize(Machine& machine, vector<Ref<Value> > arguments);
+Ref<Value> removeItem(Machine& machine, vector<Ref<Value> > arguments);
 
 class ActivationFrame : public Value {
 private:

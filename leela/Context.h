@@ -42,6 +42,8 @@ public:
 	Symbol(Ref<Context> context, string name, Type type);
 	Symbol(Ref<Context> context, string name, Type type, int index);
 	virtual ~Symbol() {}
+
+	const char * getTypeName() const;
 };
 
 class Context : public Object {
@@ -77,6 +79,7 @@ public:
 	int getFreeVarCount() { return _freeVarCount; }
 	
 	vector<Ref<Symbol> >& getFreeVars() { return _freeVars; }
+	map<string, Ref<Symbol> >& getSymbols() { return _symbols; }
 	
 	/**
 	 * Resets the context for another parser pass.

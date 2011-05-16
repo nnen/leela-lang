@@ -93,6 +93,20 @@ Ref<Value> getSize(Machine& machine, vector<Ref<Value> > arguments)
 	throw RuntimeError("Invalid argument(s).");
 }
 
+Ref<Value> removeItem(Machine& machine, vector<Ref<Value> > arguments)
+{
+	if (arguments.size() != 2)
+		throw RuntimeError("Invalid number of arguments.");
+
+	Ref<Table> table = (Ref<Table>) arguments[0];
+	Ref<Value> key = arguments[1];
+	Ref<Value> value = table->remove(key);
+	
+	if (value.isNull())
+		return None::getInstance();
+	return value;
+}
+
 /* ActivationFrame ************************************************************/
 
 ActivationFrame::ActivationFrame(Ref<Function> function)

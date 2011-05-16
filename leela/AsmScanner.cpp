@@ -50,9 +50,10 @@ int AsmScanner::get()
 void AsmScanner::skipWhitespace()
 {
 	while (isspace(peek())) get();
-	if (peek() == ';')
+	while (peek() == ';') {
 		while ((peek() != '\n') && (peek() >= 0)) get();
-	while (isspace(peek())) get();
+		while (isspace(peek())) get();
+	}
 }
 
 AsmScanner::Tokens AsmScanner::readToken()
@@ -150,6 +151,8 @@ AsmScanner::Tokens AsmScanner::readToken()
 		get();
 		return TOKEN_STRING;
 	}
+	
+	cerr << line << ": Unknown token starting with character \"" << (char) peek() << "\"." << endl;
 	
 	return TOKEN_UNKNOWN;
 }

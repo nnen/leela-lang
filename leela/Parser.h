@@ -63,34 +63,16 @@ private:
 	vector<string>     _nonterminals;
 	
 	Token peek() { return _lexer->peek(); }
-	Token accept() { return _lexer->get(); }
+	Token accept();
 	Token accept(Token::Type type);
-
-	/*
-	void startContext(vector<Ref<Object> >& match, Ref<Object>& result);
-	void endContext(vector<Ref<Object> >& match, Ref<Object>& result);
-	void startChunk(vector<Ref<Object> >& match, Ref<Object>& result);
-	void endChunk(vector<Ref<Object> >& match, Ref<Object>& result);
-	void startFunction(vector<Ref<Object> >& match, Ref<Object>& result);
-	void endFunction(vector<Ref<Object> >& match, Ref<Object>& result);
 	
-	void addLocal(vector<Ref<Object> >& match, Ref<Object>& result);
-	void allocLocals(vector<Ref<Object> >& match, Ref<Object>& result);
-	void addArg(vector<Ref<Object> >& match, Ref<Object>& result);
-	void addConst(vector<Ref<Object> >& match, Ref<Object>& result) {}
-	void pushNumber(vector<Ref<Object> >& match, Ref<Object>& result);
-	void pushString(Ref<Object> inherited, Match siblings, Match& match, Ref<Object>& result);
-	void getSymbolValue(vector<Ref<Object> >& match, Ref<Object>& result);
-	*/
-
-	//void syntaxError(vector<Ref<Object> >& match, Ref<Object>& result);
 	void unexpectedToken(Ref<Object> inherited,
 	                     Match siblings,
 	                     Match& match,
 					 Ref<Object>& result);
-
+	
 	void onUndefinedSymbol(string name);
-
+	
 public:
 	Parser() {}
 	virtual ~Parser() {}

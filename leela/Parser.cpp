@@ -40,6 +40,18 @@ void SyntaxError::print(ostream& output)
 	output << _message.str();
 }
 
+Token Parser::accept()
+{
+	int oldLine = _lexer->peek().location.line;
+	Token token = _lexer->get();
+	if (oldLine != _lexer->peek().location.line) {
+		stringstream s;
+		s << "Line: " << _lexer->peek().location.line;
+		_writer.writeComment(s.str());
+	}
+	return token;
+}
+
 Token Parser::accept(Token::Type type)
 {
 	if (peek().type != type) {
@@ -87,6 +99,13 @@ SEMANTIC_ACTION(writeStrings)
 		//if (str->isNull()) throw Exception();
 		//_writer.write(*str);
 	}
+}
+
+SEMANTIC_ACTION(writeLine)
+{
+	stringstream s;
+	s << "Line: " << _lexer->peek().location.line;
+	_writer.writeComment(s.str());
 }
 
 // If-Else statement
@@ -151,9 +170,24 @@ SEMANTIC_ACTION(startFunction)
 {
 	_writer.startChunk();
 	_contexts->next();
-	// _writer.pushLabel("function");
-	// _writer.writeLabel(_writer.pushLabel("function"));
 	_writer.writeLabel(_contexts->current()->getLabel());
+}
+
+SEMANTIC_ACTION(dumpSymbols)
+{
+	_writer.writeComment("Symbols:");
+	map<string, Ref<Symbol> >& symbols = _contexts->current()->getSymbols();
+	foreach (pair, symbols) {
+		stringstream s;
+		s << pair->second->name
+		  << "  " << pair->second->index
+		  << "  " << pair->second->getTypeName();
+		if (pair->second->type == Symbol::FREE_VAR) {
+			s << "  (" << pair->second->freeVar->contextId
+			  << ":" << pair->second->freeVar->index << ")";
+		}
+		_writer.writeComment(s.str());
+	}
 }
 
 SEMANTIC_ACTION(endFunction)
@@ -332,11 +366,19 @@ SEMANTIC_ACTION(assignVar)
 SEMANTIC_ACTION(pushSibling)
 {
 	Ref<String> ident = (Ref<String>) siblings[0];
+	Ref<Symbol> symbol = _contexts->current()->getSymbol(ident->getValue());
 	
-	_writer.writeInstruction(
-		AsmScanner::TOKEN_LOAD,
-		_contexts->current()->getSymbol(ident->getValue())->index
-	);
+	if (symbol->type == Symbol::CONSTANT) {
+		_writer.writeInstruction(
+			AsmScanner::TOKEN_LOAD_CONST,
+			symbol->index
+		);
+	} else {
+		_writer.writeInstruction(
+			AsmScanner::TOKEN_LOAD,
+			symbol->index
+		);
+	}
 }
 
 SEMANTIC_ACTION(identToString)

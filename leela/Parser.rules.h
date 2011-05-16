@@ -175,6 +175,11 @@ void writeStrings(
 	Match siblings,
 	Match& matched,
 	Ref<Object>& result);
+void dumpSymbols(
+	Ref<Object> inherited,
+	Match siblings,
+	Match& matched,
+	Ref<Object>& result);
 void addLocal(
 	Ref<Object> inherited,
 	Match siblings,
@@ -201,6 +206,11 @@ void returnPlusOne(
 	Match& matched,
 	Ref<Object>& result);
 void pushString(
+	Ref<Object> inherited,
+	Match siblings,
+	Match& matched,
+	Ref<Object>& result);
+void writeLine(
 	Ref<Object> inherited,
 	Match siblings,
 	Match& matched,

@@ -19,13 +19,18 @@ begin
 	t["member"] := 4;
 	print t;
 	
+	print remove(t, "member");
+	print t;
+	
 	t := table();
-	print t;
 	t[0] := 0;
+	t[1] := 1;
+	t[2] := 2;
+	t[3] := 3;
+	t[4] := 4;
+	t[5] := 5;
 	print t;
-	print t[0];
-	t[0] := 1;
+	remove(t, 3);
 	print t;
-	print t[0];
 end
 

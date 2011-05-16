@@ -1,4 +1,4 @@
-Program            -> !startContext Preamble !allocLocals CompoundStmt :STOP !writeChunks !writeStrings .
+Program            -> !startContext Preamble !dumpSymbols !allocLocals CompoundStmt :STOP !writeChunks !writeStrings .
 
 Preamble           -> ConstDecl Preamble
                     | VarDecl Preamble
@@ -31,15 +31,15 @@ Assignment         -> ident AssignVar .
 AssignVar          -> assign RValue !assignVar
                     | !pushSibling period ident !identToString AssignItem
                     | !pushSibling left_bra RValue right_bra AssignItem
-                    | !pushSibling left_par ParamList !writeCall right_par .
+                    | !pushSibling left_par ParamList !writeCall right_par :POP .
 AssignItem         -> assign RValue :STORE
                     | :LOAD period ident !identToString AssignItem
                     | :LOAD left_bra RValue right_bra AssignItem
-				| :LOAD left_par ParamList !writeCall right_par .
+				| :LOAD left_par ParamList !writeCall right_par :POP .
 
 RValue             -> Expression
-                    | function !startFunction left_par ArgNameList right_par colon FunctionPreamble !allocLocals Statement :PUSH :RETURN !endFunction
-                    | lambda !startFunction left_par ArgNameList right_par colon RValue :RETURN !endFunction .
+                    | function !startFunction left_par ArgNameList right_par colon FunctionPreamble !dumpSymbols !writeLine !allocLocals Statement :PUSH :RETURN !endFunction
+                    | lambda !startFunction left_par ArgNameList right_par colon !dumpSymbols !writeLine RValue :RETURN !endFunction .
 
 FunctionPreamble   -> VarDecl FunctionPreamble
                     | .

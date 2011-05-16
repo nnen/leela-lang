@@ -68,6 +68,17 @@ Symbol::Symbol(Ref<Context> context, string name, Type type, int index)
 {
 }
 
+const char * Symbol::getTypeName() const
+{
+	switch (type) {
+	case CONSTANT: return "CONSTANT";
+	case FREE_VAR: return "FREE VAR";
+	case PARAM:    return "PARAM";
+	case LOCAL:    return "LOCAL";
+	default:       return "???";
+	}
+}
+
 Context::Context(int id)
 	: Object(),
 	  _id(id),
@@ -203,7 +214,7 @@ Ref<Symbol> Context::getSymbol(string name)
 		symbol = _symbols[name];
 	else
 		symbol = addFreeVar(name);
-
+	
 	if (!symbol.isNull() && (symbol->type == Symbol::FREE_VAR) && symbol->indexInvalid) {
 		symbol->index        = _nextFreeVar++;
 		symbol->indexInvalid = false;

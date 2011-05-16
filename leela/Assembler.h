@@ -37,12 +37,12 @@ private:
 	void doUnexpectedToken(AsmScanner::Tokens token, string message);
 	void doUnexpectedToken(AsmScanner::Tokens token);
 	
-	void readInput();
-	void readLine();
-	void readLabelLine();
-	void readLabel();
-	void readInstruction();
-	void readString();
+	bool readInput();
+	bool readLine();
+	bool readLabelLine();
+	bool readLabel();
+	bool readInstruction();
+	bool readString();
 	
 	void setInput(istream &input);
 
