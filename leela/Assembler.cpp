@@ -153,6 +153,8 @@ bool Assembler::readInstruction()
 		return false;
 		break;
 	}
+	
+	return false;
 }
 
 bool Assembler::readString()

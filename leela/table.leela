@@ -32,5 +32,8 @@ begin
 	print t;
 	remove(t, 3);
 	print t;
+	
+	t[3] := 3;
+	print t
 end
 

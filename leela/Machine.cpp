@@ -495,14 +495,14 @@ void Machine::loadBytecode(Ref<Input> input)
 	reset();
 }
 
-void Machine::dumpStack(ostream &output, int limit)
+void Machine::dumpStack(ostream &output, int limit) const
 {
 	CallStack::const_reverse_iterator it = _callStack.rbegin();
 	int offset = _callStack.size() - limit - 1;
 	
 	output << "Call stack:" << endl;
 	
-	for (it = _callStack.rbegin(); it != _callStack.rend() && limit > 0; it++, limit--) {
+	for (it = _callStack.rbegin(); it < _callStack.rend() && limit > 0; it++, limit--) {
 		output << "[Frame " << setw(3) << right << offset + limit << "]: ";
 		(*it)->print(output);
 		output << endl;
@@ -515,7 +515,7 @@ void Machine::dumpStack(ostream &output, int limit)
 	output << endl;
 }
 
-void Machine::dumpConstants(ostream &output)
+void Machine::dumpConstants(ostream &output) const
 {
 	UInteger index = 0;
 	for (index = 0; index < _constants.size(); index++) {

@@ -85,8 +85,8 @@ public:
 	
 	void loadBytecode(Ref<Input> input);
 	
-	void dumpStack(ostream &output, int limit = 10);
-	void dumpConstants(ostream &output);
+	void dumpStack(ostream &output, int limit = 10) const;
+	void dumpConstants(ostream &output) const;
 	
 	static bool getBuiltinIndex(string ident, UInteger& index);
 };

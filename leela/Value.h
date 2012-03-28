@@ -25,6 +25,25 @@ class Number;
 class String;
 class ActivationFrame;
 
+template<int size>
+class PtrTraits_;
+
+template<>
+class PtrTraits_<4> {
+public:
+	typedef int32_t Integer;
+};
+
+template<>
+class PtrTraits_<8> {
+public:
+	typedef int64_t Integer;
+};
+
+typedef PtrTraits_<sizeof(void*)> PtrTraits;
+
+typedef PtrTraits::Integer Hash;
+
 /* Value **********************************************************************/
 
 class Value : public Object {
@@ -39,7 +58,7 @@ public:
 	virtual Ref<Number>  toNumber();
 	virtual Ref<String>  toString();
 	
-	virtual int          getHash() const;
+	virtual Hash         getHash() const;
 	
 	virtual Ref<Value>   add(Ref<Value> other);
 	virtual Ref<Value>   subtract(Ref<Value> other);
@@ -78,7 +97,7 @@ public:
 	virtual Ref<Number>  toNumber();
 	virtual Ref<String>  toString();
 	
-	virtual int          getHash() const;
+	virtual Hash         getHash() const;
 	
 	virtual bool         lessThan(Ref<Value> other);
 };
@@ -125,6 +144,7 @@ public:
 	virtual ~Boolean() {}
 	
 	virtual void print(ostream& output);
+	virtual void repr(ostream& output);
 
 	virtual Ref<Boolean> toBoolean() { return this; }
 	virtual Ref<Number>  toNumber();
@@ -145,9 +165,9 @@ public:
 	virtual Ref<Boolean> toBoolean();
 	virtual Ref<Number>  toNumber() { return this; }
 	virtual Ref<String>  toString();
-
-	virtual int          getHash() const { return (int) getValue(); }
-
+	
+	virtual Hash         getHash() const { return (Hash) getValue(); }
+	
 	static Ref<Number> parse(string str);
 };
 
@@ -166,7 +186,7 @@ public:
 	virtual Ref<Number>  toNumber();
 	virtual Ref<String>  toString() { return this; }
 	
-	virtual int          getHash() const { return (int) getValue().size(); }
+	virtual Hash         getHash() const { return (Hash) getValue().size(); }
 	
 	virtual Ref<Value>   add(Ref<Value> other);
 	
@@ -181,7 +201,7 @@ public:
 class Table : public Value {
 public:
 	typedef vector<Ref<Value> >      Array;
-	typedef multimap<int, ValuePair> Map;
+	typedef multimap<Hash, ValuePair> Map;
 	
 private:
 	Array _array;

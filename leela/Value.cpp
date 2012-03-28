@@ -42,9 +42,9 @@ Ref<String> Value::toString()
 	throw ConversionError(this, "String");
 }
 
-int Value::getHash() const
+Hash Value::getHash() const
 {
-	return (int) this;
+	return (Hash) this;
 }
 
 Ref<Value> Value::add(Ref<Value> other)
@@ -156,7 +156,7 @@ Ref<String> None::toString()
 	return new String("None");
 }
 
-int None::getHash() const
+Hash None::getHash() const
 {
 	return 0;
 }
@@ -176,6 +176,11 @@ void Boolean::print(ostream& output)
 		output << "true";
 	else
 		output << "false";
+}
+
+void Boolean::repr(ostream& output)
+{
+	print(output);
 }
 
 Ref<Number> Boolean::toNumber()
@@ -337,7 +342,7 @@ int Table::getIntIndex(Ref<Value> key)
 
 Table::Map::iterator Table::findInMap(Ref<Value> key)
 {
-	int hash = key->getHash();
+	Hash hash = key->getHash();
 	pair<Map::iterator, Map::iterator> range = _table.equal_range(hash);
 	
 	for (Map::iterator i = range.first; i != range.second; i++)
@@ -387,7 +392,7 @@ bool Table::hasKey(Ref<Value> key)
 	int index = getIntIndex(key);
 	if ((index >= 0) && ((unsigned int)index < _array.size())) return true;
 	
-	int hash = key->getHash();
+	Hash hash = key->getHash();
 	
 	pair<Map::iterator, Map::iterator> range = _table.equal_range(hash);
 	
@@ -410,7 +415,7 @@ void Table::set(Ref<Value> key, Ref<Value> value)
 		return;
 	}
 	
-	int hash = key->getHash();
+	Hash hash = key->getHash();
 	
 	Map::iterator item = findInMap(key);
 	
@@ -427,7 +432,7 @@ Ref<Value> Table::get(Ref<Value> key, Ref<Value> dflt)
 	if ((index >= 0) && ((unsigned int)index < _array.size()))
 		return _array[index];
 	
-	int hash = key->getHash();
+	Hash hash = key->getHash();
 	if (_table.count(hash) < 1) return dflt;
 	
 	pair<Map::iterator, Map::iterator> range = _table.equal_range(hash);
