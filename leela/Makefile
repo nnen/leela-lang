@@ -28,6 +28,7 @@ clean:
 	\rm -f leela-asm
 	\rm -f leela-test
 	\rm -f tags
+	\rm -f leela.tar.gz
 	\rm -f *.o *.a
 
 rebuild:
@@ -37,10 +38,14 @@ rebuild:
 test: leela-test
 	clear; ./leela-test | tee test.txt
 
+pack:
+	$(MAKE) clean
+	tar czf leela.tar.gz ./*
+
 Dependencies: *.cpp
 	g++ -MM *.cpp > Dependencies
 
-.PHONY: build clean rebuild test
+.PHONY: build clean rebuild test pack
 
 tags: *.cpp *.h .ctags
 	ctags --c++-kinds=-vm *.cpp *.h
