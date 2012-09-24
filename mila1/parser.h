@@ -1,4 +1,0 @@
-/* parser.h */
-
-void Program();
-
