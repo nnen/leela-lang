@@ -30,7 +30,7 @@ saved to a file named `your_leela_file.lasm` and the bytecode will be saved to
 Implementation
 --------------
 
-*** Parser and Compiler
+### Parser and Compiler
 
 The Leela parser (`src/Parser.h`, `src/Parser.cpp`, `src/Parser.rules.h` and
 `src/Parser.rules.cpp`) is an attributed almost-LL(1) recursive descent parser,
@@ -49,7 +49,7 @@ representation is defined in `src/Bytecode.h` and `src/Bytecode.cpp`) by the
 assembler (`src/Assembler.h` and `src/Assembler.cpp`).
 
 
-*** Virtual Machine
+### Virtual Machine
 
 The virtual machine is implemented by the `Machine` class (`src/Machine.h` and
 `src/Machine.cpp`).  The virtual machine reads bytecode instructions and
