@@ -372,18 +372,26 @@ void Table::fillArray()
 Ref<String> Table::toString()
 {
 	stringstream s;
-	s << "table(";
+	bool first = true;
+	
+	s << "[";
 	foreach (item, _array) {
+		if (first)
+			first = false;
+		else
+			s << ", ";
 		(*item)->repr(s);
-		s << ", ";
 	}
 	foreach (pair, _table) {
+		if (first)
+			first = false;
+		else
+			s << ", ";
 		pair->second.first->repr(s);
 		s << ": ";
 		pair->second.second->repr(s);
-		s << ", ";
 	}
-	s << ")";
+	s << "]";
 	return new String(s.str());
 }
 
@@ -403,6 +411,12 @@ bool Table::hasKey(Ref<Value> key)
 
 void Table::set(Ref<Value> key, Ref<Value> value)
 {
+	if (key.isNull()) {
+		_array.push_back(value);
+		fillArray();
+		return;
+	}
+	
 	int index = getIntIndex(key);
 	if ((index >= 0) && ((unsigned int)index < _array.size())) {
 		_array[index] = value;

@@ -50,6 +50,7 @@ M( STORE,         SET_ITEM,      STORE,        NOOP,          NOOP,          STO
 M( ALLOC,         NOOP,          ALLOC,        NOOP,          NOOP,          NOOP           )
 
 M( MAKE,          MAKE_TABLE,    NOOP,         MAKE_FUNCTION, MAKE_FUNCTION, NOOP           )
+M( APPEND,        APPEND_ITEM,   NOOP,         NOOP,          NOOP,          NOOP           )
 M( LOAD_CLOSURE,  NOOP,          LOAD_CLOSURE, NOOP,          NOOP,          NOOP           )
 
 #undef M

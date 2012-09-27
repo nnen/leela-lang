@@ -229,7 +229,7 @@ void Machine::do_STORE(UInteger variable)
 {
 	if (_callStack.empty())
 		throw RuntimeError("Call stack is empty.");
-
+	
 	Ref<Value> value = pop();
 	_callStack.back()->getVar(variable)->setValue(value);
 }
@@ -326,6 +326,17 @@ void Machine::do_GET_ITEM()
 		throw RuntimeError("Invalid key error.");
 
 	push(value);
+}
+
+void Machine::do_APPEND_ITEM()
+{
+	Ref<Value> value = pop();
+	Ref<Table> table = pop().as<Table>();
+	
+	if (table.isNull())
+		throw RuntimeError("Value could not be converted to Table.");
+	
+	table->set(NULL, value);
 }
 
 /******************************************************************************/

@@ -83,6 +83,7 @@ OC1( LOAD_CLOSURE,   uinteger, UInteger  )
 OC(  MAKE_TABLE                          )
 OC(  SET_ITEM                            )
 OC(  GET_ITEM                            )
+OC(  APPEND_ITEM                         )
 
 #undef OC
 #undef OC1

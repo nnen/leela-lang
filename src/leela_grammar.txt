@@ -68,10 +68,21 @@ TermRest           -> asterix Factor :MUL TermRest
 Factor             -> PrimaryExpr PostfixOp .
 PrimaryExpr        -> ident !pushSymbolValue
                     | ConstExpr
-                    | left_par RValue right_par .
+                    | left_par RValue right_par
+                    | left_bra :MAKE ArrayItemList right_bra .
 PostfixOp          -> left_bra Expression :LOAD right_bra PostfixOp
                     | left_par ParamList !writeCall right_par PostfixOp
                     | .
+
+ArrayItemList      -> ArrayItem ArrayItemListRest
+                    | .
+ArrayItemListRest  -> comma ArrayItem ArrayItemListRest
+                    | .
+ArrayItem          -> :DUP ident !identToString ArrayItemRest
+                    | :DUP RValue ArrayItemRest
+                    | .
+ArrayItemRest      -> colon RValue :STORE
+                    | :APPEND .
 
 ParamList          -> RValue ParamListRest !returnPlusOne
                     | !returnZero .

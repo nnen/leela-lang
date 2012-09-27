@@ -263,6 +263,13 @@ SEMANTIC_ACTION(addArg)
 	_contexts->current()->addParam(match.back().as<String>()->getValue());
 }
 
+// Associative array literals  
+
+// SEMANTIC_ACTION(createArray)
+// {
+// 	_writer.writeInstruction(AsmScanner::TOKEN_MAKE);
+// }
+
 // Misc  
 
 SEMANTIC_ACTION(negate)

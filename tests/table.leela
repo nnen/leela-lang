@@ -34,6 +34,18 @@ begin
 	print t;
 	
 	t[3] := 3;
-	print t
+	print t;
+	
+	t := [1, 2, 3, "something": "else", "other"];
+	t := [
+		"a": 1,
+		"b": 2,
+		c: 3,
+		t: 4,
+	];
+	print "=====";
+	print t;
+	
+	print "end"
 end
 
