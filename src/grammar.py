@@ -76,7 +76,7 @@ class Terminal(Symbol):
 		'ident',
 		'number',
 	])
-		
+	
 	@property
 	def is_epsilon(self):
 		return self.name == "epsilon"
